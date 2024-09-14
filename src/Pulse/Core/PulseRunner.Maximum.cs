@@ -1,6 +1,3 @@
-
-using System.Collections.Concurrent;
-
 using Pulse.Configuration;
 
 namespace Pulse.Core;
@@ -10,16 +7,14 @@ public sealed class MaximumPulse : AbstractPulse {
     }
 
     public override async Task<PulseResult> RunAsync(CancellationToken cancellationToken = default) {
-        ConcurrentStack<RequestResult> stack = new();
+        PulseMonitor monitor = new(_requestHandler, _config.Requests);
 
 		var tasks = Enumerable.Range(0, _config.Requests)
 					.AsParallel()
-					.Select(_ => _requestHandler(cancellationToken));
+					.Select(async _ => await monitor.Observe(cancellationToken));
 
 		await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        return new PulseResult {
-            Results = stack
-        };
+        return monitor.Consolidate();
     }
 }

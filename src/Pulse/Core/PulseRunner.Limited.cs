@@ -11,20 +11,18 @@ public sealed class LimitedPulse : AbstractPulse {
 
 
     public override async Task<PulseResult> RunAsync(CancellationToken cancellationToken = default) {
-        ConcurrentStack<RequestResult> stack = new();
-
         var options = new ParallelOptions {
             CancellationToken = cancellationToken,
             MaxDegreeOfParallelism = _config.ConcurrentRequests
         };
 
+        PulseMonitor monitor = new(_requestHandler, _config.Requests);
+
         await Parallel.ForEachAsync(Enumerable.Range(0, _config.Requests),
                                     options,
-                                    async (_, token) => stack.Push(await _requestHandler(token)))
+                                    async (_, token) => await monitor.Observe(token))
                                     .ConfigureAwait(false);
 
-        return new PulseResult {
-            Results = stack
-        };
+        return monitor.Consolidate();
     }
 }

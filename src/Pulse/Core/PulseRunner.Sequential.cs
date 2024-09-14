@@ -11,14 +11,12 @@ public sealed class SequentialPulse : AbstractPulse {
 
 
     public override async Task<PulseResult> RunAsync(CancellationToken cancellationToken = default) {
-        ConcurrentStack<RequestResult> stack = new();
+        PulseMonitor monitor = new(_requestHandler, _config.Requests);
 
         for (int i = 0; i < _config.Requests; i++) {
-            stack.Push(await _requestHandler(cancellationToken).ConfigureAwait(false));
+            await monitor.Observe(cancellationToken).ConfigureAwait(false);
         }
 
-        return new PulseResult {
-            Results = stack
-        };
+        return monitor.Consolidate();
     }
 }
