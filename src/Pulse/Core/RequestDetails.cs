@@ -1,4 +1,4 @@
-namespace Pulse.Command;
+namespace Pulse.Core;
 
 public class RequestDetails {
 	public static readonly RequestDetails Default = new();

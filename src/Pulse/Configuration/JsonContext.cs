@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-using Pulse.Command;
+using Pulse.Core;
 
 namespace Pulse.Configuration;
 

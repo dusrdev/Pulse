@@ -4,9 +4,9 @@ using PrettyConsole;
 using Sharpify.CommandLineInterface;
 using Sharpify;
 
-namespace Pulse.Command;
+namespace Pulse.Core;
 
-public sealed class DefaultCommand : Sharpify.CommandLineInterface.Command {
+public sealed class DefaultCommand : Command {
 	public override string Name => "Default";
 
 	public override string Description => "Runs the test";
@@ -56,9 +56,9 @@ public sealed class DefaultCommand : Sharpify.CommandLineInterface.Command {
 		string requestPath = Utils.Env.PathInBaseDirectory("request.json");
 		var requestDetails = Loader.Load(requestPath, JsonContext.Default.RequestDetails, RequestDetails.Default);
 
-		var pulseRunner = PulseRunner.Match(config);
+		using var pulseRunner = AbstractPulse.Match(config, requestDetails);
 
-		var pulseResult = await pulseRunner.RunAsync(requestDetails);
+		var pulseResult = await pulseRunner.RunAsync();
 
 		return 0;
 	}
