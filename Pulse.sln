@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulse", "src\Pulse\Pulse.csproj", "{5DDF256A-024B-4FE1-BCE0-01393F4B1043}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulse.Tests.Unit", "tests\Pulse.Tests.Unit\Pulse.Tests.Unit.csproj", "{A1811053-0F3C-49E4-95A0-1FD1CCE2835A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DDF256A-024B-4FE1-BCE0-01393F4B1043}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DDF256A-024B-4FE1-BCE0-01393F4B1043}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DDF256A-024B-4FE1-BCE0-01393F4B1043}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DDF256A-024B-4FE1-BCE0-01393F4B1043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1811053-0F3C-49E4-95A0-1FD1CCE2835A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1811053-0F3C-49E4-95A0-1FD1CCE2835A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1811053-0F3C-49E4-95A0-1FD1CCE2835A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1811053-0F3C-49E4-95A0-1FD1CCE2835A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
