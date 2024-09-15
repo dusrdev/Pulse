@@ -75,6 +75,7 @@ public sealed class PulseMonitor {
 
 	public PulseResult Consolidate() => new() {
 		Results = _results,
+		TotalCount = _count,
 		SuccessRate = (double)_2xx / _count * 100,
 		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
