@@ -2,9 +2,9 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 
-using static PrettyConsole.Console;
 using PrettyConsole;
 using Sharpify;
+using System.Runtime.CompilerServices;
 
 namespace Pulse.Core;
 
@@ -58,6 +58,7 @@ public sealed class PulseMonitor {
 		}
 	}
 
+	[MethodImpl(MethodImplOptions.Synchronized)]
 	private void PrintMetrics() {
 		var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
@@ -66,11 +67,9 @@ public sealed class PulseMonitor {
 
 		double sr = (double)_2xx / _count * 100;
 
-		OverrideCurrentLine(
-		$"""
-		Completed: {_count}/{_requests}, SR: {sr:##.00}%, ETA: {remaining}
-		1xx: {_1xx}, 2xx: {_2xx}, 3xx: {_3xx}, 4xx: {_4xx}, 5xx: {_5xx}, others: {_others}
-		""" * Color.Yellow);
+		Extensions.OverrideCurrent2Lines([
+		"Completed: ", $"{_count}/{_requests}" * Color.Yellow, ", SR: ", $"{sr:0.##}%" * Extensions.GetPercentageBasedColor(sr), ", ETA: ", remaining.ToString() * Color.Yellow],
+		["1xx: ", _1xx.ToString() * Color.White, ", 2xx: ", _2xx.ToString() * Color.Green, ", 3xx: ", _3xx.ToString() * Color.Yellow, ", 4xx: ", _4xx.ToString() * Color.Red, ", 5xx: ", _5xx.ToString() * Color.Red, ", others: ", _others.ToString() * Color.Magenta]);
 	}
 
 	public PulseResult Consolidate() => new() {

@@ -6,7 +6,7 @@ public sealed class MaximumPulse : AbstractPulse {
     public MaximumPulse(Config config, RequestDetails requestDetails) : base(config, requestDetails) {
     }
 
-    public override async Task<PulseResult> RunAsync(CancellationToken cancellationToken = default) {
+    public override async Task RunAsync(CancellationToken cancellationToken = default) {
         PulseMonitor monitor = new(_requestHandler, _config.Requests);
 
 		var tasks = Enumerable.Range(0, _config.Requests)
@@ -15,6 +15,12 @@ public sealed class MaximumPulse : AbstractPulse {
 
 		await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        return monitor.Consolidate();
+        var result = monitor.Consolidate();
+
+        var summary = new PulseSummary {
+            Result = result
+        };
+
+        summary.Summarize();
     }
 }

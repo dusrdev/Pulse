@@ -1,25 +1,30 @@
 using Pulse.Configuration;
-using static PrettyConsole.Console;
-using PrettyConsole;
 using Sharpify.CommandLineInterface;
 using Sharpify;
 
 namespace Pulse.Core;
 
-public sealed class DefaultCommand : Command {
-	public override string Name => "Default";
+public sealed class SendCommand : Command {
+	public static readonly SendCommand Singleton = new();
 
-	public override string Description => "Runs the test";
+	private SendCommand() {}
+
+	public override string Name => "Send";
+
+	public override string Description => "Main and default command";
 
 	public override string Usage =>
 	"""
+	[Options]
+
 	Options:
-		-d				: use config from file			(flag:default=off)
-		-n				: number of total requests  	(int:default=100)
-		-c				: concurrency mode 				(Maximum/Limited/Disabled:default=Maximum)
-		-b				: amount of concurrent requests (int>1) applies to -c Limited
-		-r				: use resilience				(flag:default=off)
-		--no-export 	: don't export results			(flag)
+	  -d            : use config from file	(flag:default=off)
+	  -n            : number of total requests	(int:default=100)
+	  -c            : concurrency mode	(Maximum/Limited/Disabled:default=Maximum)
+	  -b            : amount of concurrent requests (int>1) applies to -c Limited
+	  -r            : use resilience	(flag:default=off)
+	  -e            : export check full equality (slower)
+	  --no-export   : don't export results	(flag)
 	""";
 
 	public static Config CreateFromArgs(Arguments args) {
@@ -29,6 +34,9 @@ public sealed class DefaultCommand : Command {
 		bool useResilience = args.HasFlag("r");
 		bool bypassExport = args.HasFlag("no-export");
 
+		if (args.HasFlag("e")) {
+			Services.Instance.Parameters.UseFullEquality = true;
+		}
 
 		if (concurrencyMode is not ConcurrencyMode.Limited) {
 			concurrentRequests = 1;
@@ -58,7 +66,7 @@ public sealed class DefaultCommand : Command {
 
 		using var pulseRunner = AbstractPulse.Match(config, requestDetails);
 
-		var pulseResult = await pulseRunner.RunAsync();
+		await pulseRunner.RunAsync();
 
 		return 0;
 	}

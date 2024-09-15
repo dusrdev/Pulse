@@ -13,6 +13,8 @@ public sealed class Services : IDisposable {
 
 	public readonly JsonSerializerOptions JsonOptions;
 
+	public readonly Parameters Parameters;
+
 	private Services() {
 		JsonOptions = new() {
 			WriteIndented = true,
@@ -23,6 +25,8 @@ public sealed class Services : IDisposable {
 		};
 
 		JsonOptions.Converters.Add(new ExceptionConverter());
+
+		Parameters = new();
 	}
 
 	public void Dispose() {

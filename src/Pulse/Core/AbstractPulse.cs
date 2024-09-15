@@ -47,15 +47,18 @@ public abstract class AbstractPulse : IDisposable {
 	/// </summary>
 	/// <param name="requestMessage"></param>
 	/// <returns></returns>
-	public abstract Task<PulseResult> RunAsync(CancellationToken cancellationToken = default);
+	public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
 	private async Task<RequestResult> SendRequest(HttpRequestMessage message, CancellationToken cancellationToken = default) {
 		HttpStatusCode? statusCode = null;
 		string? content = null;
 		Exception? exception = null;
+		int threadId = 0;
 		var start = Stopwatch.GetTimestamp();
 		try {
-			using var response = await _httpClient.SendAsync(message, cancellationToken);
+			var messageCopy = await message.CloneAsync();
+			threadId = Environment.CurrentManagedThreadId;
+			using var response = await _httpClient.SendAsync(messageCopy, cancellationToken);
 			statusCode = response.StatusCode;
 			content = await response.Content.ReadAsStringAsync(cancellationToken);
 		} catch (Exception e) {
@@ -66,7 +69,8 @@ public abstract class AbstractPulse : IDisposable {
 			StatusCode = statusCode,
 			Content = content,
 			Duration = duration,
-			Exception = exception
+			Exception = exception,
+			ExecutingThreadId = threadId
 		};
 	}
 

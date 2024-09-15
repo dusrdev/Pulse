@@ -1,6 +1,3 @@
-
-using System.Collections.Concurrent;
-
 using Pulse.Configuration;
 
 namespace Pulse.Core;
@@ -10,7 +7,7 @@ public sealed class LimitedPulse : AbstractPulse {
     }
 
 
-    public override async Task<PulseResult> RunAsync(CancellationToken cancellationToken = default) {
+    public override async Task RunAsync(CancellationToken cancellationToken = default) {
         var options = new ParallelOptions {
             CancellationToken = cancellationToken,
             MaxDegreeOfParallelism = _config.ConcurrentRequests
@@ -23,6 +20,12 @@ public sealed class LimitedPulse : AbstractPulse {
                                     async (_, token) => await monitor.Observe(token))
                                     .ConfigureAwait(false);
 
-        return monitor.Consolidate();
+        var result = monitor.Consolidate();
+
+        var summary = new PulseSummary {
+            Result = result
+        };
+
+        summary.Summarize();
     }
 }
