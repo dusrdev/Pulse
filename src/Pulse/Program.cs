@@ -2,6 +2,8 @@
 
 using Sharpify.CommandLineInterface;
 
+//TODO: Add graceful cancellation
+
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
 					.AddCommand(CustomCommand.Singleton)
