@@ -30,10 +30,19 @@ public readonly struct PulseSummary {
 		NewLine();
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
-			WriteLine("	", $"{kvp.Key}" * Color.Yellow, $" --> {kvp.Value}");
+			if (kvp.Key is 0) {
+				WriteLine("	", $"{kvp.Key}" * Color.Yellow, $" --> {kvp.Value}	[StatusCode 0 = Exception]");
+			} else {
+				WriteLine("	", $"{kvp.Key}" * Color.Yellow, $" --> {kvp.Value}");
+			}
 		}
 		NewLine();
 
-		//TODO: export
+		int count = 1;
+		foreach (var uniqueRequest in uniqueRequests) {
+			Exporter.ExportHtml(uniqueRequest, count++);
+		}
+
+		WriteLine("Unique request results exported to \"results\" folder");
 	}
 }
