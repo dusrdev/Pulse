@@ -1,8 +1,16 @@
-﻿using Pulse.Core;
+﻿using Pulse.Configuration;
+using Pulse.Core;
 
 using Sharpify.CommandLineInterface;
 
-//TODO: Add graceful cancellation
+using static PrettyConsole.Console;
+using PrettyConsole;
+
+System.Console.CancelKeyPress += (_, _) => {
+	Services.Instance.Parameters.CancellationTokenSource.Cancel();
+	ClearNextLines(4);
+	WriteLine("Canceled gracefully." * Color.DarkYellow);
+};
 
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
