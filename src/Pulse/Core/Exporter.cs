@@ -8,7 +8,11 @@ using Sharpify;
 namespace Pulse.Core;
 
 public static class Exporter {
-  public static void ExportHtml(RequestResult result, int index) {
+  public static async Task ExportHtmlAsync(RequestResult result, int index, CancellationToken token = default) {
+    if (token.IsCancellationRequested) {
+      return;
+    }
+
     string basePath = Utils.Env.PathInBaseDirectory("results/");
     Directory.CreateDirectory(basePath);
     string path = Path.Join(basePath, $"{index}.html");
@@ -23,6 +27,19 @@ public static class Exporter {
       content = (result.Content ?? "").Replace('\'', '\"');
     }
     HttpStatusCode statusCode = result.StatusCode ?? 0;
+    string contentFrame = content == "" ?
+"""
+<div>
+<h2>Content: Empty...</h2>
+</div>
+"""
+:
+$$"""
+<div class="iframe-container">
+<h2>{{frameTitle}}</h2>
+<iframe title="Content" width="100%" height="100%" srcdoc='{{content}}'></iframe>
+</div>
+""";
     string body =
 $$"""
 <!DOCTYPE html>
@@ -66,12 +83,9 @@ iframe {
 <div>
 <h2>StatusCode: {{statusCode}} ({{(int)statusCode}})</h2>
 </div>
-<div class="iframe-container">
-<h2>{{frameTitle}}</h2>
-<iframe title="Content" width="100%" height="100%" srcdoc='{{content}}'></iframe>
-</div>
+{{contentFrame}}
 </body>
 """;
-    File.WriteAllText(path, body);
+    await File.WriteAllTextAsync(path, body, token);
   }
 }

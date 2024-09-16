@@ -3,13 +3,13 @@ using Pulse.Configuration;
 namespace Pulse.Core;
 
 public sealed class MaximumPulse : AbstractPulse {
-    public MaximumPulse(Config config, RequestDetails requestDetails) : base(config, requestDetails) {
+    public MaximumPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
     }
 
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
-        PulseMonitor monitor = new(_requestHandler, _config.Requests);
+        PulseMonitor monitor = new(_requestHandler, _parameters.Requests);
 
-		var tasks = Enumerable.Range(0, _config.Requests)
+		var tasks = Enumerable.Range(0, _parameters.Requests)
 					.AsParallel()
 					.Select(async _ => await monitor.Observe(cancellationToken));
 
@@ -18,9 +18,14 @@ public sealed class MaximumPulse : AbstractPulse {
         var result = monitor.Consolidate();
 
         var summary = new PulseSummary {
-            Result = result
+            Result = result,
+            Parameters = _parameters
         };
 
-        summary.Summarize();
+        var (exportRequired, uniqueRequests) = summary.Summarize();
+
+        if (exportRequired) {
+            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests!, cancellationToken);
+        }
     }
 }

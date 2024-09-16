@@ -3,19 +3,19 @@ using Pulse.Configuration;
 namespace Pulse.Core;
 
 public sealed class LimitedPulse : AbstractPulse {
-    public LimitedPulse(Config config, RequestDetails requestDetails) : base(config, requestDetails) {
+    public LimitedPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
     }
 
 
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
         var options = new ParallelOptions {
             CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = _config.ConcurrentRequests
+            MaxDegreeOfParallelism = _parameters.ConcurrentRequests
         };
 
-        PulseMonitor monitor = new(_requestHandler, _config.Requests);
+        PulseMonitor monitor = new(_requestHandler, _parameters.Requests);
 
-        await Parallel.ForEachAsync(Enumerable.Range(0, _config.Requests),
+        await Parallel.ForEachAsync(Enumerable.Range(0, _parameters.Requests),
                                     options,
                                     async (_, token) => await monitor.Observe(token))
                                     .ConfigureAwait(false);
@@ -23,9 +23,14 @@ public sealed class LimitedPulse : AbstractPulse {
         var result = monitor.Consolidate();
 
         var summary = new PulseSummary {
-            Result = result
+            Result = result,
+            Parameters = _parameters
         };
 
-        summary.Summarize();
+        var (exportRequired, uniqueRequests) = summary.Summarize();
+
+        if (exportRequired) {
+            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests!, cancellationToken);
+        }
     }
 }

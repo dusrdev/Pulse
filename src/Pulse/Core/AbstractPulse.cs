@@ -7,38 +7,40 @@ namespace Pulse.Core;
 
 public abstract class AbstractPulse : IDisposable {
 	protected readonly HttpClient _httpClient;
-	protected readonly Config _config;
+	protected readonly Parameters _parameters;
 	protected readonly Func<CancellationToken, Task<RequestResult>> _requestHandler;
 	private readonly ResiliencePipeline? _resiliencePipeline;
 
 	private bool _disposed;
 
-	public static AbstractPulse Match(Config config, RequestDetails requestDetails) {
-		return config.ConcurrencyMode switch {
-			ConcurrencyMode.Maximum => new MaximumPulse(config, requestDetails),
-			ConcurrencyMode.Limited => new LimitedPulse(config, requestDetails),
-			ConcurrencyMode.Disabled => new SequentialPulse(config, requestDetails),
+	public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails) {
+		return parameters.ConcurrencyMode switch {
+			ConcurrencyMode.Maximum => new MaximumPulse(parameters, requestDetails),
+			ConcurrencyMode.Limited => new LimitedPulse(parameters, requestDetails),
+			ConcurrencyMode.Disabled => new SequentialPulse(parameters, requestDetails),
 			_ => throw new InvalidOperationException("ConcurrencyMode doesn't match options")
 		};
 	}
 
-	protected AbstractPulse(Config config, RequestDetails requestDetails) {
-		_config = config;
+	protected AbstractPulse(Parameters parameters, RequestDetails requestDetails) {
+		_parameters = parameters;
 		_httpClient = PulseHttpClientFactory.Create(requestDetails);
 
 		HttpRequestMessage message = requestDetails.RequestMessage ?? RequestDetails.Default.RequestMessage!;
 
-		if (!config.UseResilience) {
-			_requestHandler = async token => await SendRequest(message, token);
+		bool saveContent = !_parameters.NoExport;
+
+		if (!_parameters.UseResilience) {
+			_requestHandler = async token => await SendRequest(message, saveContent, token);
 			return;
 		}
 
-		int diameter = config.ConcurrentRequests;
+		int diameter = _parameters.ConcurrentRequests;
 		if (diameter == 1) {
 			diameter = Environment.ProcessorCount;
 		}
 		_resiliencePipeline = new(diameter);
-		_requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(message, token), token);
+		_requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(message, saveContent, token), token);
 	}
 
 
@@ -49,7 +51,7 @@ public abstract class AbstractPulse : IDisposable {
 	/// <returns></returns>
 	public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
-	private async Task<RequestResult> SendRequest(HttpRequestMessage message, CancellationToken cancellationToken = default) {
+	private async Task<RequestResult> SendRequest(HttpRequestMessage message, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode? statusCode = null;
 		string? content = null;
 		Exception? exception = null;
@@ -60,7 +62,9 @@ public abstract class AbstractPulse : IDisposable {
 			threadId = Environment.CurrentManagedThreadId;
 			using var response = await _httpClient.SendAsync(messageCopy, cancellationToken);
 			statusCode = response.StatusCode;
-			content = await response.Content.ReadAsStringAsync(cancellationToken);
+			if (saveContent) {
+				content = await response.Content.ReadAsStringAsync(cancellationToken);
+			}
 		} catch (Exception e) {
 			exception = e;
 		}
