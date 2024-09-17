@@ -11,7 +11,8 @@ namespace Pulse.Configuration;
 							 WriteIndented = true,
 							 UseStringEnumConverter = true)]
 [JsonSerializable(typeof(ConcurrencyMode))]
-[JsonSerializable(typeof(Config))]
+[JsonSerializable(typeof(ParametersBase))]
+[JsonSerializable(typeof(Parameters))]
 [JsonSerializable(typeof(HttpRequestMessage))]
 [JsonSerializable(typeof(RequestDetails))]
 public partial class JsonContext : JsonSerializerContext {

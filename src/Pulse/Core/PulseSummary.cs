@@ -3,6 +3,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
+using Sharpify;
 
 namespace Pulse.Core;
 
@@ -31,7 +32,7 @@ public class PulseSummary {
 			avgDuration += multiplier * duration;
 
 			var statusCode = result.StatusCode ?? 0;
-			statusCounter[statusCode] = statusCounter.GetValueOrDefault(statusCode) + 1;
+			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 		}
 
 		ClearNextLines(3);
@@ -65,7 +66,7 @@ public class PulseSummary {
 		if (count == 0) {
 			WriteLine("No unique results found to export..." * Color.Yellow);
 			return;
-		} else if (count is 1) {
+		} else if (count == 1) {
 			await Exporter.ExportHtmlAsync(uniqueRequests.First(), 1, token);
 			WriteLine("1" * Color.Cyan, $" unique request exported to ", "results" * Color.Yellow, " folder");
 		} else {

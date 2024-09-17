@@ -21,10 +21,16 @@ public sealed class CustomCommand : Command {
 	[url] [Options]
 
 	Options:
+
+	Proxy Parameters:
 	  --proxy       : proxy host
 	  --username    : proxy username
 	  --password    : proxy password
+
+	Default Parameters:
 	  -d            : use config from file	(flag:default=off)
+
+	Custom Parameters:
 	  -n            : number of total requests	(int:default=100)
 	  -c            : concurrency mode	(Maximum/Limited/Disabled:default=Maximum)
 	  -b            : amount of concurrent requests (int>1) applies to -c Limited
@@ -32,30 +38,6 @@ public sealed class CustomCommand : Command {
 	  -e            : export check full equality (slower)
 	  --no-export   : don't export results	(flag)
 	""";
-
-	public static Config CreateConfigFromArgs(Arguments args) {
-		args.TryGetValue("n", 100, out int n);
-		args.TryGetEnum("c", ConcurrencyMode.Maximum, true, out var concurrencyMode);
-		args.TryGetValue("b", 1, out int concurrentRequests);
-		bool useResilience = args.HasFlag("r");
-		bool bypassExport = args.HasFlag("no-export");
-
-		if (args.HasFlag("e")) {
-			Services.Instance.Parameters.UseFullEquality = true;
-		}
-
-		if (concurrencyMode is not ConcurrencyMode.Limited) {
-			concurrentRequests = 1;
-		}
-
-		return new Config {
-			Requests = n,
-			ConcurrencyMode = concurrencyMode,
-			ConcurrentRequests = concurrentRequests,
-			UseResilience = useResilience,
-			BypassExport = bypassExport
-		};
-	}
 
 	public static Result<RequestDetails> CreateRequestFromArgs(Arguments args) {
 		if (!args.TryGetValue(0, out string url)) {
@@ -90,13 +72,12 @@ public sealed class CustomCommand : Command {
 	}
 
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
-		Config config;
-
 		if (args.HasFlag("d")) {
-			string configPath = Utils.Env.PathInBaseDirectory("config.json");
-			config = Loader.Load(configPath, JsonContext.Default.Config, Config.Default);
+			string paramsPath = Utils.Env.PathInBaseDirectory("parameters.json");
+			var parameters = Loader.Load(paramsPath, JsonContext.Default.ParametersBase, ParametersBase.Default);
+			Services.Instance.Parameters.ModifyFromBase(parameters);
 		} else {
-			config = CreateConfigFromArgs(args);
+			Services.Instance.Parameters.ModifyFromArgs(args);
 		}
 
 		var requestResult = CreateRequestFromArgs(args);
@@ -105,7 +86,9 @@ public sealed class CustomCommand : Command {
 			return 1;
 		}
 
-		using var pulseRunner = AbstractPulse.Match(config, requestResult.Value!);
+		var @params = Services.Instance.Parameters;
+
+		using var pulseRunner = AbstractPulse.Match(@params, requestResult.Value!);
 
 		await pulseRunner.RunAsync();
 

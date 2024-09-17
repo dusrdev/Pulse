@@ -2,11 +2,17 @@ using System.Buffers;
 
 using static PrettyConsole.Console;
 using PrettyConsole;
-using System.Net;
+using Pulse.Configuration;
+using Sharpify.CommandLineInterface;
 
 namespace Pulse.Core;
 
 public static class Extensions {
+	/// <summary>
+	/// Clones an http request message
+	/// </summary>
+	/// <param name="request"></param>
+	/// <returns></returns>
 	public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage request) {
 		var clone = new HttpRequestMessage(request.Method, request.RequestUri);
 
@@ -38,6 +44,11 @@ public static class Extensions {
 		return clone;
 	}
 
+	/// <summary>
+	/// Overrides 2 current lines for progress
+	/// </summary>
+	/// <param name="output1"></param>
+	/// <param name="output2"></param>
 	public static void OverrideCurrent2Lines(ReadOnlySpan<ColoredOutput> output1, ReadOnlySpan<ColoredOutput> output2) {
         using var memoryOwner = MemoryPool<char>.Shared.Rent(System.Console.BufferWidth);
         Span<char> emptyLine = memoryOwner.Memory.Span.Slice(0, System.Console.BufferWidth);
@@ -52,6 +63,12 @@ public static class Extensions {
         System.Console.SetCursorPosition(0, currentLine);
     }
 
+	/// <summary>
+	/// Returns a text color based on percentage
+	/// </summary>
+	/// <param name="percentage"></param>
+	/// <returns></returns>
+	/// <exception cref="ArgumentOutOfRangeException"></exception>
 	public static Color GetPercentageBasedColor(double percentage) {
 		if (percentage is < 0 or > 100) {
 			throw new ArgumentOutOfRangeException(nameof(percentage), "Must be between 0 and 100");
@@ -64,6 +81,11 @@ public static class Extensions {
 		};
 	}
 
+	/// <summary>
+	/// Returns a text color based on http status code
+	/// </summary>
+	/// <param name="statusCode"></param>
+	/// <returns></returns>
 	public static Color GetStatusCodeBasedColor(int statusCode) {
 		return statusCode switch {
 			< 100 => Color.Magenta,
@@ -73,5 +95,39 @@ public static class Extensions {
 			< 600 => Color.Red,
 			_ => Color.Magenta
 		};
+	}
+
+	/// <summary>
+	/// Modifies parameters using args
+	/// </summary>
+	/// <param name="parameters"></param>
+	/// <param name="args"></param>
+	public static void ModifyFromArgs(this Parameters parameters, Arguments args) {
+		args.TryGetValue("n", 100, out int n);
+		parameters.Requests = n;
+		args.TryGetEnum("c", ConcurrencyMode.Maximum, true, out var concurrencyMode);
+		parameters.ConcurrencyMode = concurrencyMode;
+		args.TryGetValue("b", 1, out int concurrentRequests);
+		if (concurrencyMode is not ConcurrencyMode.Limited) {
+			concurrentRequests = 1;
+		}
+		parameters.ConcurrentRequests = concurrentRequests;
+		parameters.UseResilience = args.HasFlag("r");
+		parameters.NoExport = args.HasFlag("no-export");
+		parameters.UseFullEquality = args.HasFlag("e");
+	}
+
+	/// <summary>
+	/// Modifies parameters using args
+	/// </summary>
+	/// <param name="parameters"></param>
+	/// <param name="@base"></param>
+	public static void ModifyFromBase(this Parameters parameters, ParametersBase @base) {
+		parameters.Requests = @base.Requests;
+		parameters.ConcurrencyMode = @base.ConcurrencyMode;
+		parameters.ConcurrentRequests = @base.ConcurrentRequests;
+		parameters.UseResilience = @base.UseResilience;
+		parameters.UseFullEquality = @base.UseFullEquality;
+		parameters.NoExport = @base.NoExport;
 	}
 }

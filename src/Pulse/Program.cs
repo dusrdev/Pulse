@@ -7,7 +7,6 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 //TODO: Ensure all correct dependencies are passed in constructors.
-//TODO: Replace all config design with parameters that can used in DI
 
 System.Console.CancelKeyPress += (_, _) => {
 	Services.Instance.Parameters.CancellationTokenSource.Cancel();

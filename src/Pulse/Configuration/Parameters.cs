@@ -3,7 +3,9 @@ namespace Pulse.Configuration;
 /// <summary>
 /// Execution parameters
 /// </summary>
-public sealed class Parameters {
+public class ParametersBase {
+	public static readonly ParametersBase Default = new();
+
 	/// <summary>
 	/// Sets the concurrency mode
 	/// </summary>
@@ -33,7 +35,12 @@ public sealed class Parameters {
 	/// Check full equality for response content
 	/// </summary>
 	public bool UseFullEquality { get; set; }
+}
 
+/// <summary>
+/// Execution parameters
+/// </summary>
+public sealed class Parameters : ParametersBase {
 	/// <summary>
 	/// Application-wide cancellation token source
 	/// </summary>
