@@ -8,7 +8,7 @@ using Sharpify;
 namespace Pulse.Core;
 
 public static class Exporter {
-  public static async Task ExportHtmlAsync(RequestResult result, int index, CancellationToken token = default) {
+  public static async Task ExportHtmlAsync(Response result, int index, CancellationToken token = default) {
     if (token.IsCancellationRequested) {
       return;
     }

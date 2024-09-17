@@ -8,7 +8,7 @@ namespace Pulse.Core;
 public abstract class AbstractPulse : IDisposable {
 	protected readonly HttpClient _httpClient;
 	protected readonly Parameters _parameters;
-	protected readonly Func<CancellationToken, Task<RequestResult>> _requestHandler;
+	protected readonly Func<CancellationToken, Task<Response>> _requestHandler;
 	private readonly ResiliencePipeline? _resiliencePipeline;
 
 	private bool _disposed;
@@ -51,7 +51,7 @@ public abstract class AbstractPulse : IDisposable {
 	/// <returns></returns>
 	public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
-	private async Task<RequestResult> SendRequest(HttpRequestMessage message, bool saveContent, CancellationToken cancellationToken = default) {
+	private async Task<Response> SendRequest(HttpRequestMessage message, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode? statusCode = null;
 		string? content = null;
 		Exception? exception = null;
@@ -69,7 +69,7 @@ public abstract class AbstractPulse : IDisposable {
 			exception = e;
 		}
 		TimeSpan duration = Stopwatch.GetElapsedTime(start);
-		return new RequestResult {
+		return new Response {
 			StatusCode = statusCode,
 			Content = content,
 			Duration = duration,

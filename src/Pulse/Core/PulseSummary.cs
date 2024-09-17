@@ -16,16 +16,18 @@ public class PulseSummary {
 	/// </summary>
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
 	[MethodImpl(MethodImplOptions.Synchronized)]
-	public (bool exportRequired, HashSet<RequestResult>? uniqueRequests) Summarize() {
-		HashSet<RequestResult>? uniqueRequests = Parameters.NoExport
+	public (bool exportRequired, HashSet<Response>? uniqueRequests) Summarize() {
+		HashSet<Response>? uniqueRequests = Parameters.NoExport
 												? null
 												: new(RequestResultWithExceptionComparer.Singleton);
-		Dictionary<HttpStatusCode, int> statusCounter = new();
+		Dictionary<HttpStatusCode, int> statusCounter = [];
+		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
 		double multiplier = 1 / (double)Result.TotalCount;
 
 		foreach (var result in Result.Results) {
 			uniqueRequests?.Add(result);
+			uniqueThreadIds.Add(result.ExecutingThreadId);
 			var duration = result.Duration.TotalMilliseconds;
 			minDuration = Math.Min(minDuration, duration);
 			maxDuration = Math.Max(maxDuration, duration);
@@ -37,6 +39,8 @@ public class PulseSummary {
 
 		ClearNextLines(3);
 		WriteLine("Statistics:" * Color.Green);
+		WriteLine("Total duration: ", Result.TotalDuration.Format() * Color.Yellow);
+		WriteLine("Threads used: ", uniqueThreadIds.Count.ToString() * Color.Yellow);
 		WriteLine("Success Rate: ", $"{Result.SuccessRate:0.##}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate));
 		WriteLine("Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red);
 		WriteLine("Status codes:");
@@ -60,7 +64,7 @@ public class PulseSummary {
 	/// <param name="uniqueRequests"></param>
 	/// <param name="token"></param>
 	/// <returns></returns>
-	public static async Task ExportUniqueRequestsAsync(HashSet<RequestResult> uniqueRequests, CancellationToken token = default) {
+	public static async Task ExportUniqueRequestsAsync(HashSet<Response> uniqueRequests, CancellationToken token = default) {
 		var count = uniqueRequests.Count;
 
 		if (count == 0) {

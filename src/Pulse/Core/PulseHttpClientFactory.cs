@@ -6,12 +6,12 @@ public static class PulseHttpClientFactory {
 	public static HttpClient Create(RequestDetails details) {
 		if (details.BypassProxy) {
 			return CreateDefault();
-		} else {
-			if (details.ProxyHost is null) {
-				return CreateDefault();
-			}
-			return CreateWithProxy(details.ProxyHost, details.ProxyUsername, details.ProxyPassword);
 		}
+
+		if (details.ProxyHost is null) {
+			return CreateDefault();
+		}
+		return CreateWithProxy(details.ProxyHost, details.ProxyUsername, details.ProxyPassword);
 	}
 
 	private static HttpClient CreateDefault() {
