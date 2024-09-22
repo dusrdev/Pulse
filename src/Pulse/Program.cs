@@ -8,11 +8,7 @@ using PrettyConsole;
 
 //TODO: Ensure all correct dependencies are passed in constructors.
 
-System.Console.CancelKeyPress += (_, _) => {
-	Services.Instance.Parameters.CancellationTokenSource.Cancel();
-	ClearNextLines(4);
-	WriteLine("Canceled gracefully." * Color.DarkYellow);
-};
+System.Console.CancelKeyPress += (_, _) => Services.Instance.Parameters.CancellationTokenSource.Cancel();
 
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
@@ -27,4 +23,19 @@ var cli = CliRunner.CreateBuilder()
 					})
 					.Build();
 
-return await cli.RunAsync(args);
+try {
+	return await cli.RunAsync(args);
+} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
+	ClearNextLines(4);
+	WriteLine("Canceled requested and handled gracefully." * Color.DarkYellow);
+	return 1;
+} catch (Exception e) {
+	WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);
+	NewLine();
+	WriteLine("Type: ", e.GetType().Name * Color.Yellow);
+	WriteLine("Message: ", e.Message * Color.Yellow);
+	if (e.StackTrace is not null) {
+		WriteLine("Stack Trace: " * Color.Yellow, e.StackTrace);
+	}
+	return 1;
+}
