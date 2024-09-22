@@ -4,14 +4,17 @@ namespace Pulse.Core;
 
 public static class PulseHttpClientFactory {
 	public static HttpClient Create(RequestDetails details) {
-		if (details.BypassProxy) {
+		var proxy = details.Proxy;
+
+		if (proxy.Bypass) {
 			return CreateDefault();
 		}
 
-		if (details.ProxyHost is null) {
+		if (proxy.Host is null) {
 			return CreateDefault();
 		}
-		return CreateWithProxy(details.ProxyHost, details.ProxyUsername, details.ProxyPassword);
+
+		return CreateWithProxy(proxy);
 	}
 
 	private static HttpClient CreateDefault() {
@@ -19,13 +22,13 @@ public static class PulseHttpClientFactory {
 		return new HttpClient(handler);
 	}
 
-	private static HttpClient CreateWithProxy(string host, string? username, string? password) {
-		var proxy = new WebProxy(host);
+	private static HttpClient CreateWithProxy(Proxy proxyDetails) {
+		var proxy = new WebProxy(proxyDetails.Host);
 
-		if (username is not null && password is not null) {
+		if (proxyDetails.Username is not null && proxyDetails.Password is not null) {
 			proxy.Credentials = new NetworkCredential {
-				UserName = username,
-				Password = password
+				UserName = proxyDetails.Username,
+				Password = proxyDetails.Password
 			};
 		}
 
