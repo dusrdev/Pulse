@@ -4,6 +4,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 using Pulse.Configuration;
 using Sharpify.CommandLineInterface;
+using System.Collections.Concurrent;
 
 namespace Pulse.Core;
 
@@ -129,5 +130,15 @@ public static class Extensions {
 		parameters.UseResilience = @base.UseResilience;
 		parameters.UseFullEquality = @base.UseFullEquality;
 		parameters.NoExport = @base.NoExport;
+	}
+
+	public static ConcurrentStack<HttpRequestMessage> CreateMessages(this Request request, int count) {
+		ConcurrentStack<HttpRequestMessage> messages = new();
+
+		while (count-- > 0) { // Optimized for Arm64 Branch-Decrement-Equal-0
+			messages.Push(request.CreateMessage());
+		}
+
+		return messages;
 	}
 }
