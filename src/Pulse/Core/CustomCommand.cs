@@ -47,27 +47,42 @@ public sealed class CustomCommand : Command {
 
 		if (!args.TryGetValue("proxy", out string proxy)) {
 			WriteLine("Bypassing proxy");
-			return Result.Ok(new RequestDetails() {
-				BypassProxy = true,
-				RequestMessage = new(HttpMethod.Get, url)
+			return Result.Ok(new RequestDetails {
+				Proxy = new Proxy {
+					Bypass = true,
+				},
+				Request = new Request {
+					Url = url,
+					Method = HttpMethod.Get
+				}
 			});
 		}
 
 		if (!(args.TryGetValue("username", out string username) && args.TryGetValue("password", out string password))) {
 			WriteLine("Using proxy without auth");
-			return Result.Ok(new RequestDetails() {
-				BypassProxy = false,
-				ProxyHost = proxy,
-				RequestMessage = new(HttpMethod.Get, url)
+			return Result.Ok(new RequestDetails {
+				Proxy = new Proxy {
+					Bypass = false,
+					Host = proxy
+				},
+				Request = new Request {
+					Url = url,
+					Method = HttpMethod.Get
+				}
 			});
 		}
 
-		return Result.Ok(new RequestDetails() {
-			BypassProxy = false,
-			ProxyHost = proxy,
-			ProxyUsername = username,
-			ProxyPassword = password,
-			RequestMessage = new(HttpMethod.Get, url)
+		return Result.Ok(new RequestDetails {
+			Proxy = new Proxy {
+				Bypass = false,
+				Host = proxy,
+				Username = username,
+				Password = password
+			},
+			Request = new Request {
+				Url = url,
+				Method = HttpMethod.Get
+			}
 		});
 	}
 
