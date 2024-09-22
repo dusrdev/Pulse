@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 
@@ -10,6 +11,7 @@ public abstract class AbstractPulse : IDisposable {
 	protected readonly Parameters _parameters;
 	protected readonly Func<CancellationToken, Task<Response>> _requestHandler;
 	private readonly ResiliencePipeline? _resiliencePipeline;
+	protected readonly ConcurrentStack<HttpRequestMessage> _messages;
 
 	private bool _disposed;
 
@@ -26,12 +28,12 @@ public abstract class AbstractPulse : IDisposable {
 		_parameters = parameters;
 		_httpClient = PulseHttpClientFactory.Create(requestDetails);
 
-		HttpRequestMessage message = requestDetails.RequestMessage ?? RequestDetails.Default.RequestMessage!;
+		_messages = requestDetails.Request.CreateMessages(_parameters.ConcurrentRequests);
 
 		bool saveContent = !_parameters.NoExport;
 
 		if (!_parameters.UseResilience) {
-			_requestHandler = async token => await SendRequest(message, saveContent, token);
+			_requestHandler = async token => await SendRequest(_messages, _httpClient, saveContent, token);
 			return;
 		}
 
@@ -40,9 +42,8 @@ public abstract class AbstractPulse : IDisposable {
 			diameter = Environment.ProcessorCount;
 		}
 		_resiliencePipeline = new(diameter);
-		_requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(message, saveContent, token), token);
+		_requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(_messages, _httpClient, saveContent, token), token);
 	}
-
 
 	/// <summary>
 	/// Run the pulse async
@@ -51,22 +52,26 @@ public abstract class AbstractPulse : IDisposable {
 	/// <returns></returns>
 	public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
-	private async Task<Response> SendRequest(HttpRequestMessage message, bool saveContent, CancellationToken cancellationToken = default) {
+	private static async Task<Response> SendRequest(ConcurrentStack<HttpRequestMessage> messages, HttpClient httpClient,bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode? statusCode = null;
 		string? content = null;
 		Exception? exception = null;
 		int threadId = 0;
+		if (!messages.TryPop(out var message)) {
+			throw new Exception("Failed to pop message from stack");
+		}
 		var start = Stopwatch.GetTimestamp();
 		try {
-			var messageCopy = await message.CloneAsync();
 			threadId = Environment.CurrentManagedThreadId;
-			using var response = await _httpClient.SendAsync(messageCopy, cancellationToken);
+			using var response = await httpClient.SendAsync(message, cancellationToken);
 			statusCode = response.StatusCode;
 			if (saveContent) {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
 		} catch (Exception e) {
 			exception = e;
+		} finally {
+			message?.Dispose();
 		}
 		TimeSpan duration = Stopwatch.GetElapsedTime(start);
 		return new Response {
