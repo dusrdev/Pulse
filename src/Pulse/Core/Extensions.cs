@@ -132,6 +132,12 @@ public static class Extensions {
 		parameters.NoExport = @base.NoExport;
 	}
 
+	/// <summary>
+	/// Creates a stack of messages
+	/// </summary>
+	/// <param name="request"></param>
+	/// <param name="count"></param>
+	/// <returns></returns>
 	public static ConcurrentStack<HttpRequestMessage> CreateMessages(this Request request, int count) {
 		ConcurrentStack<HttpRequestMessage> messages = new();
 
@@ -140,5 +146,16 @@ public static class Extensions {
 		}
 
 		return messages;
+	}
+
+	/// <summary>
+	/// Configures SSL handling
+	/// </summary>
+	/// <param name="handler"></param>
+	/// <param name="proxy"></param>
+	public static void ConfigureSSLHandling(this SocketsHttpHandler handler, Proxy proxy) {
+		if (proxy.IgnoreSSL) {
+			handler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+		}
 	}
 }

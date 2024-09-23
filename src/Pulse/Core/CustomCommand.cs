@@ -23,6 +23,7 @@ public sealed class CustomCommand : Command {
 	Options:
 
 	Proxy Parameters:
+	  --ignore-ssl  : ignore ssl verification (flag:default=off)
 	  --proxy       : proxy host
 	  --username    : proxy username
 	  --password    : proxy password
@@ -45,11 +46,14 @@ public sealed class CustomCommand : Command {
 			return Result.Fail();
 		}
 
+		bool ignoreSSL = args.HasFlag("ignore-ssl");
+
 		if (!args.TryGetValue("proxy", out string proxy)) {
 			WriteLine("Bypassing proxy");
 			return Result.Ok(new RequestDetails {
 				Proxy = new Proxy {
 					Bypass = true,
+					IgnoreSSL = ignoreSSL
 				},
 				Request = new Request {
 					Url = url,
@@ -63,7 +67,8 @@ public sealed class CustomCommand : Command {
 			return Result.Ok(new RequestDetails {
 				Proxy = new Proxy {
 					Bypass = false,
-					Host = proxy
+					IgnoreSSL = ignoreSSL,
+					Host = proxy,
 				},
 				Request = new Request {
 					Url = url,
@@ -75,6 +80,7 @@ public sealed class CustomCommand : Command {
 		return Result.Ok(new RequestDetails {
 			Proxy = new Proxy {
 				Bypass = false,
+				IgnoreSSL = ignoreSSL,
 				Host = proxy,
 				Username = username,
 				Password = password

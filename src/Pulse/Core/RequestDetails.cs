@@ -30,6 +30,11 @@ public class Proxy {
 	public bool Bypass { get; set; } = true;
 
 	/// <summary>
+	/// Ignore SSL errors
+	/// </summary>
+	public bool IgnoreSSL { get; set; }
+
+	/// <summary>
 	/// Host
 	/// </summary>
 	public string? Host { get; set; }
