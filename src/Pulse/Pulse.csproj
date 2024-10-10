@@ -11,9 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PrettyConsole" Version="2.1.1" />
-    <PackageReference Include="Sharpify" Version="2.2.0" />
-    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.3.0" />
+    <PackageReference Include="Sharpify" Version="2.4.0-Alpha" />
+    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.4.0-Alpha" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="/Volumes/Prime/repos/PrettyConsole/PrettyConsole/PrettyConsole.csproj" />
   </ItemGroup>
 
 </Project>

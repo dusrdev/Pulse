@@ -95,7 +95,8 @@ public sealed class CustomCommand : Command {
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
 		if (args.HasFlag("d")) {
 			string paramsPath = Utils.Env.PathInBaseDirectory("parameters.json");
-			var parameters = Loader.Load(paramsPath, JsonContext.Default.ParametersBase, ParametersBase.Default);
+			using var fromFile = new SerializableObject<ParametersBase>(paramsPath, ParametersBase.Default, JsonContext.Default.ParametersBase);
+			var parameters = fromFile.Value;
 			Services.Instance.Parameters.ModifyFromBase(parameters);
 		} else {
 			Services.Instance.Parameters.ModifyFromArgs(args);

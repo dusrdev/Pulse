@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 
+using static PrettyConsole.Console;
 using PrettyConsole;
 using Sharpify;
 using System.Runtime.CompilerServices;
@@ -21,6 +22,8 @@ public sealed class PulseMonitor {
 	/// The handler used to run a request
 	/// </summary>
 	private readonly Func<CancellationToken, Task<Response>> _handler;
+
+	private readonly char[] _etaBuffer = new char[30];
 
 	/// <summary>
 	/// Total number of required requests
@@ -107,14 +110,38 @@ public sealed class PulseMonitor {
 	private void PrintMetrics() {
 		var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
-		double eta = elapsed / _count * (_requests - _count);
-		var remaining = TimeSpan.FromMilliseconds(eta).ToRemainingDuration();
+		var eta = TimeSpan.FromMilliseconds(elapsed / _count * (_requests - _count));
 
-		double sr = (double)_2xx / _count * 100;
+		double sr = Math.Round((double)_2xx / _count * 100, 2);
 
-		Extensions.OverrideCurrent2Lines([
-		"Completed: ", $"{_count}/{_requests}" * Color.Yellow, ", SR: ", $"{sr:0.##}%" * Extensions.GetPercentageBasedColor(sr), ", ETA: ", remaining.ToString() * Color.Yellow],
-		["1xx: ", _1xx.ToString() * Color.White, ", 2xx: ", _2xx.ToString() * Color.Green, ", 3xx: ", _3xx.ToString() * Color.Yellow, ", 4xx: ", _4xx.ToString() * Color.Red, ", 5xx: ", _5xx.ToString() * Color.Red, ", others: ", _others.ToString() * Color.Magenta]);
+		var cursor = System.Console.CursorTop;
+		// Line 1
+		Error.Write("Completed: ");
+		WriteError(_count, Color.Yellow, Color.DefaultBackgroundColor);
+		Error.Write('/');
+		WriteError(_requests, Color.Yellow, Color.DefaultBackgroundColor);
+		Error.Write(", SR: ");
+		WriteError(sr, Extensions.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
+		Error.Write("%, ETA: ");
+		WriteError(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), Color.Yellow, Color.DefaultBackgroundColor);
+		NewLine();
+		// Line 2
+		Error.Write("1xx: ");
+		WriteError(_1xx, Color.White, Color.DefaultBackgroundColor);
+		Error.Write(", 2xx: ");
+		WriteError(_2xx, Color.Green, Color.DefaultBackgroundColor);
+		Error.Write(", 3xx: ");
+		WriteError(_3xx, Color.Yellow, Color.DefaultBackgroundColor);
+		Error.Write(", 4xx: ");
+		WriteError(_4xx, Color.Red, Color.DefaultBackgroundColor);
+		Error.Write(", 5xx: ");
+		WriteError(_5xx, Color.Red, Color.DefaultBackgroundColor);
+		Error.Write(", others: ");
+		WriteError(_others, Color.Magenta, Color.DefaultBackgroundColor);
+		NewLine();
+		// Clear
+		System.Console.SetCursorPosition(0, cursor);
+		ClearNextLines(2);
 	}
 
 	/// <summary>
@@ -124,7 +151,7 @@ public sealed class PulseMonitor {
 	public PulseResult Consolidate() => new() {
 		Results = _results,
 		TotalCount = _count,
-		SuccessRate = (double)_2xx / _count * 100,
+		SuccessRate = Math.Round((double)_2xx / _count * 100, 2),
 		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
 }

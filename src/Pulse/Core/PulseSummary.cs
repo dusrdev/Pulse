@@ -39,17 +39,17 @@ public class PulseSummary {
 
 		ClearNextLines(3);
 		WriteLine("Statistics:" * Color.Green);
-		WriteLine("Total duration: ", Result.TotalDuration.Format() * Color.Yellow);
-		WriteLine("Threads used: ", uniqueThreadIds.Count.ToString() * Color.Yellow);
-		WriteLine("Success Rate: ", $"{Result.SuccessRate:0.##}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate));
-		WriteLine("Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red);
+		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
+		WriteLine(["Threads used: ", uniqueThreadIds.Count.ToString() * Color.Yellow]);
+		WriteLine(["Success Rate: ", Result.SuccessRate.ToString() * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
+		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
 			var key = (int)kvp.Key;
 			if (key is 0) {
-				WriteLine("	", $"{key}" * Color.Magenta, $" --> {kvp.Value}	[StatusCode 0 = Exception]");
+				WriteLine([$" {key}" * Color.Magenta, $" --> {kvp.Value}	[StatusCode 0 = Exception]"]);
 			} else {
-				WriteLine("	", $"{key}" * Extensions.GetStatusCodeBasedColor(key), $" --> {kvp.Value}");
+				WriteLine([$"	{key}" * Extensions.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
 			}
 		}
 		NewLine();
