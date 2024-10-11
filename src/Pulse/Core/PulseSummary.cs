@@ -39,10 +39,11 @@ public class PulseSummary {
 
 		ClearNextLinesError(3);
 		WriteLine("Statistics:" * Color.Green);
+		WriteLine(["Request count: ", $"{Parameters.Requests}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		WriteLine(["Threads used: ", uniqueThreadIds.Count.ToString() * Color.Yellow]);
+		WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);
 		WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
-		WriteLine(["Success Rate: ", Result.SuccessRate.ToString() * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
+		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
 		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
@@ -73,7 +74,7 @@ public class PulseSummary {
 			return;
 		} else if (count == 1) {
 			await Exporter.ExportHtmlAsync(uniqueRequests.First(), 1, token);
-			WriteLine("1" * Color.Cyan, $" unique request exported to ", "results" * Color.Yellow, " folder");
+			WriteLine("1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder");
 		} else {
 			var options = new ParallelOptions {
 				MaxDegreeOfParallelism = -1,
@@ -86,7 +87,7 @@ public class PulseSummary {
 				indexed,
 				options,
 				async (item, t) => await Exporter.ExportHtmlAsync(item.Second, item.First, t));
-			WriteLine(count.ToString() * Color.Cyan, $" unique requests exported to ", "results" * Color.Yellow, " folder");
+			WriteLine(count.ToString() * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder");
 		}
 	}
 }

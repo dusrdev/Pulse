@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 
 using Pulse.Configuration;
@@ -15,7 +17,7 @@ public static class Exporter {
 
     string basePath = Utils.Env.PathInBaseDirectory("results/");
     Directory.CreateDirectory(basePath);
-    string path = Path.Join(basePath, $"{index}.html");
+    string path = Path.Join(basePath, $"response-{index}.html");
     string frameTitle;
     string content;
 
@@ -40,11 +42,20 @@ $$"""
 <iframe title="Content" width="100%" height="100%" srcdoc='{{content}}'></iframe>
 </div>
 """;
+    string headers = "";
+    if (result.Headers is not null && result.Headers.Any()) {
+      headers =
+      $"""
+      <div>
+      {ToHtmlTable(result.Headers)}
+      </div>
+      """;
+    }
     string body =
 $$"""
 <!DOCTYPE html>
 <html lang="en">
-<title>Result: {{index}}</title>
+<title>Response: {{index}}</title>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8"/>
 <style>
@@ -63,6 +74,9 @@ h1 {
 h2 {
   text-align: left;
 }
+td {
+  overflow: auto;
+}
 .iframe-container {
   flex: 1;
   display: flex;
@@ -79,13 +93,49 @@ iframe {
 </style>
 </head>
 <body>
-<h1 class="title">Result: {{index}}</h1>
+<h1 class="title">Response: {{index}}</h1>
 <div>
 <h2>StatusCode: {{statusCode}} ({{(int)statusCode}})</h2>
 </div>
+{{headers}}
 {{contentFrame}}
 </body>
 """;
     await File.WriteAllTextAsync(path, body, token);
+  }
+
+  /// <summary>
+  /// Converts HttpResponseHeaders to an HTML table representation.
+  /// </summary>
+  /// <param name="headers">The HttpResponseHeaders to convert.</param>
+  /// <returns>A string containing the HTML table.</returns>
+  /// <exception cref="ArgumentNullException">Thrown when headers is null.</exception>
+  public static string ToHtmlTable(this HttpResponseHeaders headers) {
+    StringBuilder sb = new();
+
+    // Start the table and add some basic styling
+    sb.AppendLine("<table style=\"border-collapse: collapse; table-layout: fixed; width: 98%; margin: 5px 0;\" border=\"1\">");
+    sb.AppendLine("  <thead>");
+    sb.AppendLine("    <tr>");
+    sb.AppendLine("      <th style=\"padding: 8px; text-align: left; width: 25%;\">Header</th>");
+    sb.AppendLine("      <th style=\"padding: 8px; text-align: left; width: 75%;\">Value</th>");
+    sb.AppendLine("    </tr>");
+    sb.AppendLine("  </thead>");
+    sb.AppendLine("  <tbody>");
+
+    foreach (var header in headers) {
+      string headerName = WebUtility.HtmlEncode(header.Key);
+      string headerValues = WebUtility.HtmlEncode(string.Join(", ", header.Value));
+
+      sb.AppendLine("    <tr>");
+      sb.AppendLine($"      <td style=\"padding: 8px;\">{headerName}</td>");
+      sb.AppendLine($"      <td style=\"padding: 8px;\">{headerValues}</td>");
+      sb.AppendLine("    </tr>");
+    }
+
+    sb.AppendLine("  </tbody>");
+    sb.AppendLine("</table>");
+
+    return sb.ToString();
   }
 }

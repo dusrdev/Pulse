@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 
 using Pulse.Configuration;
 
@@ -12,6 +13,11 @@ public readonly struct Response {
 	/// Status code (null if it produced an exception)
 	/// </summary>
 	public required HttpStatusCode? StatusCode { get; init; }
+
+	/// <summary>
+	/// Headers (could be null if exception occurred, or server didn't include it)
+	/// </summary>
+	public required HttpResponseHeaders? Headers { get; init; }
 
 	/// <summary>
 	/// Content (could be null if exception occurred, no export feature is used or server didn't include it)

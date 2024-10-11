@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Headers;
 
 using Pulse.Configuration;
 
@@ -53,6 +54,7 @@ public abstract class AbstractPulse : IDisposable {
 		HttpStatusCode? statusCode = null;
 		string? content = null;
 		Exception? exception = null;
+		HttpResponseHeaders? headers = null;
 		int threadId = 0;
 		if (!messages.TryPop(out var message)) {
 			throw new Exception("Failed to pop message from stack");
@@ -62,6 +64,7 @@ public abstract class AbstractPulse : IDisposable {
 			threadId = Environment.CurrentManagedThreadId;
 			using var response = await httpClient.SendAsync(message, cancellationToken);
 			statusCode = response.StatusCode;
+			headers = response.Headers;
 			if (saveContent) {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
@@ -73,6 +76,7 @@ public abstract class AbstractPulse : IDisposable {
 		TimeSpan duration = Stopwatch.GetElapsedTime(start);
 		return new Response {
 			StatusCode = statusCode,
+			Headers = headers,
 			Content = content,
 			Duration = duration,
 			Exception = exception,
