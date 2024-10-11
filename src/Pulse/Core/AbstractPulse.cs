@@ -79,7 +79,7 @@ public abstract class AbstractPulse : IDisposable {
 			Headers = headers,
 			Content = content,
 			Duration = duration,
-			Exception = exception,
+			Exception = new StrippedException(exception),
 			ExecutingThreadId = threadId
 		};
 	}

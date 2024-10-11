@@ -32,7 +32,7 @@ public readonly struct Response {
 	/// <summary>
 	/// The exception (if occurred)
 	/// </summary>
-	public required Exception? Exception { get; init; }
+	public required StrippedException Exception { get; init; }
 
 	/// <summary>
 	/// The id of the thread that executed the request
@@ -43,12 +43,12 @@ public readonly struct Response {
 /// <summary>
 /// Request comparer to be used in HashSets
 /// </summary>
-public sealed class RequestResultWithExceptionComparer : IEqualityComparer<Response> {
-	public static readonly RequestResultWithExceptionComparer Singleton = new(Services.Instance.Parameters);
+public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> {
+	public static readonly ResponseWithExceptionComparer Singleton = new(Services.Instance.Parameters);
 
 	private readonly Parameters _parameters;
 
-	private RequestResultWithExceptionComparer(Parameters parameters) {
+	private ResponseWithExceptionComparer(Parameters parameters) {
 		_parameters = parameters;
 	}
 
@@ -86,16 +86,8 @@ public sealed class RequestResultWithExceptionComparer : IEqualityComparer<Respo
 			return false;
 		}
 
-		if (x.Exception == null && y.Exception == null) {
-			return true;
-		}
-
-		if (x.Exception == null || y.Exception == null) {
-			return false;
-		}
-
 		// Compare Exception types and messages
-		return x.Exception.GetType() == y.Exception.GetType() &&
+		return x.Exception.Type == y.Exception.Type &&
 			   string.Equals(x.Exception.Message, y.Exception.Message, StringComparison.Ordinal);
     }
 

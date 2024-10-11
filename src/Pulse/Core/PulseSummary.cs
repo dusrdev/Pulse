@@ -19,7 +19,7 @@ public class PulseSummary {
 	public (bool exportRequired, HashSet<Response>? uniqueRequests) Summarize() {
 		HashSet<Response>? uniqueRequests = Parameters.NoExport
 												? null
-												: new(RequestResultWithExceptionComparer.Singleton);
+												: new(ResponseWithExceptionComparer.Singleton);
 		Dictionary<HttpStatusCode, int> statusCounter = [];
 		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;

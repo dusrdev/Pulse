@@ -23,7 +23,7 @@ var cli = CliRunner.CreateBuilder()
 						[Disclaimer]
 						By using this tool you agree to take full responsibility for the consequences of its use.
 						""";
-						metadata.Version = "Alpha 0.9";
+						metadata.Version = "1.0.0-Alpha";
 						metadata.License = "MIT";
 					})
 					.Build();

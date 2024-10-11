@@ -9,20 +9,20 @@ public sealed class Services {
 	/// </summary>
 	public static readonly Services Instance = new();
 
-	public readonly JsonSerializerOptions JsonOptions;
+	// public readonly JsonSerializerOptions JsonOptions;
 
 	public readonly Parameters Parameters;
 
 	private Services() {
-		JsonOptions = new() {
-			WriteIndented = true,
-			IncludeFields = true,
-			NumberHandling = JsonNumberHandling.AllowReadingFromString,
-			AllowTrailingCommas = true,
-			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-		};
+		// JsonOptions = new() {
+		// 	WriteIndented = true,
+		// 	IncludeFields = true,
+		// 	NumberHandling = JsonNumberHandling.AllowReadingFromString,
+		// 	AllowTrailingCommas = true,
+		// 	DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+		// };
 
-		JsonOptions.Converters.Add(new ExceptionConverter());
+		// JsonOptions.Converters.Add(new ExceptionConverter());
 
 		Parameters = new();
 	}

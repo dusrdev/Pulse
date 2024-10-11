@@ -8,6 +8,10 @@
     <OptimizationPreference>Speed</OptimizationPreference>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
+    <PublishAot>true</PublishAot>
+    <AotCompatible>true</AotCompatible>
+    <Version>1.0.0-Alpha</Version>
+    <StripSymbols>false</StripSymbols>
   </PropertyGroup>
 
   <ItemGroup>

@@ -23,7 +23,7 @@ public static class Exporter {
 
     if (result.Exception is not null) {
       frameTitle = "Exception:";
-      content = JsonSerializer.Serialize(result.Exception, Services.Instance.JsonOptions);
+      content = JsonSerializer.Serialize(result.Exception, JsonContext.Default.StrippedException);
     } else {
       frameTitle = "Content:";
       content = (result.Content ?? "").Replace('\'', '\"');

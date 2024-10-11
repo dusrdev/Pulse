@@ -15,6 +15,6 @@ namespace Pulse.Configuration;
 							 WriteIndented = true,
 							 UseStringEnumConverter = true)]
 [JsonSerializable(typeof(RequestDetails))]
+[JsonSerializable(typeof(StrippedException))]
 public partial class JsonContext : JsonSerializerContext {
-
 }
