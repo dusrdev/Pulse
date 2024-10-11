@@ -11,15 +11,19 @@ public sealed class ConcurrentPulse : AbstractPulse {
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
         PulseMonitor monitor = new(_requestHandler, _parameters.Requests);
 
-        using var buffer = new RentedBufferWriter<Task>(_parameters.Requests);
+        if (_parameters.Requests is 1) {
+            await monitor.Observe(cancellationToken);
+        } else {
+            using var buffer = new RentedBufferWriter<Task>(_parameters.Requests);
 
-        for (int i = 0; i < _parameters.Requests; i++) {
-            buffer.WriteAndAdvance(Task.Run(() => monitor.Observe(cancellationToken), cancellationToken));
+            for (int i = 0; i < _parameters.Requests; i++) {
+                buffer.WriteAndAdvance(Task.Run(() => monitor.Observe(cancellationToken), cancellationToken));
+            }
+
+            var tasks = buffer.WrittenSegment;
+
+            await Task.WhenAll(tasks).WaitAsync(cancellationToken);
         }
-
-        var tasks = buffer.WrittenSegment;
-
-        await Task.WhenAll(tasks).WaitAsync(cancellationToken);
 
         var result = monitor.Consolidate();
 

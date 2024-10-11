@@ -47,7 +47,6 @@ public static class Extensions {
 	public static void ModifyFromBase(this Parameters parameters, ParametersBase @base) {
 		parameters.Requests = @base.Requests;
 		parameters.UseConcurrency = @base.UseConcurrency;
-		parameters.UseResilience = @base.UseResilience;
 		parameters.UseFullEquality = @base.UseFullEquality;
 		parameters.NoExport = @base.NoExport;
 		parameters.NoOp = @base.NoOp;
@@ -79,11 +78,4 @@ public static class Extensions {
 			handler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
 		}
 	}
-
-	public static string ToStringOrNone<T>(this T? value) {
-		var str = value?.ToString();
-        return string.IsNullOrWhiteSpace(str)
-		? Constants.EmptyValue
-		: str;
-    }
 }

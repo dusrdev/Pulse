@@ -12,4 +12,11 @@ internal static class Constants {
 	/// <param name="str"></param>
 	/// <returns></returns>
 	public static bool IsEmptyOrDefault(this string str) => string.Equals(str, EmptyValue, StringComparison.InvariantCultureIgnoreCase) || string.IsNullOrWhiteSpace(str);
+
+	public static string ToStringOrDefault<T>(this T? value) {
+		var str = value?.ToString();
+        return string.IsNullOrWhiteSpace(str)
+		? Constants.EmptyValue
+		: str;
+    }
 }

@@ -37,7 +37,7 @@ public class PulseSummary {
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 		}
 
-		ClearNextLines(3);
+		ClearNextLinesError(3);
 		WriteLine("Statistics:" * Color.Green);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		WriteLine(["Threads used: ", uniqueThreadIds.Count.ToString() * Color.Yellow]);

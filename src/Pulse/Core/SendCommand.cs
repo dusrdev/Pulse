@@ -14,9 +14,6 @@ public sealed class SendCommand : Command {
 	public override string Name => "";
 
 	public override string Description => "";
-
-	private const int DefaultNumberOfRequests = 100;
-	private const bool DefaultResilience = false;
 	private const bool DefaultExportFullEquality = false;
 	private const bool DefaultDisableConcurrency = false;
 	private const bool DefaultDisableExport = false;
@@ -32,8 +29,7 @@ public sealed class SendCommand : Command {
 	Options:
 	  -n, --number     : number of total requests
 	  -s, --sequential : disable concurrency
-	  -r, --resilient  : use resilience
-	  -e               : export check full equality (slower)
+	  -f               : use full equality (slower)
 	  --no-export      : don't export results
 
 	Special:
@@ -41,24 +37,22 @@ public sealed class SendCommand : Command {
 	  --noop           : print selected configuration but don't run
 
 	Defaults:
-	  -n, --number     = {DefaultNumberOfRequests}
+	  -n, --number     = {ParametersBase.DefaultNumberOfRequests}
 	  -s, --sequential = {DefaultDisableConcurrency}
-	  -r, --resilient  = {DefaultResilience}
-	  -e               = {DefaultExportFullEquality}
+	  -f               = {DefaultExportFullEquality}
 	  --no-export      = {DefaultDisableExport}
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
-		args.TryGetValue(["n", "number"], DefaultNumberOfRequests, out int requests);
+		args.TryGetValue(["n", "number"], ParametersBase.DefaultNumberOfRequests, out int requests);
+		requests = Math.Max(requests, 1);
 		bool disableConcurrency = args.HasFlag("s") || args.HasFlag("sequential");
-		bool resilience = args.HasFlag("r") || args.HasFlag("resilient");
-		bool exportFullEquality = args.HasFlag("e");
+		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
 		return new() {
 			Requests = requests,
 			UseConcurrency = !disableConcurrency,
-			UseResilience = resilience,
 			UseFullEquality = exportFullEquality,
 			NoExport = disableExport,
 			NoOp = noop
@@ -117,42 +111,42 @@ public sealed class SendCommand : Command {
 	}
 
 	internal static void PrintConfiguration(Parameters parameters, RequestDetails requestDetails) {
+		Color headerColor = Color.Cyan;
 		Color property = Color.DarkGray;
 		Color value = Color.White;
 
 		// System
-		WriteLine("System:" * Color.Cyan);
+		WriteLine("System:" * headerColor);
 		WriteLine(["  CPU Cores: " * property, Environment.ProcessorCount.ToString() * value]);
 		WriteLine(["  OS: " * property, Environment.OSVersion.ToString() * value]);
 
 		// Parameters
-		WriteLine("Parameters:" * Color.Cyan);
+		WriteLine("Parameters:" * headerColor);
 		WriteLine(["  Request Count: " * property, parameters.Requests.ToString() * value]);
 		WriteLine(["  Concurrency: " * property, parameters.UseConcurrency.ToString() * value]);
-		WriteLine(["  Resilience: " * property, parameters.UseResilience.ToString() * value]);
 		WriteLine(["  Export Full Equality: " * property, parameters.UseFullEquality.ToString() * value]);
 		WriteLine(["  No Export: " * property, parameters.NoExport.ToString() * value]);
 
 		// Request
-		WriteLine("Request:" * Color.Cyan);
-		WriteLine(["  URL: " * property, requestDetails.Request.Url.ToStringOrNone() * value]);
-		WriteLine(["  Method: " * property, requestDetails.Request.Method.ToStringOrNone() * value]);
+		WriteLine("Request:" * headerColor);
+		WriteLine(["  URL: " * property, requestDetails.Request.Url.ToStringOrDefault() * value]);
+		WriteLine(["  Method: " * property, requestDetails.Request.Method.ToStringOrDefault() * value]);
 		if (requestDetails.Request.Headers.Count > 0) {
 			WriteLine("  Headers:" * Color.Yellow);
 			foreach (var header in requestDetails.Request.Headers) {
-				WriteLine(["    ", header.Key.ToStringOrNone(), ": ", header.Value.ToStringOrNone() * value]);
+				WriteLine(["    ", header.Key.ToStringOrDefault(), ": ", header.Value.ToStringOrDefault() * value]);
 			}
 		} else {
 			WriteLine(["  Headers: " * property, "None" * value]);
 		}
-		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToStringOrNone() * value]);
+		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToStringOrDefault() * value]);
 
 		// Proxy
-		WriteLine("Proxy:" * Color.Cyan);
+		WriteLine("Proxy:" * headerColor);
 		WriteLine(["  Bypass: " * property, requestDetails.Proxy.Bypass.ToString() * value]);
-		WriteLine(["  Host: " * property, requestDetails.Proxy.Host.ToStringOrNone() * value]);
-		WriteLine(["  Username: " * property, requestDetails.Proxy.Username.ToStringOrNone() * value]);
-		WriteLine(["  Password: " * property, requestDetails.Proxy.Password.ToStringOrNone() * value]);
+		WriteLine(["  Host: " * property, requestDetails.Proxy.Host.ToStringOrDefault() * value]);
+		WriteLine(["  Username: " * property, requestDetails.Proxy.Username.ToStringOrDefault() * value]);
+		WriteLine(["  Password: " * property, requestDetails.Proxy.Password.ToStringOrDefault() * value]);
 		WriteLine(["  Ignore SSL: " * property, requestDetails.Proxy.IgnoreSSL.ToString() * value]);
 	}
 }
