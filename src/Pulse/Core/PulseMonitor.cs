@@ -69,6 +69,9 @@ public sealed class PulseMonitor {
 		_handler = handler;
 		_requests = requests;
 		_start = Stopwatch.GetTimestamp();
+		var cursorTop = System.Console.CursorTop;
+		WriteLineError("Executing..." * Color.White);
+		System.Console.SetCursorPosition(0, cursorTop);
 	}
 
 	/// <summary>

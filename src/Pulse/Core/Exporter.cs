@@ -74,20 +74,44 @@ h1 {
 h2 {
   text-align: left;
 }
-td {
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 5px 0;
+}
+table,td,th {
+  border: 1px solid;
+}
+tr:nth-child(even) {
+  background-color: whitesmoke;
+}
+th {
+  background-color: black;
+  color: white;
+  font-weight: bold;
+}
+td,th {
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
   overflow: auto;
+}
+td.header, th.header {
+  width: 25%;
+}
+td.value, th.value {
+  width: 75%;
 }
 .iframe-container {
   flex: 1;
-  display: flex;
   flex-direction: row;
+  display: flex;
 }
 iframe {
   flex: 1;
   width: 100%;
-  border: none;
-}
-iframe {
+  height: 1000px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 </style>
@@ -114,26 +138,26 @@ iframe {
     StringBuilder sb = new();
 
     // Start the table and add some basic styling
-    sb.AppendLine("<table style=\"border-collapse: collapse; table-layout: fixed; width: 98%; margin: 5px 0;\" border=\"1\">");
-    sb.AppendLine("  <thead>");
-    sb.AppendLine("    <tr>");
-    sb.AppendLine("      <th style=\"padding: 8px; text-align: left; width: 25%;\">Header</th>");
-    sb.AppendLine("      <th style=\"padding: 8px; text-align: left; width: 75%;\">Value</th>");
-    sb.AppendLine("    </tr>");
-    sb.AppendLine("  </thead>");
-    sb.AppendLine("  <tbody>");
+    sb.AppendLine("<table>");
+    sb.AppendLine("<thead>");
+    sb.AppendLine("<tr>");
+    sb.AppendLine("<th class=\"header\">Header</th>");
+    sb.AppendLine("<th class=\"value\">Value</th>");
+    sb.AppendLine("</tr>");
+    sb.AppendLine("</thead>");
+    sb.AppendLine("<tbody>");
 
     foreach (var header in headers) {
       string headerName = WebUtility.HtmlEncode(header.Key);
       string headerValues = WebUtility.HtmlEncode(string.Join(", ", header.Value));
 
-      sb.AppendLine("    <tr>");
-      sb.AppendLine($"      <td style=\"padding: 8px;\">{headerName}</td>");
-      sb.AppendLine($"      <td style=\"padding: 8px;\">{headerValues}</td>");
-      sb.AppendLine("    </tr>");
+      sb.AppendLine("<tr>");
+      sb.AppendLine($"<td class=\"header\">{headerName}</td>");
+      sb.AppendLine($"<td class=\"value\">{headerValues}</td>");
+      sb.AppendLine("</tr>");
     }
 
-    sb.AppendLine("  </tbody>");
+    sb.AppendLine("</tbody>");
     sb.AppendLine("</table>");
 
     return sb.ToString();
