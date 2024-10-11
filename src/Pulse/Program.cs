@@ -7,25 +7,29 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 //TODO: Ensure all correct dependencies are passed in constructors.
-//TODO: Recheck options in SendCommand
 
 System.Console.CancelKeyPress += (_, _) => Services.Instance.Parameters.CancellationTokenSource.Cancel();
 
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
-					.AddCommand(CustomCommand.Singleton)
 					.UseConsoleAsOutputWriter()
 					.WithMetadata(metadata => {
 						metadata.Name = "Pulse";
 						metadata.Author = "David Shnayder - dusrdev@gmail.com";
-						metadata.Description = "Lightning Fast - Hyper Optimized General Purpose HTTP Request Tester";
+						metadata.Description =
+						"""
+						Hyper Fast General Purpose HTTP Request Tester
+
+						[Disclaimer]
+						By using this tool you agree to take full responsibility for the consequences of its use.
+						""";
 						metadata.Version = "Alpha 0.9";
 						metadata.License = "MIT";
 					})
 					.Build();
 
 try {
-	return await cli.RunAsync(args);
+	return await cli.RunAsync(args, false);
 } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
 	ClearNextLines(4);
 	WriteLine("Canceled requested and handled gracefully." * Color.DarkYellow);

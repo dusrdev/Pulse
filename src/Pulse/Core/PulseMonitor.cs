@@ -36,6 +36,11 @@ public sealed class PulseMonitor {
 	private readonly long _start;
 
 	/// <summary>
+	/// The memory used before the operation has begun
+	/// </summary>
+	private readonly long _startingWorkingSet;
+
+	/// <summary>
 	/// Current number of requests processed
 	/// </summary>
 	private volatile int _count;
@@ -59,6 +64,7 @@ public sealed class PulseMonitor {
 	/// <param name="handler">request delegate</param>
 	/// <param name="requests">total number of required requests</param>
 	public PulseMonitor(Func<CancellationToken, Task<Response>> handler, int requests) {
+		_startingWorkingSet = Environment.WorkingSet;
 		_results = new();
 		_handler = handler;
 		_requests = requests;
@@ -115,6 +121,8 @@ public sealed class PulseMonitor {
 		double sr = Math.Round((double)_2xx / _count * 100, 2);
 
 		var cursor = System.Console.CursorTop;
+		// Clear
+		ClearNextLinesError(2);
 		// Line 1
 		Error.Write("Completed: ");
 		WriteError(_count, Color.Yellow, Color.DefaultBackgroundColor);
@@ -124,7 +132,8 @@ public sealed class PulseMonitor {
 		WriteError(sr, Extensions.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
 		Error.Write("%, ETA: ");
 		WriteError(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), Color.Yellow, Color.DefaultBackgroundColor);
-		NewLine();
+		Error.WriteLine();
+
 		// Line 2
 		Error.Write("1xx: ");
 		WriteError(_1xx, Color.White, Color.DefaultBackgroundColor);
@@ -138,10 +147,9 @@ public sealed class PulseMonitor {
 		WriteError(_5xx, Color.Red, Color.DefaultBackgroundColor);
 		Error.Write(", others: ");
 		WriteError(_others, Color.Magenta, Color.DefaultBackgroundColor);
-		NewLine();
-		// Clear
+		Error.WriteLine();
+		// Reset location
 		System.Console.SetCursorPosition(0, cursor);
-		ClearNextLines(2);
 	}
 
 	/// <summary>
@@ -152,6 +160,7 @@ public sealed class PulseMonitor {
 		Results = _results,
 		TotalCount = _count,
 		SuccessRate = Math.Round((double)_2xx / _count * 100, 2),
-		TotalDuration = Stopwatch.GetElapsedTime(_start)
+		TotalDuration = Stopwatch.GetElapsedTime(_start),
+		MemoryUsed = Environment.WorkingSet - _startingWorkingSet
 	};
 }

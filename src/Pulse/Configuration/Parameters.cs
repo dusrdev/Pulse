@@ -7,34 +7,34 @@ public class ParametersBase {
 	public static readonly ParametersBase Default = new();
 
 	/// <summary>
-	/// Sets the concurrency mode
-	/// </summary>
-	public ConcurrencyMode ConcurrencyMode { get; set; } = ConcurrencyMode.Maximum;
-
-	/// <summary>
 	/// Sets the number of requests (default = 100)
 	/// </summary>
 	public int Requests { get; set; } = 100;
 
 	/// <summary>
-	/// The amount of concurrent requests when <see cref="ConcurrencyMode"/> is set to <see cref="ConcurrencyMode.Limited"/>
+	/// Concurrency Mode
 	/// </summary>
-	public int ConcurrentRequests { get; set; } = 1;
+	public bool UseConcurrency { get; set; } = true;
 
 	/// <summary>
 	/// Indicating whether to use resilience (apply jitting)
 	/// </summary>
-	public bool UseResilience { get; set; }
+	public bool UseResilience { get; set; } = false;
 
 	/// <summary>
 	/// Indicating whether to bypass exports
 	/// </summary>
-	public bool NoExport { get; set; }
+	public bool NoExport { get; set; } = false;
 
 	/// <summary>
 	/// Check full equality for response content
 	/// </summary>
-	public bool UseFullEquality { get; set; }
+	public bool UseFullEquality { get; set; } = false;
+
+	/// <summary>
+	/// Use verbose output
+	/// </summary>
+	public bool NoOp { get; set; } = false;
 }
 
 /// <summary>

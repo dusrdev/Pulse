@@ -1,5 +1,7 @@
 using System.Net;
 
+using Pulse.Configuration;
+
 namespace Pulse.Core;
 
 public static class PulseHttpClientFactory {
@@ -13,11 +15,11 @@ public static class PulseHttpClientFactory {
 
 	private static SocketsHttpHandler CreateHandler(Proxy proxyDetails) {
 		SocketsHttpHandler handler;
-		if (proxyDetails.Bypass || proxyDetails.Host is null) {
+		if (proxyDetails.Bypass || proxyDetails.Host.IsEmptyOrDefault()) {
 			handler = new SocketsHttpHandler();
 		} else {
 			var proxy = new WebProxy(proxyDetails.Host);
-			if (proxyDetails.Username is not null && proxyDetails.Password is not null) {
+			if (!proxyDetails.Username.IsEmptyOrDefault() && !proxyDetails.Password.IsEmptyOrDefault()) {
 				proxy.Credentials = new NetworkCredential {
 					UserName = proxyDetails.Username,
 					Password = proxyDetails.Password

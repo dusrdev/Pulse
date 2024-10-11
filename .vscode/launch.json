@@ -10,7 +10,7 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/src/Pulse/bin/Debug/net8.0/Pulse.dll",
 			"args": [
-				"send", "-n", "10"
+				"-v", "-d",
 			],
 			"cwd": "${workspaceFolder}",
 			"stopAtEntry": false,

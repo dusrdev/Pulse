@@ -3,9 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Pulse.Configuration;
 
-public sealed class Services : IDisposable {
-	private bool _disposed;
-
+public sealed class Services {
 	/// <summary>
 	/// Singleton instance
 	/// </summary>
@@ -27,15 +25,5 @@ public sealed class Services : IDisposable {
 		JsonOptions.Converters.Add(new ExceptionConverter());
 
 		Parameters = new();
-	}
-
-	public void Dispose() {
-		if (Volatile.Read(ref _disposed)) {
-			return;
-		}
-
-		// Dispose here
-
-		Volatile.Write(ref _disposed, true);
 	}
 }

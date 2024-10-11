@@ -1,19 +1,25 @@
 using Pulse.Configuration;
 
+using Sharpify.Collections;
+
 namespace Pulse.Core;
 
-public sealed class MaximumPulse : AbstractPulse {
-    public MaximumPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
+public sealed class ConcurrentPulse : AbstractPulse {
+    public ConcurrentPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
     }
 
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
         PulseMonitor monitor = new(_requestHandler, _parameters.Requests);
 
-		var tasks = Enumerable.Range(0, _parameters.Requests)
-					.AsParallel()
-					.Select(async _ => await monitor.Observe(cancellationToken));
+        using var buffer = new RentedBufferWriter<Task>(_parameters.Requests);
 
-		await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
+        for (int i = 0; i < _parameters.Requests; i++) {
+            buffer.WriteAndAdvance(Task.Run(() => monitor.Observe(cancellationToken), cancellationToken));
+        }
+
+        var tasks = buffer.WrittenSegment;
+
+        await Task.WhenAll(tasks).WaitAsync(cancellationToken);
 
         var result = monitor.Consolidate();
 

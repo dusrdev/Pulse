@@ -41,6 +41,7 @@ public class PulseSummary {
 		WriteLine("Statistics:" * Color.Green);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		WriteLine(["Threads used: ", uniqueThreadIds.Count.ToString() * Color.Yellow]);
+		WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		WriteLine(["Success Rate: ", Result.SuccessRate.ToString() * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
 		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
 		WriteLine("Status codes:");

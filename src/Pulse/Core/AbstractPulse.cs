@@ -10,39 +10,36 @@ public abstract class AbstractPulse : IDisposable {
 	protected readonly HttpClient _httpClient;
 	protected readonly Parameters _parameters;
 	protected readonly Func<CancellationToken, Task<Response>> _requestHandler;
-	private readonly ResiliencePipeline? _resiliencePipeline;
+	// private readonly ResiliencePipeline? _resiliencePipeline;
 	protected readonly ConcurrentStack<HttpRequestMessage> _messages;
 
-	private bool _disposed;
+	private volatile bool _disposed;
 
-	public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails) {
-		return parameters.ConcurrencyMode switch {
-			ConcurrencyMode.Maximum => new MaximumPulse(parameters, requestDetails),
-			ConcurrencyMode.Limited => new LimitedPulse(parameters, requestDetails),
-			ConcurrencyMode.Disabled => new SequentialPulse(parameters, requestDetails),
-			_ => throw new InvalidOperationException("ConcurrencyMode doesn't match options")
-		};
-	}
+    public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails)
+			=> parameters.UseConcurrency
+            ? new ConcurrentPulse(parameters, requestDetails)
+            : new SequentialPulse(parameters, requestDetails);
 
-	protected AbstractPulse(Parameters parameters, RequestDetails requestDetails) {
+    protected AbstractPulse(Parameters parameters, RequestDetails requestDetails) {
 		_parameters = parameters;
 		_httpClient = PulseHttpClientFactory.Create(requestDetails);
 
-		_messages = requestDetails.Request.CreateMessages(_parameters.ConcurrentRequests);
+		_messages = requestDetails.Request.CreateMessages(_parameters.Requests);
 
 		bool saveContent = !_parameters.NoExport;
 
-		if (!_parameters.UseResilience) {
-			_requestHandler = async token => await SendRequest(_messages, _httpClient, saveContent, token);
-			return;
-		}
+		// if (!_parameters.UseResilience) {
+		// 	_requestHandler = async token => await SendRequest(_messages, _httpClient, saveContent, token);
+		// 	return;
+		// }
 
-		int diameter = _parameters.ConcurrentRequests;
-		if (diameter == 1) {
-			diameter = Environment.ProcessorCount;
-		}
-		_resiliencePipeline = new(diameter);
-		_requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(_messages, _httpClient, saveContent, token), token);
+		// int diameter = _parameters.UseConcurrency;
+		// if (diameter == 1) {
+		// 	diameter = Environment.ProcessorCount;
+		// }
+		// _resiliencePipeline = new(diameter);
+		_requestHandler = async token => await SendRequest(_messages, _httpClient, saveContent, token);
+		// _requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(_messages, _httpClient, saveContent, token), token);
 	}
 
 	/// <summary>
@@ -84,11 +81,11 @@ public abstract class AbstractPulse : IDisposable {
 	}
 
     public void Dispose() {
-        if (Volatile.Read(ref _disposed)) {
+        if (_disposed) {
 			return;
 		}
-		_resiliencePipeline?.Dispose();
-		Volatile.Write(ref _disposed, true);
+		// _resiliencePipeline?.Dispose();
+		_disposed = true;
 		GC.SuppressFinalize(this);
     }
 }

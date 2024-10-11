@@ -1,14 +1,11 @@
+using Pulse.Configuration;
+
 namespace Pulse.Core;
 
 /// <summary>
 /// Request details
 /// </summary>
 public class RequestDetails {
-	/// <summary>
-	/// Default request details
-	/// </summary>
-	public static readonly RequestDetails Default = new();
-
 	/// <summary>
 	/// Proxy configuration
 	/// </summary>
@@ -37,27 +34,29 @@ public class Proxy {
 	/// <summary>
 	/// Host
 	/// </summary>
-	public string? Host { get; set; }
+	public string Host { get; set; } = Constants.EmptyValue;
 
 	/// <summary>
 	/// Proxy authentication username
 	/// </summary>
-	public string? Username { get; set; }
+	public string Username { get; set; } = Constants.EmptyValue;
 
 	/// <summary>
 	/// Proxy authentication password
 	/// </summary>
-	public string? Password { get; set; }
+	public string Password { get; set; } = Constants.EmptyValue;
 }
 
 /// <summary>
 /// Request configuration
 /// </summary>
 public class Request {
+	public const string DefaultUrl = "https://ipinfo.io/geo";
+
 	/// <summary>
 	/// Request URL - defaults to https://ipinfo.io/geo
 	/// </summary>
-	public string Url { get; set; } = "https://ipinfo.io/geo";
+	public string Url { get; set; } = DefaultUrl;
 
 	/// <summary>
 	/// Request method - defaults to GET
@@ -72,7 +71,7 @@ public class Request {
 	/// <summary>
 	/// Request body
 	/// </summary>
-	public string? Body { get; set; }
+	public string Body { get; set; } = Constants.EmptyValue;
 
 	/// <summary>
 	/// Create an http request message from the configuration
@@ -85,7 +84,7 @@ public class Request {
 			message.Headers.Add(header.Key, header.Value);
 		}
 
-		if (Body is not null) {
+		if (!Body.IsEmptyOrDefault()) {
 			message.Content = new StringContent(Body);
 		}
 

@@ -1,6 +1,5 @@
 using PrettyConsole;
 using Pulse.Configuration;
-using Sharpify.CommandLineInterface;
 using System.Collections.Concurrent;
 
 namespace Pulse.Core;
@@ -44,34 +43,14 @@ public static class Extensions {
 	/// Modifies parameters using args
 	/// </summary>
 	/// <param name="parameters"></param>
-	/// <param name="args"></param>
-	public static void ModifyFromArgs(this Parameters parameters, Arguments args) {
-		args.TryGetValue(["n", "number"], 100, out int n);
-		parameters.Requests = n;
-		args.TryGetEnum(["c", "concurrency"], ConcurrencyMode.Maximum, true, out var concurrencyMode);
-		parameters.ConcurrencyMode = concurrencyMode;
-		args.TryGetValue("b", 1, out int concurrentRequests); //TODO: bounded - rename
-		if (concurrencyMode is not ConcurrencyMode.Limited) {
-			concurrentRequests = 1;
-		}
-		parameters.ConcurrentRequests = concurrentRequests;
-		parameters.UseResilience = args.HasFlag("r") || args.HasFlag("resilient");
-		parameters.NoExport = args.HasFlag("no-export");
-		parameters.UseFullEquality = args.HasFlag("e");
-	}
-
-	/// <summary>
-	/// Modifies parameters using args
-	/// </summary>
-	/// <param name="parameters"></param>
 	/// <param name="@base"></param>
 	public static void ModifyFromBase(this Parameters parameters, ParametersBase @base) {
 		parameters.Requests = @base.Requests;
-		parameters.ConcurrencyMode = @base.ConcurrencyMode;
-		parameters.ConcurrentRequests = @base.ConcurrentRequests;
+		parameters.UseConcurrency = @base.UseConcurrency;
 		parameters.UseResilience = @base.UseResilience;
 		parameters.UseFullEquality = @base.UseFullEquality;
 		parameters.NoExport = @base.NoExport;
+		parameters.NoOp = @base.NoOp;
 	}
 
 	/// <summary>
@@ -100,4 +79,11 @@ public static class Extensions {
 			handler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
 		}
 	}
+
+	public static string ToStringOrNone<T>(this T? value) {
+		var str = value?.ToString();
+        return string.IsNullOrWhiteSpace(str)
+		? Constants.EmptyValue
+		: str;
+    }
 }
