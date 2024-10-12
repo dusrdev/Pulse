@@ -139,7 +139,7 @@ public sealed class SendCommand : Command {
 				WriteLine(["    ", header.Key.ToStringOrDefault(), ": ", header.Value.ToStringOrDefault() * value]);
 			}
 		} else {
-			WriteLine(["  Headers: " * property, "None" * value]);
+			WriteLine(["  Headers: " * property, Constants.EmptyValue * value]);
 		}
 		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToStringOrDefault() * value]);
 
