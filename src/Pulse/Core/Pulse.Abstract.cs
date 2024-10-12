@@ -65,7 +65,7 @@ public abstract class AbstractPulse : IDisposable {
 			Headers = headers,
 			Content = content,
 			Duration = duration,
-			Exception = new StrippedException(exception),
+			Exception = exception is null ? StrippedException.Default : new StrippedException(exception),
 			ExecutingThreadId = threadId
 		};
 	}

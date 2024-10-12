@@ -21,12 +21,12 @@ public static class Exporter {
     string frameTitle;
     string content;
 
-    if (result.Exception is not null) {
-      frameTitle = "Exception:";
-      content = JsonSerializer.Serialize(result.Exception, JsonContext.Default.StrippedException);
-    } else {
+    if (result.Exception.IsDefault) {
       frameTitle = "Content:";
       content = (result.Content ?? "").Replace('\'', '\"');
+    } else {
+      frameTitle = "Exception:";
+      content = JsonSerializer.Serialize(result.Exception, JsonContext.Default.StrippedException);
     }
     HttpStatusCode statusCode = result.StatusCode ?? 0;
     string contentFrame = content == "" ?
