@@ -46,7 +46,7 @@ public static class Extensions {
 	/// <param name="@base"></param>
 	public static void ModifyFromBase(this Parameters parameters, ParametersBase @base) {
 		parameters.Requests = @base.Requests;
-		parameters.UseConcurrency = @base.UseConcurrency;
+		parameters.ExecutionMode = @base.ExecutionMode;
 		parameters.UseFullEquality = @base.UseFullEquality;
 		parameters.NoExport = @base.NoExport;
 		parameters.NoOp = @base.NoOp;
