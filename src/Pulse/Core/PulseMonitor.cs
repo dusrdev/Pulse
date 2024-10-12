@@ -128,29 +128,47 @@ public sealed class PulseMonitor {
 		ClearNextLinesError(2);
 		// Line 1
 		Error.Write("Completed: ");
-		WriteError(_count, Color.Yellow, Color.DefaultBackgroundColor);
+		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+		Error.Write(_count);
+		ResetColors();
 		Error.Write('/');
-		WriteError(_requests, Color.Yellow, Color.DefaultBackgroundColor);
+		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+		Error.Write(_requests);
+		ResetColors();
 		Error.Write(", SR: ");
-		WriteError(sr, Extensions.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
+		SetColors(Extensions.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
+		Error.Write(sr);
+		ResetColors();
 		Error.Write("%, ETA: ");
 		WriteError(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), Color.Yellow, Color.DefaultBackgroundColor);
-		Error.WriteLine();
+		NewLineError();
 
 		// Line 2
 		Error.Write("1xx: ");
-		WriteError(_1xx, Color.White, Color.DefaultBackgroundColor);
+		SetColors(Color.White, Color.DefaultBackgroundColor);
+		Error.Write(_1xx);
+		ResetColors();
 		Error.Write(", 2xx: ");
-		WriteError(_2xx, Color.Green, Color.DefaultBackgroundColor);
+		SetColors(Color.Green, Color.DefaultBackgroundColor);
+		Error.Write(_2xx);
+		ResetColors();
 		Error.Write(", 3xx: ");
-		WriteError(_3xx, Color.Yellow, Color.DefaultBackgroundColor);
+		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+		Error.Write(_3xx);
+		ResetColors();
 		Error.Write(", 4xx: ");
-		WriteError(_4xx, Color.Red, Color.DefaultBackgroundColor);
+		SetColors(Color.Red, Color.DefaultBackgroundColor);
+		Error.Write(_4xx);
+		ResetColors();
 		Error.Write(", 5xx: ");
-		WriteError(_5xx, Color.Red, Color.DefaultBackgroundColor);
+		SetColors(Color.Red, Color.DefaultBackgroundColor);
+		Error.Write(_5xx);
+		ResetColors();
 		Error.Write(", others: ");
-		WriteError(_others, Color.Magenta, Color.DefaultBackgroundColor);
-		Error.WriteLine();
+		SetColors(Color.Magenta, Color.DefaultBackgroundColor);
+		Error.Write(_others);
+		ResetColors();
+		NewLineError();
 		// Reset location
 		System.Console.SetCursorPosition(0, cursor);
 	}

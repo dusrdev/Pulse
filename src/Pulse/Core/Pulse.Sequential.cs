@@ -24,7 +24,7 @@ public sealed class SequentialPulse : AbstractPulse {
         var (exportRequired, uniqueRequests) = summary.Summarize();
 
         if (exportRequired) {
-            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests!, cancellationToken);
+            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
         }
     }
 }

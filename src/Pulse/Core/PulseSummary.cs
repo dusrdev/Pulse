@@ -16,9 +16,9 @@ public class PulseSummary {
 	/// </summary>
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
 	[MethodImpl(MethodImplOptions.Synchronized)]
-	public (bool exportRequired, HashSet<Response>? uniqueRequests) Summarize() {
-		HashSet<Response>? uniqueRequests = Parameters.NoExport
-												? null
+	public (bool exportRequired, HashSet<Response> uniqueRequests) Summarize() {
+		HashSet<Response> uniqueRequests = Parameters.NoExport
+												? []
 												: new(ResponseWithExceptionComparer.Singleton);
 		Dictionary<HttpStatusCode, int> statusCounter = [];
 		HashSet<int> uniqueThreadIds = [];
@@ -26,7 +26,7 @@ public class PulseSummary {
 		double multiplier = 1 / (double)Result.TotalCount;
 
 		foreach (var result in Result.Results) {
-			uniqueRequests?.Add(result);
+			uniqueRequests.Add(result);
 			uniqueThreadIds.Add(result.ExecutingThreadId);
 			var duration = result.Duration.TotalMilliseconds;
 			minDuration = Math.Min(minDuration, duration);
@@ -74,7 +74,7 @@ public class PulseSummary {
 			return;
 		} else if (count == 1) {
 			await Exporter.ExportHtmlAsync(uniqueRequests.First(), 1, token);
-			WriteLine("1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder");
+			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
 		} else {
 			var options = new ParallelOptions {
 				MaxDegreeOfParallelism = -1,
@@ -87,7 +87,7 @@ public class PulseSummary {
 				indexed,
 				options,
 				async (item, t) => await Exporter.ExportHtmlAsync(item.Second, item.First, t));
-			WriteLine(count.ToString() * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder");
+			WriteLine([count.ToString() * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
 		}
 	}
 }

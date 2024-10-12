@@ -23,7 +23,7 @@ var cli = CliRunner.CreateBuilder()
 						[Disclaimer]
 						By using this tool you agree to take full responsibility for the consequences of its use.
 						""";
-						metadata.Version = "1.0.0-Alpha";
+						metadata.Version = "1.0.0-rc1";
 						metadata.License = "MIT";
 					})
 					.Build();
@@ -37,9 +37,9 @@ try {
 } catch (Exception e) {
 	WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);
 	NewLine();
-	WriteLine("Message: ", e.Message * Color.Yellow);
+	WriteLine(["Message: ", e.Message * Color.Yellow]);
 	if (e.StackTrace is not null) {
-		WriteLine("Stack Trace: " * Color.Yellow, e.StackTrace);
+		WriteLine(["Stack Trace: " * Color.Yellow, e.StackTrace]);
 	}
 	return 1;
 }

@@ -10,17 +10,14 @@
     <GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
     <PublishAot>true</PublishAot>
     <AotCompatible>true</AotCompatible>
-    <Version>1.0.0-Alpha</Version>
+    <Version>1.0.0-rc.1</Version>
     <StripSymbols>false</StripSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Sharpify" Version="2.4.0-Alpha" />
     <PackageReference Include="Sharpify.CommandLineInterface" Version="1.4.0-Alpha" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="/Volumes/Prime/repos/PrettyConsole/PrettyConsole/PrettyConsole.csproj" />
+    <PackageReference Include="PrettyConsole" Version="3.0.0-rc.1" />
   </ItemGroup>
 
 </Project>

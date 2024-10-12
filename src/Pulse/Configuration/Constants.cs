@@ -16,7 +16,7 @@ internal static class Constants {
 	public static string ToStringOrDefault<T>(this T? value) {
 		var str = value?.ToString();
         return string.IsNullOrWhiteSpace(str)
-		? Constants.EmptyValue
+		? EmptyValue
 		: str;
     }
 }

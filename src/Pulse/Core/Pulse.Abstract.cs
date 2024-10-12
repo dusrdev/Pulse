@@ -11,36 +11,24 @@ public abstract class AbstractPulse : IDisposable {
 	protected readonly HttpClient _httpClient;
 	protected readonly Parameters _parameters;
 	protected readonly Func<CancellationToken, Task<Response>> _requestHandler;
-	// private readonly ResiliencePipeline? _resiliencePipeline;
-	protected readonly ConcurrentStack<HttpRequestMessage> _messages;
-
 	private volatile bool _disposed;
 
-    public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails)
-			=> parameters.UseConcurrency
-            ? new ConcurrentPulse(parameters, requestDetails)
-            : new SequentialPulse(parameters, requestDetails);
+	public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails)
+			=> parameters.ExecutionMode switch {
+				ExecutionMode.Sequential => new SequentialPulse(parameters, requestDetails),
+				ExecutionMode.Bounded => new BoundedPulse(parameters, requestDetails),
+				ExecutionMode.Unbounded => new UnboundedPulse(parameters, requestDetails),
+				_ => throw new NotImplementedException()
+			};
 
     protected AbstractPulse(Parameters parameters, RequestDetails requestDetails) {
 		_parameters = parameters;
 		_httpClient = PulseHttpClientFactory.Create(requestDetails);
 
-		_messages = requestDetails.Request.CreateMessages(_parameters.Requests);
-
 		bool saveContent = !_parameters.NoExport;
+		var requestRecipe = requestDetails.Request;
 
-		// if (!_parameters.UseResilience) {
-		// 	_requestHandler = async token => await SendRequest(_messages, _httpClient, saveContent, token);
-		// 	return;
-		// }
-
-		// int diameter = _parameters.UseConcurrency;
-		// if (diameter == 1) {
-		// 	diameter = Environment.ProcessorCount;
-		// }
-		// _resiliencePipeline = new(diameter);
-		_requestHandler = async token => await SendRequest(_messages, _httpClient, saveContent, token);
-		// _requestHandler = async token => await _resiliencePipeline.RunAsync(async _ => await SendRequest(_messages, _httpClient, saveContent, token), token);
+		_requestHandler = async token => await SendRequest(requestRecipe, _httpClient, saveContent, token);
 	}
 
 	/// <summary>
@@ -50,15 +38,13 @@ public abstract class AbstractPulse : IDisposable {
 	/// <returns></returns>
 	public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
-	private static async Task<Response> SendRequest(ConcurrentStack<HttpRequestMessage> messages, HttpClient httpClient,bool saveContent, CancellationToken cancellationToken = default) {
+	private static async Task<Response> SendRequest(Request requestRecipe, HttpClient httpClient,bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode? statusCode = null;
 		string? content = null;
 		Exception? exception = null;
 		HttpResponseHeaders? headers = null;
 		int threadId = 0;
-		if (!messages.TryPop(out var message)) {
-			throw new Exception("Failed to pop message from stack");
-		}
+		using var message = requestRecipe.CreateMessage();
 		var start = Stopwatch.GetTimestamp();
 		try {
 			threadId = Environment.CurrentManagedThreadId;
@@ -88,7 +74,6 @@ public abstract class AbstractPulse : IDisposable {
         if (_disposed) {
 			return;
 		}
-		// _resiliencePipeline?.Dispose();
 		_disposed = true;
 		GC.SuppressFinalize(this);
     }

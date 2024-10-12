@@ -12,14 +12,19 @@ public class ParametersBase {
 	public const int DefaultNumberOfRequests = 1;
 
 	/// <summary>
+	/// Default execution mode
+	/// </summary>
+	public const ExecutionMode DefaultExecutionMode = ExecutionMode.Unbounded;
+
+	/// <summary>
 	/// Sets the number of requests (default = 100)
 	/// </summary>
 	public int Requests { get; set; } = DefaultNumberOfRequests;
 
 	/// <summary>
-	/// Concurrency Mode
+	/// Sets the execution mode (default = <see cref="DefaultExecutionMode"/>)
 	/// </summary>
-	public bool UseConcurrency { get; set; } = true;
+	public ExecutionMode ExecutionMode { get; set; } = DefaultExecutionMode;
 
 	/// <summary>
 	/// Indicating whether to bypass exports

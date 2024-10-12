@@ -15,7 +15,6 @@ public sealed class SendCommand : Command {
 
 	public override string Description => "";
 	private const bool DefaultExportFullEquality = false;
-	private const bool DefaultDisableConcurrency = false;
 	private const bool DefaultDisableExport = false;
 
 	public override string Usage =>
@@ -28,7 +27,10 @@ public sealed class SendCommand : Command {
 
 	Options:
 	  -n, --number     : number of total requests
-	  -s, --sequential : disable concurrency
+	  -m, --mode       : execution mode (sequential, bounded, unbounded)
+	                      * sequential = execute requests sequentially
+	                      * bounded    = execute requests such that only 1 requests per core is allowed
+	                      * unbounded  = execute requests using maximum resources
 	  -f               : use full equality (slower)
 	  --no-export      : don't export results
 
@@ -38,7 +40,7 @@ public sealed class SendCommand : Command {
 
 	Defaults:
 	  -n, --number     = {ParametersBase.DefaultNumberOfRequests}
-	  -s, --sequential = {DefaultDisableConcurrency}
+	  -m, --mode       = {ParametersBase.DefaultExecutionMode}
 	  -f               = {DefaultExportFullEquality}
 	  --no-export      = {DefaultDisableExport}
 	""";
@@ -46,13 +48,13 @@ public sealed class SendCommand : Command {
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
 		args.TryGetValue(["n", "number"], ParametersBase.DefaultNumberOfRequests, out int requests);
 		requests = Math.Max(requests, 1);
-		bool disableConcurrency = args.HasFlag("s") || args.HasFlag("sequential");
+		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
 		return new() {
 			Requests = requests,
-			UseConcurrency = !disableConcurrency,
+			ExecutionMode = mode,
 			UseFullEquality = exportFullEquality,
 			NoExport = disableExport,
 			NoOp = noop
@@ -117,15 +119,15 @@ public sealed class SendCommand : Command {
 
 		// System
 		WriteLine("System:" * headerColor);
-		WriteLine(["  CPU Cores: " * property, Environment.ProcessorCount.ToString() * value]);
-		WriteLine(["  OS: " * property, Environment.OSVersion.ToString() * value]);
+		WriteLine(["  CPU Cores: " * property, $"{Environment.ProcessorCount}" * value]);
+		WriteLine(["  OS: " * property, $"{Environment.OSVersion}" * value]);
 
-		// Parameters
-		WriteLine("Parameters:" * headerColor);
-		WriteLine(["  Request Count: " * property, parameters.Requests.ToString() * value]);
-		WriteLine(["  Concurrency: " * property, parameters.UseConcurrency.ToString() * value]);
-		WriteLine(["  Export Full Equality: " * property, parameters.UseFullEquality.ToString() * value]);
-		WriteLine(["  No Export: " * property, parameters.NoExport.ToString() * value]);
+		// Options
+		WriteLine("Options:" * headerColor);
+		WriteLine(["  Request Count: " * property, $"{parameters.Requests}" * value]);
+		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
+		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
+		WriteLine(["  No Export: " * property, $"{parameters.NoExport}" * value]);
 
 		// Request
 		WriteLine("Request:" * headerColor);
@@ -143,10 +145,10 @@ public sealed class SendCommand : Command {
 
 		// Proxy
 		WriteLine("Proxy:" * headerColor);
-		WriteLine(["  Bypass: " * property, requestDetails.Proxy.Bypass.ToString() * value]);
+		WriteLine(["  Bypass: " * property, $"{requestDetails.Proxy.Bypass}" * value]);
 		WriteLine(["  Host: " * property, requestDetails.Proxy.Host.ToStringOrDefault() * value]);
 		WriteLine(["  Username: " * property, requestDetails.Proxy.Username.ToStringOrDefault() * value]);
 		WriteLine(["  Password: " * property, requestDetails.Proxy.Password.ToStringOrDefault() * value]);
-		WriteLine(["  Ignore SSL: " * property, requestDetails.Proxy.IgnoreSSL.ToString() * value]);
+		WriteLine(["  Ignore SSL: " * property, $"{requestDetails.Proxy.IgnoreSSL}" * value]);
 	}
 }

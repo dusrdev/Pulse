@@ -4,8 +4,8 @@ using Sharpify.Collections;
 
 namespace Pulse.Core;
 
-public sealed class ConcurrentPulse : AbstractPulse {
-    public ConcurrentPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
+public sealed class UnboundedPulse : AbstractPulse {
+    public UnboundedPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
     }
 
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
@@ -35,7 +35,7 @@ public sealed class ConcurrentPulse : AbstractPulse {
         var (exportRequired, uniqueRequests) = summary.Summarize();
 
         if (exportRequired) {
-            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests!, cancellationToken);
+            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
         }
     }
 }
