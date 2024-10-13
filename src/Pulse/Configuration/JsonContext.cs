@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Pulse.Core;
@@ -16,5 +17,6 @@ namespace Pulse.Configuration;
 							 UseStringEnumConverter = true)]
 [JsonSerializable(typeof(RequestDetails))]
 [JsonSerializable(typeof(StrippedException))]
+[JsonSerializable(typeof(JsonElement))]
 public partial class JsonContext : JsonSerializerContext {
 }

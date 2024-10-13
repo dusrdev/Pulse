@@ -47,6 +47,7 @@ public static class Extensions {
 	public static void ModifyFromBase(this Parameters parameters, ParametersBase @base) {
 		parameters.Requests = @base.Requests;
 		parameters.ExecutionMode = @base.ExecutionMode;
+		parameters.FormatJson = @base.FormatJson;
 		parameters.UseFullEquality = @base.UseFullEquality;
 		parameters.NoExport = @base.NoExport;
 		parameters.NoOp = @base.NoOp;

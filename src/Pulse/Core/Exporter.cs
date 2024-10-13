@@ -19,11 +19,19 @@ public static class Exporter {
     Directory.CreateDirectory(basePath);
     string path = Path.Join(basePath, $"response-{index}.html");
     string frameTitle;
-    string content;
+    string content = string.IsNullOrWhiteSpace(result.Content) ? "" : result.Content;
 
     if (result.Exception.IsDefault) {
       frameTitle = "Content:";
-      content = (result.Content ?? "").Replace('\'', '\"');
+      if (Services.Instance.Parameters.FormatJson) {
+        try {
+          using var doc = JsonDocument.Parse(content);
+          var root = doc.RootElement;
+          var json = JsonSerializer.Serialize(root, JsonContext.Default.JsonElement);
+          content = $"<pre>{json}</pre>";
+        } catch (JsonException) { } // Ignore - Keep content as is
+      }
+      content = content.Replace('\'', '\"');
     } else {
       frameTitle = "Exception:";
       content = JsonSerializer.Serialize(result.Exception, JsonContext.Default.StrippedException);

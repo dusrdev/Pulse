@@ -3,6 +3,7 @@ using Sharpify.CommandLineInterface;
 using Sharpify;
 using PrettyConsole;
 using static PrettyConsole.Console;
+using System.Text.Json;
 
 namespace Pulse.Core;
 
@@ -31,6 +32,7 @@ public sealed class SendCommand : Command {
 	                      * sequential = execute requests sequentially
 	                      * bounded    = execute requests such that only 1 requests per core is allowed
 	                      * unbounded  = execute requests using maximum resources
+	  --json           : try to format response content as JSON
 	  -f               : use full equality (slower)
 	  --no-export      : don't export results
 
@@ -49,12 +51,14 @@ public sealed class SendCommand : Command {
 		args.TryGetValue(["n", "number"], ParametersBase.DefaultNumberOfRequests, out int requests);
 		requests = Math.Max(requests, 1);
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
+		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
 		return new() {
 			Requests = requests,
 			ExecutionMode = mode,
+			FormatJson = formatJson,
 			UseFullEquality = exportFullEquality,
 			NoExport = disableExport,
 			NoOp = noop
@@ -64,7 +68,7 @@ public sealed class SendCommand : Command {
 	internal static Result<RequestDetails> GetRequestDetails(string requestSource) {
 		var path = Path.GetFullPath(requestSource);
 		if (!File.Exists(path)) {
-			return Result.Fail("Request file count not be found.");
+			return Result.Fail("Request file could not be found.");
 		}
 		try {
 			using var detailsFromFile = new SerializableObject<RequestDetails>(path, new(), JsonContext.Default.RequestDetails);
@@ -81,10 +85,16 @@ public sealed class SendCommand : Command {
 		}
 
 		if (string.Equals(rf, "generate-request", StringComparison.InvariantCultureIgnoreCase)) {
-			var path = Utils.Env.PathInBaseDirectory("request-sample.json");
-			using var detailsFromFile = new SerializableObject<RequestDetails>(path, new(), JsonContext.Default.RequestDetails);
-			WriteLine(["Sample request generated at ", path * Color.Yellow]);
-			return 0;
+			try {
+				var path = Utils.Env.PathInBaseDirectory("request-sample.json");
+				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
+				await File.WriteAllTextAsync(path, json, Services.Instance.Parameters.CancellationTokenSource.Token);
+				WriteLine(["Sample request generated at ", path * Color.Yellow]);
+				return 0;
+			} catch (Exception e) {
+				WriteLineError(e.Message * Color.Red);
+				return 1;
+			}
 		}
 
 		var parametersBase = ParseParametersArgs(args);
@@ -126,6 +136,7 @@ public sealed class SendCommand : Command {
 		WriteLine("Options:" * headerColor);
 		WriteLine(["  Request Count: " * property, $"{parameters.Requests}" * value]);
 		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
+		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  No Export: " * property, $"{parameters.NoExport}" * value]);
 

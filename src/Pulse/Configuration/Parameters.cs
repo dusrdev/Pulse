@@ -27,6 +27,11 @@ public class ParametersBase {
 	public ExecutionMode ExecutionMode { get; set; } = DefaultExecutionMode;
 
 	/// <summary>
+	/// Attempt to format response content as JSON
+	/// </summary>
+	public bool FormatJson { get; set; } = false;
+
+	/// <summary>
 	/// Indicating whether to bypass exports
 	/// </summary>
 	public bool NoExport { get; set; } = false;
