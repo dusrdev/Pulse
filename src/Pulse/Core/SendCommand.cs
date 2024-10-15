@@ -13,7 +13,6 @@ public sealed class SendCommand : Command {
 	private SendCommand() { }
 
 	public override string Name => "";
-
 	public override string Description => "";
 	private const bool DefaultExportFullEquality = false;
 	private const bool DefaultDisableExport = false;
@@ -39,6 +38,7 @@ public sealed class SendCommand : Command {
 	Special:
 	  generate-request : use as command - generated sample file
 	  --noop           : print selected configuration but don't run
+	  -u, --url        : override url of request
 
 	Defaults:
 	  -n, --number     = {ParametersBase.DefaultNumberOfRequests}
@@ -65,13 +65,16 @@ public sealed class SendCommand : Command {
 		};
 	}
 
-	internal static Result<RequestDetails> GetRequestDetails(string requestSource) {
+	internal static Result<RequestDetails> GetRequestDetails(string requestSource, Arguments args) {
 		var path = Path.GetFullPath(requestSource);
 		if (!File.Exists(path)) {
 			return Result.Fail("Request file could not be found.");
 		}
 		try {
 			using var detailsFromFile = new SerializableObject<RequestDetails>(path, new(), JsonContext.Default.RequestDetails);
+			if (args.TryGetValue(["u", "url"], out string url)) {
+				detailsFromFile.Value.Request.Url = url;
+			}
 			return Result.Ok(detailsFromFile.Value);
 		} catch (Exception e) {
 			return Result.Fail(e.Message);
@@ -98,7 +101,7 @@ public sealed class SendCommand : Command {
 		}
 
 		var parametersBase = ParseParametersArgs(args);
-		var requestDetailsResult = GetRequestDetails(rf);
+		var requestDetailsResult = GetRequestDetails(rf, args);
 
 		if (requestDetailsResult.IsFail) {
 			WriteLineError(requestDetailsResult.Message * Color.Red);
