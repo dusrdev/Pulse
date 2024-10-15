@@ -6,6 +6,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 using Sharpify;
 using System.Runtime.CompilerServices;
+using Pulse.Configuration;
 
 namespace Pulse.Core;
 
@@ -58,6 +59,11 @@ public sealed class PulseMonitor {
 	// Number of other responses
 	private volatile int _others;
 
+	private volatile int _isYielding;
+
+	private readonly TaskCompletionSource _loadingTaskSource;
+	private readonly Task _indeterminateProgressBarTask;
+
 	/// <summary>
 	/// Creates a new pulse monitor
 	/// </summary>
@@ -69,9 +75,15 @@ public sealed class PulseMonitor {
 		_handler = handler;
 		_requests = requests;
 		_start = Stopwatch.GetTimestamp();
-		var cursorTop = System.Console.CursorTop;
-		WriteLineError("Executing..." * Color.White);
-		System.Console.SetCursorPosition(0, cursorTop);
+		_loadingTaskSource = new();
+		// var cursorTop = System.Console.CursorTop;
+		var indeterminateProgressBar = new IndeterminateProgressBar() {
+			DisplayElapsedTime = true,
+			UpdateRate = 100,
+		};
+		_indeterminateProgressBarTask = indeterminateProgressBar.RunAsync(_loadingTaskSource.Task, Services.Instance.Parameters.CancellationTokenSource.Token);
+		// WriteLineError("Executing..." * Color.White);
+		// System.Console.SetCursorPosition(0, cursorTop);
 	}
 
 	/// <summary>
@@ -82,6 +94,10 @@ public sealed class PulseMonitor {
 	public async Task Observe(CancellationToken cancellationToken = default) {
 		var result = await _handler(cancellationToken);
 		Interlocked.Increment(ref _count);
+		if (Interlocked.CompareExchange(ref _isYielding, 1, 0) == 0) {
+			_loadingTaskSource.TrySetResult();
+			await _indeterminateProgressBarTask;
+		}
 		IncrementStats(result.StatusCode);
 		PrintMetrics();
 		_results.Push(result);
