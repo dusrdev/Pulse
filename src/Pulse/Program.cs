@@ -37,6 +37,7 @@ try {
 } catch (Exception e) {
 	WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);
 	NewLine();
+	WriteLine(["Type: ", e.GetType().Name * Color.Yellow]);
 	WriteLine(["Message: ", e.Message * Color.Yellow]);
 	if (e.StackTrace is not null) {
 		WriteLine(["Stack Trace: " * Color.Yellow, e.StackTrace]);
