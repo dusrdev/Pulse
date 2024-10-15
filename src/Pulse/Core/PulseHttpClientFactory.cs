@@ -10,7 +10,9 @@ public static class PulseHttpClientFactory {
 
 		SocketsHttpHandler handler = CreateHandler(proxy);
 
-		return new HttpClient(handler);
+		return new HttpClient(handler) {
+			Timeout = TimeSpan.FromMinutes(10)
+		};
 	}
 
 	private static SocketsHttpHandler CreateHandler(Proxy proxyDetails) {
