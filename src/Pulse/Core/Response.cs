@@ -76,10 +76,9 @@ public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> 
 		if (_parameters.UseFullEquality) {
 			basicEquality &= string.Equals(x.Content, y.Content, StringComparison.Ordinal);
 		} else {
-			bool contentsEqual = x.Content is not null
-								&& y.Content is not null
-								&& x.Content.Length == y.Content.Length;
-			basicEquality &= contentsEqual;
+			int lenX = x.Content?.Length ?? 0;
+			int lenY = y.Content?.Length ?? 0;
+			basicEquality &= lenX == lenY;
 		}
 
 		if (!basicEquality) {
@@ -101,6 +100,10 @@ public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> 
 
 		int hash = 17;
 		hash = hash * 23 + hashStatusCode;
+
+		if (!obj.Exception.IsDefault) {
+			hash = hash * 23 + obj.Exception.Message.GetHashCode();
+		}
 
 		if (_parameters.UseFullEquality) {
 			int hashContent = obj.Content != null ? obj.Content.GetHashCode() : 0;
