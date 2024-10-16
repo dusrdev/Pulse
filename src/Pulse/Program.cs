@@ -7,6 +7,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 //TODO: Ensure all correct dependencies are passed in constructors.
+//TODO: Check correct cancellation output during initial progress bar
 
 System.Console.CancelKeyPress += (_, _) => Services.Instance.Parameters.CancellationTokenSource.Cancel();
 
@@ -37,10 +38,6 @@ try {
 } catch (Exception e) {
 	WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);
 	NewLine();
-	WriteLine(["Type: ", e.GetType().Name * Color.Yellow]);
-	WriteLine(["Message: ", e.Message * Color.Yellow]);
-	if (e.StackTrace is not null) {
-		WriteLine(["Stack Trace: " * Color.Yellow, e.StackTrace]);
-	}
+	WriteLine(JsonContext.SerializeException(e));
 	return 1;
 }
