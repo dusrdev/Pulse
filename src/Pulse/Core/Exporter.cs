@@ -17,6 +17,7 @@ public static class Exporter {
 
     string basePath = Utils.Env.PathInBaseDirectory("results/");
     Directory.CreateDirectory(basePath);
+    ClearFiles(basePath);
     string path = Path.Join(basePath, $"response-{index}.html");
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? "" : result.Content;
@@ -34,7 +35,7 @@ public static class Exporter {
       content = content.Replace('\'', '\"');
     } else {
       frameTitle = "Exception:";
-      content = JsonSerializer.Serialize(result.Exception, JsonContext.Default.StrippedException);
+      content = JsonContext.SerializeException(result.Exception);
     }
     HttpStatusCode statusCode = result.StatusCode ?? 0;
     string contentFrame = content == "" ?
@@ -169,5 +170,23 @@ iframe {
     sb.AppendLine("</table>");
 
     return sb.ToString();
+  }
+
+  /// <summary>
+  /// Removes all files in the directory
+  /// </summary>
+  /// <param name="directoryPath"></param>
+  private static void ClearFiles(string directoryPath) {
+    var files = Directory.GetFiles(directoryPath);
+    if (files.Length == 0) {
+      return;
+    }
+    foreach (var file in files) {
+      try {
+        File.Delete(file);
+      } catch {
+        // ignored
+      }
+    }
   }
 }
