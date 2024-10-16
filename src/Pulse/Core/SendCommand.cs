@@ -39,6 +39,8 @@ public sealed class SendCommand : Command {
 	  generate-request : use as command - generated sample file
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override url of request
+	  --strict         : show request details errors and prevent execution
+	                       * without this, the defaults will be used instead
 
 	Defaults:
 	  -n, --number     = {ParametersBase.DefaultNumberOfRequests}
@@ -67,18 +69,11 @@ public sealed class SendCommand : Command {
 
 	internal static Result<RequestDetails> GetRequestDetails(string requestSource, Arguments args) {
 		var path = Path.GetFullPath(requestSource);
-		if (!File.Exists(path)) {
-			return Result.Fail("Request file could not be found.");
+		var result = JsonContext.TryGetRequestDetailsFromFile(path);
+		if (args.TryGetValue(["u", "url"], out string url)) {
+			result.Value!.Request.Url = url;
 		}
-		try {
-			using var detailsFromFile = new SerializableObject<RequestDetails>(path, new(), JsonContext.Default.RequestDetails);
-			if (args.TryGetValue(["u", "url"], out string url)) {
-				detailsFromFile.Value.Request.Url = url;
-			}
-			return Result.Ok(detailsFromFile.Value);
-		} catch (Exception e) {
-			return Result.Fail(e.Message);
-		}
+		return result;
 	}
 
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
@@ -103,7 +98,7 @@ public sealed class SendCommand : Command {
 		var parametersBase = ParseParametersArgs(args);
 		var requestDetailsResult = GetRequestDetails(rf, args);
 
-		if (requestDetailsResult.IsFail) {
+		if (requestDetailsResult.IsFail && args.HasFlag("strict")) {
 			WriteLineError(requestDetailsResult.Message * Color.Red);
 			return 1;
 		}
@@ -150,12 +145,12 @@ public sealed class SendCommand : Command {
 		if (requestDetails.Request.Headers.Count > 0) {
 			WriteLine("  Headers:" * Color.Yellow);
 			foreach (var header in requestDetails.Request.Headers) {
-				WriteLine(["    ", header.Key.ToStringOrDefault(), ": ", header.Value.ToStringOrDefault() * value]);
+				WriteLine(["    ", header.Key.ToStringOrDefault(), ": ", header.Value.GetRawText() * value]);
 			}
 		} else {
 			WriteLine(["  Headers: " * property, Constants.EmptyValue * value]);
 		}
-		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToStringOrDefault() * value]);
+		WriteLine(["  Body: " * property, requestDetails.Request.Body.GetRawText() * value]);
 
 		// Proxy
 		WriteLine("Proxy:" * headerColor);
