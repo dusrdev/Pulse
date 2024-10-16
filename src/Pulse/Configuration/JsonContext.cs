@@ -44,4 +44,18 @@ public partial class JsonContext : JsonSerializerContext {
 			return Result.Fail<RequestDetails>(message, new());
 		}
 	}
+
+	/// <summary>
+	/// Serializes an exception to a string.
+	/// </summary>
+	/// <param name="e"></param>
+	/// <returns></returns>
+	public static string SerializeException(Exception e) => SerializeException(new StrippedException(e));
+
+	/// <summary>
+	/// Serializes a stripped exception to a string.
+	/// </summary>
+	/// <param name="e"></param>
+	/// <returns></returns>
+	public static string SerializeException(StrippedException e) => JsonSerializer.Serialize(e, Default.StrippedException);
 }
