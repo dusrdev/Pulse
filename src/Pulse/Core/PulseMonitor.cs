@@ -76,14 +76,13 @@ public sealed class PulseMonitor {
 		_requests = requests;
 		_start = Stopwatch.GetTimestamp();
 		_loadingTaskSource = new();
-		// var cursorTop = System.Console.CursorTop;
+		var globalTCS = Services.Instance.Parameters.CancellationTokenSource;
+		globalTCS.Token.Register(() => _loadingTaskSource.TrySetCanceled());
 		var indeterminateProgressBar = new IndeterminateProgressBar() {
 			DisplayElapsedTime = true,
 			UpdateRate = 100,
 		};
-		_indeterminateProgressBarTask = indeterminateProgressBar.RunAsync(_loadingTaskSource.Task, Services.Instance.Parameters.CancellationTokenSource.Token);
-		// WriteLineError("Executing..." * Color.White);
-		// System.Console.SetCursorPosition(0, cursorTop);
+		_indeterminateProgressBarTask = indeterminateProgressBar.RunAsync(_loadingTaskSource.Task, globalTCS.Token);
 	}
 
 	/// <summary>
