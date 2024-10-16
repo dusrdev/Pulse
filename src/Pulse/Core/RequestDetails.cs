@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using Pulse.Configuration;
 
 namespace Pulse.Core;
@@ -66,12 +68,12 @@ public class Request {
 	/// <summary>
 	/// Request headers
 	/// </summary>
-	public Dictionary<string, string?> Headers { get; set; } = [];
+	public Dictionary<string, JsonElement> Headers { get; set; } = [];
 
 	/// <summary>
 	/// Request body
 	/// </summary>
-	public string Body { get; set; } = Constants.EmptyValue;
+	public JsonElement Body { get; set; }
 
 	/// <summary>
 	/// Create an http request message from the configuration
@@ -81,11 +83,11 @@ public class Request {
 		var message = new HttpRequestMessage(Method, Url);
 
 		foreach (var header in Headers) {
-			message.Headers.Add(header.Key, header.Value);
+			message.Headers.TryAddWithoutValidation(header.Key, header.Value.GetRawText());
 		}
 
-		if (!Body.IsEmptyOrDefault()) {
-			message.Content = new StringContent(Body);
+		if (Body.ValueKind is not JsonValueKind.Undefined) {
+			message.Content = new StringContent(Body.GetRawText());
 		}
 
 		return message;
