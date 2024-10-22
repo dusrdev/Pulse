@@ -4,8 +4,6 @@ using PrettyConsole;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
 using Sharpify;
-using Sharpify.Collections;
-using System.Buffers;
 
 namespace Pulse.Core;
 
