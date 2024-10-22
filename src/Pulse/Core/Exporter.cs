@@ -15,7 +15,7 @@ public static class Exporter {
       return;
     }
 
-    string basePath = Utils.Env.PathInBaseDirectory("results/");
+    string basePath = Path.Join(Directory.GetCurrentDirectory(), "results/");
     Directory.CreateDirectory(basePath);
     ClearFiles(basePath);
     string path = Path.Join(basePath, $"response-{index}.html");

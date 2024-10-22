@@ -79,7 +79,7 @@ public sealed class SendCommand : Command {
 
 		if (string.Equals(rf, "generate-request", StringComparison.InvariantCultureIgnoreCase)) {
 			try {
-				var path = Utils.Env.PathInBaseDirectory("request-sample.json");
+				var path = Path.Join(Directory.GetCurrentDirectory(), "request-sample.json");
 				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
 				await File.WriteAllTextAsync(path, json, Services.Instance.Parameters.CancellationTokenSource.Token);
 				WriteLine(["Sample request generated at ", path * Color.Yellow]);
