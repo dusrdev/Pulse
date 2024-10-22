@@ -4,6 +4,8 @@ using PrettyConsole;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
 using Sharpify;
+using Sharpify.Collections;
+using System.Buffers;
 
 namespace Pulse.Core;
 
@@ -24,6 +26,13 @@ public class PulseSummary {
 		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
 		double multiplier = 1 / (double)Result.TotalCount;
+		int total = Parameters.Requests;
+		int current = 0;
+        var prg = new ProgressBar() {
+			ProgressColor = Color.Yellow,
+		};
+
+		var cursorTop = System.Console.CursorTop;
 
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
@@ -32,10 +41,16 @@ public class PulseSummary {
 			minDuration = Math.Min(minDuration, duration);
 			maxDuration = Math.Max(maxDuration, duration);
 			avgDuration += multiplier * duration;
-
 			var statusCode = result.StatusCode ?? 0;
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
+
+			// prg part
+			current++;
+            double percentage = 100 * (double)current / total;
+            prg.Update(percentage, "Cross referencing results...");
 		}
+
+		System.Console.SetCursorPosition(0, cursorTop);
 
 		ClearNextLinesError(3);
 		WriteLine("Statistics:" * Color.Green);

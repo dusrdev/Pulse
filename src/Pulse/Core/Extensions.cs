@@ -12,7 +12,7 @@ public static class Extensions {
 	/// <returns></returns>
 	/// <exception cref="ArgumentOutOfRangeException"></exception>
 	public static Color GetPercentageBasedColor(double percentage) {
-		if (percentage is < 0 or > 100) {
+		if ((uint)percentage > 100) {
 			throw new ArgumentOutOfRangeException(nameof(percentage), "Must be between 0 and 100");
 		}
 
@@ -51,22 +51,6 @@ public static class Extensions {
 		parameters.UseFullEquality = @base.UseFullEquality;
 		parameters.NoExport = @base.NoExport;
 		parameters.NoOp = @base.NoOp;
-	}
-
-	/// <summary>
-	/// Creates a stack of messages
-	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="count"></param>
-	/// <returns></returns>
-	public static ConcurrentStack<HttpRequestMessage> CreateMessages(this Request request, int count) {
-		ConcurrentStack<HttpRequestMessage> messages = new();
-
-		while (count-- > 0) { // Optimized for Arm64 Branch-Decrement-Equal-0
-			messages.Push(request.CreateMessage());
-		}
-
-		return messages;
 	}
 
 	/// <summary>

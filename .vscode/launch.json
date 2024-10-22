@@ -10,9 +10,9 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/src/Pulse/bin/Debug/net8.0/Pulse.dll",
 			"args": [
-				"request-sample.json",
-				"-n",
-				"1"
+				"generate-request",
+				// "-n",
+				// "1"
 			],
 			"cwd": "${workspaceFolder}/src/Pulse/bin/Debug/net8.0/",
 			"stopAtEntry": false,

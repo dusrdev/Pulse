@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -75,6 +74,5 @@ public abstract class AbstractPulse : IDisposable {
 			return;
 		}
 		_disposed = true;
-		GC.SuppressFinalize(this);
     }
 }

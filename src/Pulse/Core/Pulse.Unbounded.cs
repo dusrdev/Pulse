@@ -22,7 +22,7 @@ public sealed class UnboundedPulse : AbstractPulse {
 
             var tasks = buffer.WrittenSegment;
 
-            await Task.WhenAll(tasks).WaitAsync(cancellationToken);
+            await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
         }
 
         var result = monitor.Consolidate();

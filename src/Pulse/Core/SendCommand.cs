@@ -24,7 +24,6 @@ public sealed class SendCommand : Command {
 	RequestFile:
 	  path to .json request details file
 	  - If you don't have one use the "generate-request" command
-
 	Options:
 	  -n, --number     : number of total requests
 	  -m, --mode       : execution mode (sequential, bounded, unbounded)
@@ -34,14 +33,10 @@ public sealed class SendCommand : Command {
 	  --json           : try to format response content as JSON
 	  -f               : use full equality (slower)
 	  --no-export      : don't export results
-
 	Special:
 	  generate-request : use as command - generated sample file
 	  --noop           : print selected configuration but don't run
-	  -u, --url        : override url of request
-	  --strict         : show request details errors and prevent execution
-	                       * without this, the defaults will be used instead
-
+	  -u, --url        : override url of the request
 	Defaults:
 	  -n, --number     = {ParametersBase.DefaultNumberOfRequests}
 	  -m, --mode       = {ParametersBase.DefaultExecutionMode}
@@ -98,7 +93,7 @@ public sealed class SendCommand : Command {
 		var parametersBase = ParseParametersArgs(args);
 		var requestDetailsResult = GetRequestDetails(rf, args);
 
-		if (requestDetailsResult.IsFail && args.HasFlag("strict")) {
+		if (requestDetailsResult.IsFail) {
 			WriteLineError(requestDetailsResult.Message * Color.Red);
 			return 1;
 		}
@@ -140,24 +135,25 @@ public sealed class SendCommand : Command {
 
 		// Request
 		WriteLine("Request:" * headerColor);
-		WriteLine(["  URL: " * property, requestDetails.Request.Url.ToStringOrDefault() * value]);
-		WriteLine(["  Method: " * property, requestDetails.Request.Method.ToStringOrDefault() * value]);
+		WriteLine(["  URL: " * property, requestDetails.Request.Url.ToString() * value]);
+		WriteLine(["  Method: " * property, requestDetails.Request.Method.ToString() * value]);
+		WriteLine("  Headers:" * Color.Yellow);
 		if (requestDetails.Request.Headers.Count > 0) {
-			WriteLine("  Headers:" * Color.Yellow);
 			foreach (var header in requestDetails.Request.Headers) {
-				WriteLine(["    ", header.Key.ToStringOrDefault(), ": ", header.Value.GetRawText() * value]);
+				if (header.Value is null) {
+					continue;
+				}
+				WriteLine(["    ", header.Key.ToString(), ": ", header.Value.Value.ToString() * value]);
 			}
-		} else {
-			WriteLine(["  Headers: " * property, Constants.EmptyValue * value]);
 		}
-		WriteLine(["  Body: " * property, requestDetails.Request.Body.GetRawText() * value]);
+		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToString()! * value]);
 
 		// Proxy
 		WriteLine("Proxy:" * headerColor);
 		WriteLine(["  Bypass: " * property, $"{requestDetails.Proxy.Bypass}" * value]);
-		WriteLine(["  Host: " * property, requestDetails.Proxy.Host.ToStringOrDefault() * value]);
-		WriteLine(["  Username: " * property, requestDetails.Proxy.Username.ToStringOrDefault() * value]);
-		WriteLine(["  Password: " * property, requestDetails.Proxy.Password.ToStringOrDefault() * value]);
+		WriteLine(["  Host: " * property, requestDetails.Proxy.Host.ToString() * value]);
+		WriteLine(["  Username: " * property, requestDetails.Proxy.Username.ToString() * value]);
+		WriteLine(["  Password: " * property, requestDetails.Proxy.Password.ToString() * value]);
 		WriteLine(["  Ignore SSL: " * property, $"{requestDetails.Proxy.IgnoreSSL}" * value]);
 	}
 }

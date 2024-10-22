@@ -15,9 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sharpify" Version="2.4.0-Alpha" />
-    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.4.0-Alpha" />
-    <PackageReference Include="PrettyConsole" Version="3.0.0-rc.1" />
+    <PackageReference Include="Sharpify" Version="2.4.0" />
+    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.4.0" />
+    <PackageReference Include="PrettyConsole" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

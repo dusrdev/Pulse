@@ -1,7 +1,5 @@
 using System.Text.Json;
 
-using Pulse.Configuration;
-
 namespace Pulse.Core;
 
 /// <summary>
@@ -36,17 +34,17 @@ public class Proxy {
 	/// <summary>
 	/// Host
 	/// </summary>
-	public string Host { get; set; } = Constants.EmptyValue;
+	public string Host { get; set; } = "";
 
 	/// <summary>
 	/// Proxy authentication username
 	/// </summary>
-	public string Username { get; set; } = Constants.EmptyValue;
+	public string Username { get; set; } = "";
 
 	/// <summary>
 	/// Proxy authentication password
 	/// </summary>
-	public string Password { get; set; } = Constants.EmptyValue;
+	public string Password { get; set; } = "";
 }
 
 /// <summary>
@@ -68,12 +66,12 @@ public class Request {
 	/// <summary>
 	/// Request headers
 	/// </summary>
-	public Dictionary<string, JsonElement> Headers { get; set; } = [];
+	public Dictionary<string, JsonElement?> Headers { get; set; } = [];
 
 	/// <summary>
 	/// Request body
 	/// </summary>
-	public JsonElement Body { get; set; }
+	public JsonElement? Body { get; set; }
 
 	/// <summary>
 	/// Create an http request message from the configuration
@@ -83,11 +81,14 @@ public class Request {
 		var message = new HttpRequestMessage(Method, Url);
 
 		foreach (var header in Headers) {
-			message.Headers.TryAddWithoutValidation(header.Key, header.Value.GetRawText());
+			if (header.Value is null) {
+				continue;
+			}
+			message.Headers.TryAddWithoutValidation(header.Key, header.Value.Value.ToString());
 		}
 
-		if (Body.ValueKind is not JsonValueKind.Undefined) {
-			message.Content = new StringContent(Body.GetRawText());
+		if (Body is not null) {
+			message.Content = new StringContent(Body.Value.ToString());
 		}
 
 		return message;

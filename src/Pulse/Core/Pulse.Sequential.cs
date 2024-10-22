@@ -6,7 +6,6 @@ public sealed class SequentialPulse : AbstractPulse {
     public SequentialPulse(Parameters parameters, RequestDetails requestDetails) : base(parameters, requestDetails) {
     }
 
-
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
         PulseMonitor monitor = new(_requestHandler, _parameters.Requests);
 

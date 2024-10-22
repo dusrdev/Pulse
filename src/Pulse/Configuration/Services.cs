@@ -9,21 +9,12 @@ public sealed class Services {
 	/// </summary>
 	public static readonly Services Instance = new();
 
-	// public readonly JsonSerializerOptions JsonOptions;
-
+	/// <summary>
+	/// The global parameters for the execution scope
+	/// </summary>
 	public readonly Parameters Parameters;
 
 	private Services() {
-		// JsonOptions = new() {
-		// 	WriteIndented = true,
-		// 	IncludeFields = true,
-		// 	NumberHandling = JsonNumberHandling.AllowReadingFromString,
-		// 	AllowTrailingCommas = true,
-		// 	DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-		// };
-
-		// JsonOptions.Converters.Add(new ExceptionConverter());
-
 		Parameters = new();
 	}
 }

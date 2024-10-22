@@ -32,8 +32,9 @@ public partial class JsonContext : JsonSerializerContext {
 				return Result.Fail<RequestDetails>($"{path} - does not exist.", new());
 			}
 
-			using var file = File.OpenRead(path);
-			var rd = JsonSerializer.Deserialize(file, Default.RequestDetails);
+			var bytes = File.ReadAllBytes(path);
+			var reader = new Utf8JsonReader(bytes);
+			var rd = JsonSerializer.Deserialize(ref reader, Default.RequestDetails);
 			if (rd is null) {
 				return Result.Fail<RequestDetails>($"{path} - contained empty or invalid JSON.", new());
 			}

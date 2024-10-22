@@ -2,6 +2,8 @@ using System.Net;
 
 using Pulse.Configuration;
 
+using Sharpify;
+
 namespace Pulse.Core;
 
 public static class PulseHttpClientFactory {
@@ -17,11 +19,11 @@ public static class PulseHttpClientFactory {
 
 	private static SocketsHttpHandler CreateHandler(Proxy proxyDetails) {
 		SocketsHttpHandler handler;
-		if (proxyDetails.Bypass || proxyDetails.Host.IsEmptyOrDefault()) {
+		if (proxyDetails.Bypass || proxyDetails.Host.IsNullOrWhiteSpace()) {
 			handler = new SocketsHttpHandler();
 		} else {
 			var proxy = new WebProxy(proxyDetails.Host);
-			if (!proxyDetails.Username.IsEmptyOrDefault() && !proxyDetails.Password.IsEmptyOrDefault()) {
+			if (!proxyDetails.Username.IsNullOrWhiteSpace() && !proxyDetails.Password.IsNullOrWhiteSpace()) {
 				proxy.Credentials = new NetworkCredential {
 					UserName = proxyDetails.Username,
 					Password = proxyDetails.Password
