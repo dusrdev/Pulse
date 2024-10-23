@@ -8,15 +8,12 @@ using Pulse.Configuration;
 namespace Pulse.Core;
 
 public static class Exporter {
-  public static async Task ExportHtmlAsync(Response result, int index, CancellationToken token = default) {
+  public static async Task ExportHtmlAsync(Response result, string path, int index, CancellationToken token = default) {
     if (token.IsCancellationRequested) {
       return;
     }
 
-    string basePath = Path.Join(Directory.GetCurrentDirectory(), "results/");
-    Directory.CreateDirectory(basePath);
-    ClearFiles(basePath);
-    string path = Path.Join(basePath, $"response-{index}.html");
+    string filename = Path.Join(path, $"response-{index}.html");
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? "" : result.Content;
 
@@ -132,7 +129,7 @@ iframe {
 {{contentFrame}}
 </body>
 """;
-    await File.WriteAllTextAsync(path, body, token);
+    await File.WriteAllTextAsync(filename, body, token);
   }
 
   /// <summary>
@@ -174,7 +171,7 @@ iframe {
   /// Removes all files in the directory
   /// </summary>
   /// <param name="directoryPath"></param>
-  private static void ClearFiles(string directoryPath) {
+  internal static void ClearFiles(string directoryPath) {
     var files = Directory.GetFiles(directoryPath);
     if (files.Length == 0) {
       return;

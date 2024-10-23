@@ -26,7 +26,7 @@ public class PulseSummary {
 		double multiplier = 1 / (double)Result.TotalCount;
 		int total = Parameters.Requests;
 		int current = 0;
-        var prg = new ProgressBar() {
+		var prg = new ProgressBar() {
 			ProgressColor = Color.Yellow,
 		};
 
@@ -44,8 +44,8 @@ public class PulseSummary {
 
 			// prg part
 			current++;
-            double percentage = 100 * (double)current / total;
-            prg.Update(percentage, "Cross referencing results...");
+			double percentage = 100 * (double)current / total;
+			prg.Update(percentage, "Cross referencing results...");
 		}
 
 		System.Console.SetCursorPosition(0, cursorTop);
@@ -85,8 +85,14 @@ public class PulseSummary {
 		if (count == 0) {
 			WriteLine("No unique results found to export..." * Color.Yellow);
 			return;
-		} else if (count == 1) {
-			await Exporter.ExportHtmlAsync(uniqueRequests.First(), 1, token);
+		}
+
+		string directory = Path.Join(Directory.GetCurrentDirectory(), "results/");
+		Directory.CreateDirectory(directory);
+		Exporter.ClearFiles(directory);
+
+		if (count == 1) {
+			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, 1, token);
 			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
 		} else {
 			var options = new ParallelOptions {
@@ -99,7 +105,7 @@ public class PulseSummary {
 			await Parallel.ForEachAsync(
 				indexed,
 				options,
-				async (item, t) => await Exporter.ExportHtmlAsync(item.First, item.Second, t));
+				async (item, t) => await Exporter.ExportHtmlAsync(item.First, directory, item.Second, t));
 			WriteLine([count.ToString() * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
 		}
 	}
