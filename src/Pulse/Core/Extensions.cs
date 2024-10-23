@@ -49,7 +49,7 @@ public static class Extensions {
 		parameters.ExecutionMode = @base.ExecutionMode;
 		parameters.FormatJson = @base.FormatJson;
 		parameters.UseFullEquality = @base.UseFullEquality;
-		parameters.NoExport = @base.NoExport;
+		parameters.Export = @base.Export;
 		parameters.NoOp = @base.NoOp;
 	}
 
