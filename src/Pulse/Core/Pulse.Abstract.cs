@@ -24,7 +24,7 @@ public abstract class AbstractPulse : IDisposable {
 		_parameters = parameters;
 		_httpClient = PulseHttpClientFactory.Create(requestDetails);
 
-		bool saveContent = !_parameters.NoExport;
+		bool saveContent = _parameters.Export;
 		var requestRecipe = requestDetails.Request;
 
 		_requestHandler = async token => await SendRequest(requestRecipe, _httpClient, saveContent, token);

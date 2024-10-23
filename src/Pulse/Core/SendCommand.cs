@@ -57,7 +57,7 @@ public sealed class SendCommand : Command {
 			ExecutionMode = mode,
 			FormatJson = formatJson,
 			UseFullEquality = exportFullEquality,
-			NoExport = disableExport,
+			Export = !disableExport,
 			NoOp = noop
 		};
 	}
@@ -131,7 +131,7 @@ public sealed class SendCommand : Command {
 		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
 		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
-		WriteLine(["  No Export: " * property, $"{parameters.NoExport}" * value]);
+		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);
 
 		// Request
 		WriteLine("Request:" * headerColor);
