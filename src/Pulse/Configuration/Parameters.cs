@@ -32,9 +32,9 @@ public class ParametersBase {
 	public bool FormatJson { get; set; } = false;
 
 	/// <summary>
-	/// Indicating whether to bypass exports
+	/// Indicating whether to export results
 	/// </summary>
-	public bool NoExport { get; set; } = false;
+	public bool Export { get; set; } = true;
 
 	/// <summary>
 	/// Check full equality for response content
