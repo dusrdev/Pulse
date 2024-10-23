@@ -70,7 +70,7 @@ public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> 
 	/// If <see cref="ParametersBase.UseFullEquality"/> is not used, the content is only checked by length to accelerate checks, generally this is sufficient as usually a website won't return same length responses for different results
 	/// </remarks>
 	/// <returns></returns>
-    public bool Equals(Response x, Response y) { // Equals is only used if HashCode is equal
+	public bool Equals(Response x, Response y) { // Equals is only used if HashCode is equal
 		bool basicEquality = x.StatusCode == y.StatusCode;
 
 		if (_parameters.UseFullEquality) {
@@ -86,28 +86,31 @@ public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> 
 		}
 
 		// Compare Exception types and messages
-		return x.Exception.Type == y.Exception.Type &&
-			   string.Equals(x.Exception.Message, y.Exception.Message, StringComparison.Ordinal);
-    }
+
+		if (x.Exception.IsDefault != y.Exception.IsDefault) {
+			return false;
+		}
+
+		return x.Exception.Message == y.Exception.Message;
+	}
 
 	/// <summary>
 	/// HashCode doesn't check exception because more complicated equality checks are needed.
 	/// </summary>
 	/// <param name="obj"></param>
 	/// <returns></returns>
-    public int GetHashCode(Response obj) {
+	public int GetHashCode(Response obj) {
 		int hashStatusCode = obj.StatusCode.HasValue ? obj.StatusCode.Value.GetHashCode() : 0;
 
 		int hash = 17;
 		hash = hash * 23 + hashStatusCode;
 
-		if (!obj.Exception.IsDefault) {
+		if (obj.Exception.IsDefault) {
+			// no exception -> should have content
+			hash = hash * 23 + obj.Content?.GetHashCode() ?? 0;
+		} else {
+			// exception = no content (usually)
 			hash = hash * 23 + obj.Exception.Message.GetHashCode();
-		}
-
-		if (_parameters.UseFullEquality) {
-			int hashContent = obj.Content != null ? obj.Content.GetHashCode() : 0;
-			hash = hash * 23 + hashContent;
 		}
 
 		return hash;
