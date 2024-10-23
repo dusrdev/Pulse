@@ -5,8 +5,6 @@ using System.Text.Json;
 
 using Pulse.Configuration;
 
-using Sharpify;
-
 namespace Pulse.Core;
 
 public static class Exporter {
@@ -35,7 +33,7 @@ public static class Exporter {
       content = content.Replace('\'', '\"');
     } else {
       frameTitle = "Exception:";
-      content = JsonContext.SerializeException(result.Exception);
+      content = $"<pre>{JsonContext.SerializeException(result.Exception)}</pre>";
     }
     HttpStatusCode statusCode = result.StatusCode ?? 0;
     string contentFrame = content == "" ?
