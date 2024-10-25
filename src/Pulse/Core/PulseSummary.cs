@@ -23,6 +23,7 @@ public class PulseSummary {
 		Dictionary<HttpStatusCode, int> statusCounter = [];
 		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
+		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
 		double multiplier = 1 / (double)Result.TotalCount;
 		int total = Parameters.Requests;
 		int current = 0;
@@ -35,10 +36,17 @@ public class PulseSummary {
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
 			uniqueThreadIds.Add(result.ExecutingThreadId);
+			// duration
 			var duration = result.Duration.TotalMilliseconds;
 			minDuration = Math.Min(minDuration, duration);
 			maxDuration = Math.Max(maxDuration, duration);
 			avgDuration += multiplier * duration;
+			// size
+			var size = (double)(result.Content?.Length ?? 0) * sizeof(char) / sizeof(byte);
+			minSize = Math.Min(minSize, size);
+			maxSize = Math.Max(maxSize, size);
+			avgSize += multiplier * size;
+
 			var statusCode = result.StatusCode ?? 0;
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 
@@ -58,6 +66,7 @@ public class PulseSummary {
 		WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
 		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
+		WriteLine(["Content Size:  Min: ", Utils.Strings.FormatBytes(minSize) * Color.Cyan, ", Avg: ", Utils.Strings.FormatBytes(avgSize) * Color.Yellow, ", Max: ", Utils.Strings.FormatBytes(maxSize) * Color.Red]);
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
 			var key = (int)kvp.Key;
