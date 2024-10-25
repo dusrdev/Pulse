@@ -43,9 +43,11 @@ public class PulseSummary {
 			avgDuration += multiplier * duration;
 			// size
 			var size = (double)(result.Content?.Length ?? 0) * sizeof(char) / sizeof(byte);
-			minSize = Math.Min(minSize, size);
-			maxSize = Math.Max(maxSize, size);
-			avgSize += multiplier * size;
+			if (size > 0) {
+				minSize = Math.Min(minSize, size);
+				maxSize = Math.Max(maxSize, size);
+				avgSize += multiplier * size;
+			}
 
 			var statusCode = result.StatusCode ?? 0;
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
@@ -55,6 +57,9 @@ public class PulseSummary {
 			double percentage = 100 * (double)current / total;
 			prg.Update(percentage, "Cross referencing results...");
 		}
+
+		maxSize = Math.Max(0, maxSize);
+		minSize = Math.Max(0, minSize);
 
 		System.Console.SetCursorPosition(0, cursorTop);
 
