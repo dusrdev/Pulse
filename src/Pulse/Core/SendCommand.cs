@@ -135,7 +135,7 @@ public sealed class SendCommand : Command {
 
 		// Request
 		WriteLine("Request:" * headerColor);
-		WriteLine(["  URL: " * property, requestDetails.Request.Url.ToString() * value]);
+		WriteLine(["  URL: " * property, requestDetails.Request.Url * value]);
 		WriteLine(["  Method: " * property, requestDetails.Request.Method.ToString() * value]);
 		WriteLine("  Headers:" * Color.Yellow);
 		if (requestDetails.Request.Headers.Count > 0) {
@@ -143,7 +143,7 @@ public sealed class SendCommand : Command {
 				if (header.Value is null) {
 					continue;
 				}
-				WriteLine(["    ", header.Key.ToString(), ": ", header.Value.Value.ToString() * value]);
+				WriteLine(["    ", header.Key * property, ": ", header.Value.Value.ToString() * value]);
 			}
 		}
 		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToString()! * value]);
@@ -151,9 +151,9 @@ public sealed class SendCommand : Command {
 		// Proxy
 		WriteLine("Proxy:" * headerColor);
 		WriteLine(["  Bypass: " * property, $"{requestDetails.Proxy.Bypass}" * value]);
-		WriteLine(["  Host: " * property, requestDetails.Proxy.Host.ToString() * value]);
-		WriteLine(["  Username: " * property, requestDetails.Proxy.Username.ToString() * value]);
-		WriteLine(["  Password: " * property, requestDetails.Proxy.Password.ToString() * value]);
+		WriteLine(["  Host: " * property, requestDetails.Proxy.Host * value]);
+		WriteLine(["  Username: " * property, requestDetails.Proxy.Username * value]);
+		WriteLine(["  Password: " * property, requestDetails.Proxy.Password * value]);
 		WriteLine(["  Ignore SSL: " * property, $"{requestDetails.Proxy.IgnoreSSL}" * value]);
 	}
 }
