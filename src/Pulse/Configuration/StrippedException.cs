@@ -26,6 +26,7 @@ public sealed record StrippedException {
 	/// <summary>
 	/// Indicating whether the exception is the default exception (i.e. no exception)
 	/// </summary>
+	[JsonIgnore]
 	public readonly bool IsDefault;
 
 	/// <summary>
