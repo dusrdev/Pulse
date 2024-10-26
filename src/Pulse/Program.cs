@@ -6,10 +6,12 @@ using Sharpify.CommandLineInterface;
 using static PrettyConsole.Console;
 using PrettyConsole;
 
-//TODO: Ensure all correct dependencies are passed in constructors.
-//TODO: Check correct cancellation output during initial progress bar
+System.Console.CancelKeyPress += (_, e) => {
+	e.Cancel = true;
+	Services.Shared.Parameters.CancellationTokenSource.Cancel();
+};
 
-System.Console.CancelKeyPress += (_, _) => Services.Shared.Parameters.CancellationTokenSource.Cancel();
+var firstLine = GetCurrentLine();
 
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
@@ -32,8 +34,9 @@ var cli = CliRunner.CreateBuilder()
 try {
 	return await cli.RunAsync(args, false);
 } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
+	GoToLine(firstLine);
 	ClearNextLines(4);
-	WriteLine("Canceled requested and handled gracefully." * Color.DarkYellow);
+	WriteLine("Cancellation requested and handled gracefully." * Color.DarkYellow);
 	return 1;
 } catch (Exception e) {
 	WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);

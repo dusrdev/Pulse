@@ -117,7 +117,7 @@ public sealed class SendCommand : Command {
 
 		var pulseRunner = AbstractPulse.Match(@params, requestDetails);
 
-		await pulseRunner.RunAsync();
+		await pulseRunner.RunAsync(@params.CancellationTokenSource.Token);
 
 		return 0;
 	}
@@ -136,11 +136,11 @@ public sealed class SendCommand : Command {
 		WriteLine("Options:" * headerColor);
 		WriteLine(["  Request Count: " * property, $"{parameters.Requests}" * value]);
 		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
-		#pragma warning disable IDE0002
+#pragma warning disable IDE0002
 		if (parameters.BatchSize is not Parameters.DefaultBatchSize) {
 			WriteLine(["  Batch Size: " * property, $"{parameters.BatchSize}" * value]);
 		}
-		#pragma warning restore IDE0002
+#pragma warning restore IDE0002
 		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);
