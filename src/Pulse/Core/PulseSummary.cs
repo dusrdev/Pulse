@@ -6,7 +6,6 @@ using Pulse.Configuration;
 using Sharpify;
 using Sharpify.Collections;
 using System.Text;
-using System.Buffers;
 
 namespace Pulse.Core;
 
@@ -21,6 +20,10 @@ public class PulseSummary {
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
 	[MethodImpl(MethodImplOptions.Synchronized)]
 	public (bool exportRequired, HashSet<Response> uniqueRequests) Summarize() {
+		if (Result.Results.Count == 1) {
+			return SummarizeSingle();
+		}
+
 		HashSet<Response> uniqueRequests = Parameters.Export
 												? new(ResponseWithExceptionComparer.Singleton)
 												: [];
@@ -95,6 +98,36 @@ public class PulseSummary {
 		return (Parameters.Export, uniqueRequests);
 	}
 
+	/// <summary>
+	/// Produces a summary for a single result
+	/// </summary>
+	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
+	[MethodImpl(MethodImplOptions.Synchronized)]
+	public (bool exportRequired, HashSet<Response> uniqueRequests) SummarizeSingle() {
+		var result = Result.Results.First();
+		double duration = result.Duration.TotalMilliseconds;
+		ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
+		var size = CharEncoding.GetByteCount(span);
+
+		ClearNextLinesError(3);
+		WriteLine("Summary:" * Color.Green);
+		WriteLine(["Request count: ", "1" * Color.Yellow]);
+		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
+		if (Parameters.Verbose) {
+			WriteLine(["Threads used: ", "1" * Color.Yellow]);
+			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
+		}
+		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
+		WriteLine(["Request Duration: ", $"{duration:0.##}ms" * Color.Cyan]);
+		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(size) * Color.Cyan]);
+		var statusCode = (int)(result.StatusCode ?? 0);
+		WriteLine(["Status code: ", $"{statusCode}" * Extensions.GetStatusCodeBasedColor(statusCode)]);
+		NewLine();
+
+		var uniqueRequests = new HashSet<Response>(1) { result };
+
+		return (Parameters.Export, uniqueRequests);
+	}
 
 	/// <summary>
 	/// Exports unique request results asynchronously and in parallel if possible
