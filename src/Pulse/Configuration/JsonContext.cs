@@ -10,7 +10,7 @@ namespace Pulse.Configuration;
 [JsonSourceGenerationOptions(AllowTrailingCommas = true,
 							 DefaultIgnoreCondition = JsonIgnoreCondition.Never,
 							 ReadCommentHandling = JsonCommentHandling.Skip,
-							 UnknownTypeHandling = JsonUnknownTypeHandling.JsonNode,
+							 UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
 							 PropertyNameCaseInsensitive = true,
 							 UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
 							 IncludeFields = true,
