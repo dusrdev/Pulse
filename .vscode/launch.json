@@ -10,7 +10,7 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/src/Pulse/bin/Debug/net8.0/Pulse.dll",
 			"args": [
-				"generate-request",
+				"test1.jsonc",
 				// "-n",
 				// "1"
 			],

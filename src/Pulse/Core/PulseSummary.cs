@@ -6,6 +6,7 @@ using Pulse.Configuration;
 using Sharpify;
 using Sharpify.Collections;
 using System.Text;
+using System.Buffers;
 
 namespace Pulse.Core;
 
@@ -30,7 +31,7 @@ public class PulseSummary {
 		double multiplier = 1 / (double)Result.TotalCount;
 		int total = Parameters.Requests;
 		int current = 0;
-		var prg = new ProgressBar() {
+		var prg = new ProgressBar {
 			ProgressColor = Color.Yellow,
 		};
 
@@ -63,9 +64,11 @@ public class PulseSummary {
 		}
 
 		maxSize = Math.Max(0, maxSize);
-		minSize = Math.Max(0, minSize);
+		minSize = Math.Min(minSize, maxSize);
 
 		System.Console.SetCursorPosition(0, cursorTop);
+
+		Func<double, string> getSize = Utils.Strings.FormatBytes;
 
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
@@ -73,11 +76,11 @@ public class PulseSummary {
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
 			WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);
-			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
+			WriteLine(["RAM Consumed: ", getSize(Result.MemoryUsed) * Color.Yellow]);
 		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
 		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
-		WriteLine(["Content Size:  Min: ", Utils.Strings.FormatBytes(minSize) * Color.Cyan, ", Avg: ", Utils.Strings.FormatBytes(avgSize) * Color.Yellow, ", Max: ", Utils.Strings.FormatBytes(maxSize) * Color.Red]);
+		WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
 			var key = (int)kvp.Key;
