@@ -176,10 +176,11 @@ public class PulseSummary {
 				using var buffer = new RentedBufferWriter<Task>(batch);
 
 				for (int i = 0; i < batch; i++) {
-					buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(enumerator.Current, directory, index++, token), token));
 					if (!enumerator.MoveNext()) {
 						break;
 					}
+					var current = enumerator.Current;
+					buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(current, directory, index++, token), token));
 				}
 
 				var tasks = buffer.WrittenSegment;
