@@ -68,11 +68,13 @@ public class PulseSummary {
 		System.Console.SetCursorPosition(0, cursorTop);
 
 		ClearNextLinesError(3);
-		WriteLine("Statistics:" * Color.Green);
+		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", $"{Parameters.Requests}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);
-		WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
+		if (Parameters.Verbose) {
+			WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);
+			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
+		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
 		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
 		WriteLine(["Content Size:  Min: ", Utils.Strings.FormatBytes(minSize) * Color.Cyan, ", Avg: ", Utils.Strings.FormatBytes(avgSize) * Color.Yellow, ", Max: ", Utils.Strings.FormatBytes(maxSize) * Color.Red]);

@@ -33,6 +33,7 @@ public sealed class SendCommand : Command {
 	  --json           : try to format response content as JSON
 	  -f               : use full equality (slower)
 	  --no-export      : don't export results
+	  -v, --verbose    : display verbose output
 	Special:
 	  generate-request : use as command - generated sample file
 	  --noop           : print selected configuration but don't run
@@ -42,6 +43,7 @@ public sealed class SendCommand : Command {
 	  -m, --mode       = {ParametersBase.DefaultExecutionMode}
 	  -f               = {DefaultExportFullEquality}
 	  --no-export      = {DefaultDisableExport}
+	  -v, --verbose    = {false}
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
@@ -54,6 +56,7 @@ public sealed class SendCommand : Command {
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
+		bool verbose = args.HasFlag("v") || args.HasFlag("verbose");
 		return new() {
 			Requests = requests,
 			ExecutionMode = mode,
@@ -61,7 +64,8 @@ public sealed class SendCommand : Command {
 			FormatJson = formatJson,
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,
-			NoOp = noop
+			NoOp = noop,
+			Verbose = verbose
 		};
 	}
 
@@ -140,6 +144,7 @@ public sealed class SendCommand : Command {
 		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);
+		WriteLine(["  Verbose: " * property, $"{parameters.Verbose}" * value]);
 
 		// Request
 		WriteLine("Request:" * headerColor);

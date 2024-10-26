@@ -52,9 +52,14 @@ public class ParametersBase {
 	public bool UseFullEquality { get; set; } = false;
 
 	/// <summary>
-	/// Use verbose output
+	/// Display configuration and exit
 	/// </summary>
 	public bool NoOp { get; set; } = false;
+
+	/// <summary>
+	/// Display verbose output (adds more metrics)
+	/// </summary>
+	public bool Verbose { get; set; } = false;
 }
 
 /// <summary>
