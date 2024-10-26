@@ -4,12 +4,15 @@ using PrettyConsole;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
 using Sharpify;
+using Sharpify.Collections;
+using System.Text;
 
 namespace Pulse.Core;
 
 public class PulseSummary {
 	public required PulseResult Result { get; init; }
 	public required Parameters Parameters { get; init; }
+	public Encoding CharEncoding { get; init; } = Encoding.Default;
 
 	/// <summary>
 	/// Produces a summary, and saves unique requests if export is enabled.
@@ -42,7 +45,8 @@ public class PulseSummary {
 			maxDuration = Math.Max(maxDuration, duration);
 			avgDuration += multiplier * duration;
 			// size
-			var size = (double)(result.Content?.Length ?? 0) * sizeof(char) / sizeof(byte);
+			ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
+			var size = CharEncoding.GetByteCount(span);
 			if (size > 0) {
 				minSize = Math.Min(minSize, size);
 				maxSize = Math.Max(maxSize, size);
@@ -114,12 +118,17 @@ public class PulseSummary {
 				CancellationToken = token
 			};
 
-			var indexed = Enumerable.Zip(uniqueRequests, Enumerable.Range(1, count));
+			int i = 1;
 
-			await Parallel.ForEachAsync(
-				indexed,
-				options,
-				async (item, t) => await Exporter.ExportHtmlAsync(item.First, directory, item.Second, t));
+			using var buffer = new RentedBufferWriter<Task>(uniqueRequests.Count);
+
+			foreach (var item in uniqueRequests) {
+				buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(item, directory, i++, token), token));
+			}
+
+			var tasks = buffer.WrittenSegment;
+			await Task.WhenAll(tasks).WaitAsync(token).ConfigureAwait(false);
+
 			WriteLine([count.ToString() * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
 		}
 	}

@@ -6,17 +6,16 @@ using Pulse.Configuration;
 
 namespace Pulse.Core;
 
-public abstract class AbstractPulse : IDisposable {
+public abstract class AbstractPulse {
 	protected readonly HttpClient _httpClient;
 	protected readonly Parameters _parameters;
 	protected readonly Func<CancellationToken, Task<Response>> _requestHandler;
-	private volatile bool _disposed;
 
 	public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails)
-			=> parameters.ExecutionMode switch {
-				ExecutionMode.Sequential => new SequentialPulse(parameters, requestDetails),
-				ExecutionMode.Bounded => new BoundedPulse(parameters, requestDetails),
-				ExecutionMode.Unbounded => new UnboundedPulse(parameters, requestDetails),
+			=> (parameters.ExecutionMode, parameters.BatchSize) switch {
+				(ExecutionMode.Sequential, _) => new SequentialPulse(parameters, requestDetails),
+				(ExecutionMode.Parallel, Parameters.DefaultBatchSize) => new UnboundedPulse(parameters, requestDetails),
+				(ExecutionMode.Parallel, _) => new BoundedPulse(parameters, requestDetails),
 				_ => throw new NotImplementedException()
 			};
 
@@ -68,11 +67,4 @@ public abstract class AbstractPulse : IDisposable {
 			ExecutingThreadId = threadId
 		};
 	}
-
-    public void Dispose() {
-        if (_disposed) {
-			return;
-		}
-		_disposed = true;
-    }
 }

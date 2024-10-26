@@ -26,10 +26,10 @@ public sealed class SendCommand : Command {
 	  - If you don't have one use the "generate-request" command
 	Options:
 	  -n, --number     : number of total requests
-	  -m, --mode       : execution mode (sequential, bounded, unbounded)
+	  -m, --mode       : execution mode (sequential, parallel)
 	                      * sequential = execute requests sequentially
-	                      * bounded    = execute requests such that only 1 requests per core is allowed
-	                      * unbounded  = execute requests using maximum resources
+	                      * parallel  = execute requests using maximum resources
+	  -b, --batch      : batch size (only used in parallel mode)
 	  --json           : try to format response content as JSON
 	  -f               : use full equality (slower)
 	  --no-export      : don't export results
@@ -48,6 +48,8 @@ public sealed class SendCommand : Command {
 		args.TryGetValue(["n", "number"], ParametersBase.DefaultNumberOfRequests, out int requests);
 		requests = Math.Max(requests, 1);
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
+		args.TryGetValue(["b", "batch"], ParametersBase.DefaultBatchSize, out int batchSize);
+		batchSize = Math.Max(batchSize, 1);
 		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
@@ -55,6 +57,7 @@ public sealed class SendCommand : Command {
 		return new() {
 			Requests = requests,
 			ExecutionMode = mode,
+			BatchSize = batchSize,
 			FormatJson = formatJson,
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,
@@ -108,7 +111,7 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-		using var pulseRunner = AbstractPulse.Match(@params, requestDetails);
+		var pulseRunner = AbstractPulse.Match(@params, requestDetails);
 
 		await pulseRunner.RunAsync();
 
@@ -129,6 +132,9 @@ public sealed class SendCommand : Command {
 		WriteLine("Options:" * headerColor);
 		WriteLine(["  Request Count: " * property, $"{parameters.Requests}" * value]);
 		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
+		if (parameters.BatchSize is not Parameters.DefaultBatchSize) {
+			WriteLine(["  Batch Size: " * property, $"{parameters.BatchSize}" * value]);
+		}
 		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);

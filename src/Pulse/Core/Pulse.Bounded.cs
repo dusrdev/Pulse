@@ -11,12 +11,11 @@ public sealed class BoundedPulse : AbstractPulse {
     public override async Task RunAsync(CancellationToken cancellationToken = default) {
         PulseMonitor monitor = new(_requestHandler, _parameters.Requests);
 
-        const int batchSize = 5; // change to use from config
-
         if (_parameters.Requests is 1) {
             await monitor.Observe(cancellationToken);
         } else {
             var totalRequests = _parameters.Requests;
+            var batchSize = _parameters.BatchSize;
 
             while (totalRequests > 0 && !cancellationToken.IsCancellationRequested) {
                 var batch = Math.Min(batchSize, totalRequests);
