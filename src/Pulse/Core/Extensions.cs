@@ -40,21 +40,6 @@ public static class Extensions {
 	}
 
 	/// <summary>
-	/// Modifies parameters using args
-	/// </summary>
-	/// <param name="parameters"></param>
-	/// <param name="@base"></param>
-	public static void ModifyFromBase(this Parameters parameters, ParametersBase @base) {
-		parameters.Requests = @base.Requests;
-		parameters.ExecutionMode = @base.ExecutionMode;
-		parameters.BatchSize = @base.BatchSize;
-		parameters.FormatJson = @base.FormatJson;
-		parameters.UseFullEquality = @base.UseFullEquality;
-		parameters.Export = @base.Export;
-		parameters.NoOp = @base.NoOp;
-	}
-
-	/// <summary>
 	/// Configures SSL handling
 	/// </summary>
 	/// <param name="handler"></param>

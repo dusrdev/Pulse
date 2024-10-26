@@ -88,7 +88,7 @@ public sealed class SendCommand : Command {
 			try {
 				var path = Path.Join(Directory.GetCurrentDirectory(), "request-sample.json");
 				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
-				await File.WriteAllTextAsync(path, json, Services.Instance.Parameters.CancellationTokenSource.Token);
+				await File.WriteAllTextAsync(path, json, Services.Shared.Parameters.CancellationTokenSource.Token);
 				WriteLine(["Sample request generated at ", path * Color.Yellow]);
 				return 0;
 			} catch (Exception e) {
@@ -107,8 +107,8 @@ public sealed class SendCommand : Command {
 
 		var requestDetails = requestDetailsResult.Value!;
 
-		Services.Instance.Parameters.ModifyFromBase(parametersBase);
-		var @params = Services.Instance.Parameters;
+		Services.Shared = new Services(new Parameters(parametersBase));
+		var @params = Services.Shared.Parameters;
 
 		if (@params.NoOp) {
 			PrintConfiguration(@params, requestDetails);

@@ -9,7 +9,7 @@ using PrettyConsole;
 //TODO: Ensure all correct dependencies are passed in constructors.
 //TODO: Check correct cancellation output during initial progress bar
 
-System.Console.CancelKeyPress += (_, _) => Services.Instance.Parameters.CancellationTokenSource.Cancel();
+System.Console.CancelKeyPress += (_, _) => Services.Shared.Parameters.CancellationTokenSource.Cancel();
 
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)

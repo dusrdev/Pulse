@@ -20,7 +20,7 @@ public static class Exporter {
 
     if (result.Exception.IsDefault) {
       frameTitle = "Content:";
-      if (Services.Instance.Parameters.FormatJson) {
+      if (Services.Shared.Parameters.FormatJson) {
         try {
           using var doc = JsonDocument.Parse(content);
           var root = doc.RootElement;

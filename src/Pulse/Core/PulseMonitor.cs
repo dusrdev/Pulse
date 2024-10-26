@@ -76,7 +76,7 @@ public sealed class PulseMonitor {
 		_requests = requests;
 		_start = Stopwatch.GetTimestamp();
 		_loadingTaskSource = new();
-		var globalTCS = Services.Instance.Parameters.CancellationTokenSource;
+		var globalTCS = Services.Shared.Parameters.CancellationTokenSource;
 		globalTCS.Token.Register(() => _loadingTaskSource.TrySetCanceled());
 		var indeterminateProgressBar = new IndeterminateProgressBar() {
 			DisplayElapsedTime = true,

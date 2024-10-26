@@ -44,7 +44,7 @@ public readonly struct Response {
 /// Request comparer to be used in HashSets
 /// </summary>
 public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> {
-	public static readonly ResponseWithExceptionComparer Singleton = new(Services.Instance.Parameters);
+	public static readonly ResponseWithExceptionComparer Singleton = new(Services.Shared.Parameters);
 
 	private readonly Parameters _parameters;
 
