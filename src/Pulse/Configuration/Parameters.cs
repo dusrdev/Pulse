@@ -3,7 +3,7 @@ namespace Pulse.Configuration;
 /// <summary>
 /// Execution parameters
 /// </summary>
-public class ParametersBase {
+public record ParametersBase {
 	public static readonly ParametersBase Default = new();
 
 	/// <summary>
@@ -65,9 +65,11 @@ public class ParametersBase {
 /// <summary>
 /// Execution parameters
 /// </summary>
-public sealed class Parameters : ParametersBase {
+public record Parameters : ParametersBase {
 	/// <summary>
 	/// Application-wide cancellation token source
 	/// </summary>
 	public readonly CancellationTokenSource CancellationTokenSource = new();
+
+	public Parameters(ParametersBase @base) : base(@base) { }
 }
