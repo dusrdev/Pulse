@@ -36,9 +36,13 @@ try {
 } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
 	GoToLine(firstLine);
 	ClearNextLines(4);
+	ClearNextLinesError(4);
 	WriteLine("Cancellation requested and handled gracefully." * Color.DarkYellow);
 	return 1;
 } catch (Exception e) {
+	GoToLine(firstLine);
+	ClearNextLines(4);
+	ClearNextLinesError(4);
 	WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);
 	NewLine();
 	WriteLine(JsonContext.SerializeException(e));
