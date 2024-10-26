@@ -109,6 +109,7 @@ public class PulseSummary {
 		ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
 		var size = CharEncoding.GetByteCount(span);
 
+		var statusCode = result.StatusCode ?? 0;
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
@@ -117,11 +118,18 @@ public class PulseSummary {
 			WriteLine(["Threads used: ", "1" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		}
-		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
+		if (statusCode is >= HttpStatusCode.OK and < HttpStatusCode.Ambiguous) {
+			WriteLine(["Success: ", "true" * Color.Green]);
+		} else {
+			WriteLine(["Success: ", "false" * Color.Red]);
+		}
 		WriteLine(["Request Duration: ", $"{duration:0.##}ms" * Color.Cyan]);
 		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(size) * Color.Cyan]);
-		var statusCode = (int)(result.StatusCode ?? 0);
-		WriteLine(["Status code: ", $"{statusCode}" * Extensions.GetStatusCodeBasedColor(statusCode)]);
+		if (statusCode is 0) {
+			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
+		} else {
+			WriteLine(["Status code: ", $"{statusCode}" * Extensions.GetStatusCodeBasedColor((int)statusCode)]);
+		}
 		NewLine();
 
 		var uniqueRequests = new HashSet<Response>(1) { result };
@@ -156,16 +164,29 @@ public class PulseSummary {
 				CancellationToken = token
 			};
 
-			int i = 1;
+			int index = 1;
 
-			using var buffer = new RentedBufferWriter<Task>(uniqueRequests.Count);
+			var total = uniqueRequests.Count;
+            var batchSize = Environment.ProcessorCount;
+			using var enumerator = uniqueRequests.GetEnumerator();
 
-			foreach (var item in uniqueRequests) {
-				buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(item, directory, i++, token), token));
-			}
+			do {
+				var batch = Math.Min(batchSize, total);
 
-			var tasks = buffer.WrittenSegment;
-			await Task.WhenAll(tasks).WaitAsync(token).ConfigureAwait(false);
+				using var buffer = new RentedBufferWriter<Task>(batch);
+
+				for (int i = 0; i < batch; i++) {
+					buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(enumerator.Current, directory, index++, token), token));
+					if (!enumerator.MoveNext()) {
+						break;
+					}
+				}
+
+				var tasks = buffer.WrittenSegment;
+				await Task.WhenAll(tasks).WaitAsync(token).ConfigureAwait(false);
+
+				total -= batch;
+			} while (total > 0 && !token.IsCancellationRequested);
 
 			WriteLine([count.ToString() * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
 		}
