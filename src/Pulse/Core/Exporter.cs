@@ -13,7 +13,8 @@ public static class Exporter {
       return;
     }
 
-    string filename = Path.Join(path, $"response-{index}.html");
+    HttpStatusCode statusCode = result.StatusCode ?? 0;
+    string filename = Path.Join(path, $"response-{index}-status-code-{(int)statusCode}.html");
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? "" : result.Content;
 
@@ -32,7 +33,6 @@ public static class Exporter {
       frameTitle = "Exception:";
       content = $"<pre>{JsonContext.SerializeException(result.Exception)}</pre>";
     }
-    HttpStatusCode statusCode = result.StatusCode ?? 0;
     string contentFrame = content == "" ?
 """
 <div>
