@@ -14,7 +14,9 @@ public abstract class AbstractPulse {
 	public static AbstractPulse Match(Parameters parameters, RequestDetails requestDetails)
 			=> (parameters.ExecutionMode, parameters.BatchSize) switch {
 				(ExecutionMode.Sequential, _) => new SequentialPulse(parameters, requestDetails),
+				#pragma warning disable IDE0002
 				(ExecutionMode.Parallel, Parameters.DefaultBatchSize) => new UnboundedPulse(parameters, requestDetails),
+				#pragma warning restore IDE0002
 				(ExecutionMode.Parallel, _) => new BoundedPulse(parameters, requestDetails),
 				_ => throw new NotImplementedException()
 			};
