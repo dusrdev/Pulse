@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace Pulse.Core;
@@ -69,9 +70,9 @@ public class Request {
 	public Dictionary<string, JsonElement?> Headers { get; set; } = [];
 
 	/// <summary>
-	/// Request body
+	/// The request content
 	/// </summary>
-	public JsonElement? Body { get; set; }
+	public Content? Content { get; set; }
 
 	/// <summary>
 	/// Create an http request message from the configuration
@@ -84,13 +85,33 @@ public class Request {
 			if (header.Value is null) {
 				continue;
 			}
-			message.Headers.TryAddWithoutValidation(header.Key, header.Value.Value.ToString());
+			message.Headers.TryAddWithoutValidation(header.Key, header.Value.ToString());
 		}
 
-		if (Body is not null) {
-			message.Content = new StringContent(Body.Value.ToString());
+		if (Content is not null && Content.Body.HasValue) {
+			var media = Content.ContentType switch {
+				"" => "Application/Json",
+				_ => Content.ContentType
+			};
+
+			message.Content = new StringContent(Content.Body.ToString()!, Encoding.UTF8, media);
 		}
 
 		return message;
 	}
+}
+
+/// <summary>
+/// Request content
+/// </summary>
+public class Content {
+	/// <summary>
+	/// Declares the content type
+	/// </summary>
+	public string ContentType { get; set; } = "";
+
+	/// <summary>
+	/// Content
+	/// </summary>
+	public JsonElement? Body { get; set; }
 }
