@@ -1,6 +1,4 @@
 using PrettyConsole;
-using Pulse.Configuration;
-using System.Collections.Concurrent;
 
 namespace Pulse.Core;
 
