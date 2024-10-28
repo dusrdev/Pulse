@@ -90,7 +90,7 @@ public class Request {
 
 		if (Content is not null && Content.Body.HasValue) {
 			var media = Content.ContentType switch {
-				"" => "Application/Json",
+				"" => "application/json",
 				_ => Content.ContentType
 			};
 
