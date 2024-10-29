@@ -9,9 +9,15 @@ public sealed class Services {
 	/// <summary>
 	/// The global parameters for the execution scope
 	/// </summary>
-	public readonly Parameters Parameters;
+	public Parameters Parameters { get; private set; }
 
 	public Services(Parameters parameters) {
 		Parameters = parameters;
+	}
+
+	public void OverrideParameters(Parameters parameters) {
+		Parameters current = Parameters;
+		Parameters = parameters;
+		current.Dispose();
 	}
 }

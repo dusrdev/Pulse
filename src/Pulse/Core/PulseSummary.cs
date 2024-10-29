@@ -189,7 +189,7 @@ public class PulseSummary {
 				total -= batch;
 			} while (total > 0 && !token.IsCancellationRequested);
 
-			WriteLine([count.ToString() * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
+			WriteLine([$"{count}" * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
 		}
 	}
 }

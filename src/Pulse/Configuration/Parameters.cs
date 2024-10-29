@@ -65,11 +65,21 @@ public record ParametersBase {
 /// <summary>
 /// Execution parameters
 /// </summary>
-public record Parameters : ParametersBase {
+public sealed record Parameters : ParametersBase, IDisposable {
+	private bool _disposed;
+
 	/// <summary>
 	/// Application-wide cancellation token source
 	/// </summary>
 	public readonly CancellationTokenSource CancellationTokenSource = new();
 
 	public Parameters(ParametersBase @base) : base(@base) { }
+
+    public void Dispose() {
+        if (_disposed) {
+			return;
+		}
+		CancellationTokenSource?.Dispose();
+		_disposed = true;
+    }
 }

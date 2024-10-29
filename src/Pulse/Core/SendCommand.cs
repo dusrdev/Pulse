@@ -79,6 +79,7 @@ public sealed class SendCommand : Command {
 	}
 
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
+		Services.Shared = new Services(new Parameters(new ParametersBase()));
 		if (!args.TryGetValue(0, out string rf)) {
 			WriteLineError("request file or command name must be provided!" * Color.Red);
 			return 1;
@@ -106,8 +107,7 @@ public sealed class SendCommand : Command {
 		}
 
 		var requestDetails = requestDetailsResult.Value!;
-
-		Services.Shared = new Services(new Parameters(parametersBase));
+		Services.Shared.OverrideParameters(new Parameters(parametersBase));
 		var @params = Services.Shared.Parameters;
 
 		if (@params.NoOp) {
@@ -159,7 +159,13 @@ public sealed class SendCommand : Command {
 				WriteLine(["    ", header.Key * property, ": ", header.Value.Value.ToString() * value]);
 			}
 		}
-		WriteLine(["  Body: " * property, requestDetails.Request.Body.ToString()! * value]);
+		if (requestDetails.Request.Content.Body.HasValue) {
+			WriteLine("  Content:" * Color.Yellow);
+			WriteLine(["    ContentType: " * property, requestDetails.Request.Content.GetContentType() * value]);
+			WriteLine(["    Body: " * property, requestDetails.Request.Content.Body.ToString()! * value]);
+		} else {
+			WriteLine(["  Content: " * Color.Yellow, "none" * value]);
+		}
 
 		// Proxy
 		WriteLine("Proxy:" * headerColor);

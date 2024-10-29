@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Pulse.Core;
 
@@ -72,7 +74,7 @@ public class Request {
 	/// <summary>
 	/// The request content
 	/// </summary>
-	public Content? Content { get; set; }
+	public Content Content { get; set; } = new();
 
 	/// <summary>
 	/// Create an http request message from the configuration
@@ -85,16 +87,16 @@ public class Request {
 			if (header.Value is null) {
 				continue;
 			}
-			message.Headers.TryAddWithoutValidation(header.Key, header.Value.ToString());
+			var value = header.Value.ToString();
+			message.Headers.TryAddWithoutValidation(header.Key, value);
 		}
 
-		if (Content is not null && Content.Body.HasValue) {
-			var media = Content.ContentType switch {
-				"" => "application/json",
-				_ => Content.ContentType
-			};
+		if (Content.Body.HasValue) {
+			var media = Content.GetContentType();
+			var messageContent = Content.Body.ToString()!;
+			Debug.Assert(messageContent is not null);
 
-			message.Content = new StringContent(Content.Body.ToString()!, Encoding.UTF8, media);
+			message.Content = new StringContent(messageContent, Encoding.UTF8, media);
 		}
 
 		return message;
@@ -104,14 +106,29 @@ public class Request {
 /// <summary>
 /// Request content
 /// </summary>
-public class Content {
-	/// <summary>
-	/// Declares the content type
-	/// </summary>
-	public string ContentType { get; set; } = "";
+public readonly struct Content {
+	[JsonConstructor]
+    public Content() {
+		ContentType = "";
+		Body = null;
+	}
+
+    /// <summary>
+    /// Declares the content type
+    /// </summary>
+    public string ContentType { get; init; }
 
 	/// <summary>
 	/// Content
 	/// </summary>
-	public JsonElement? Body { get; set; }
+	public JsonElement? Body { get; init; }
+
+	/// <summary>
+	/// Returns the content type after defaulting if empty
+	/// </summary>
+	/// <returns></returns>
+	public string GetContentType() => ContentType switch {
+		"" => "application/json",
+		_ => ContentType
+	};
 }
