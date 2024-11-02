@@ -22,14 +22,6 @@ namespace Pulse.Configuration;
 [JsonSerializable(typeof(JsonElement))]
 public partial class JsonContext : JsonSerializerContext {
 	/// <summary>
-	/// JsonReaderOptions
-	/// </summary>
-	private static readonly JsonReaderOptions JsonReaderOptions = new() {
-		CommentHandling = JsonCommentHandling.Skip,
-		AllowTrailingCommas = true
-	};
-
-	/// <summary>
 	/// Try to get request details from file
 	/// </summary>
 	/// <param name="path"></param>
@@ -40,9 +32,8 @@ public partial class JsonContext : JsonSerializerContext {
 				return Result.Fail<RequestDetails>($"{path} - does not exist.", new());
 			}
 
-			var bytes = File.ReadAllBytes(path);
-			var reader = new Utf8JsonReader(bytes, JsonReaderOptions);
-			var rd = JsonSerializer.Deserialize(ref reader, Default.RequestDetails);
+			var json = File.ReadAllText(path);
+			var rd = JsonSerializer.Deserialize(json, Default.RequestDetails);
 			if (rd is null) {
 				return Result.Fail<RequestDetails>($"{path} - contained empty or invalid JSON.", new());
 			}
