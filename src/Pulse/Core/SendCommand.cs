@@ -20,7 +20,7 @@ public sealed class SendCommand : Command {
 
 	RequestFile:
 	  path to .json request details file
-	  - If you don't have one use the "generate-request" command
+	  - If you don't have one use the "get-sample" command
 	Options:
 	  -n, --number     : number of total requests (default: 1)
 	  -m, --mode       : execution mode (default: parallel)
@@ -32,7 +32,7 @@ public sealed class SendCommand : Command {
 	  --no-export      : don't export results (default: false)
 	  -v, --verbose    : display verbose output	(default: false)
 	Special:
-	  generate-request : use as command - generated sample file
+	  get-sample       : use as command - generated sample file
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override url of the request
 	  -h, --help       : print this help
@@ -92,9 +92,9 @@ public sealed class SendCommand : Command {
 			return 1;
 		}
 
-		if (string.Equals(rf, "generate-request", StringComparison.InvariantCultureIgnoreCase)) {
+		if (string.Equals(rf, "get-sample", StringComparison.InvariantCultureIgnoreCase)) {
 			try {
-				var path = Path.Join(Directory.GetCurrentDirectory(), "request-sample.json");
+				var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
 				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
 				await File.WriteAllTextAsync(path, json, Services.Shared.Parameters.CancellationTokenSource.Token);
 				WriteLine(["Sample request generated at ", path * Color.Yellow]);
