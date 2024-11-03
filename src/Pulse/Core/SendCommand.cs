@@ -14,9 +14,6 @@ public sealed class SendCommand : Command {
 
 	public override string Name => "";
 	public override string Description => "";
-	private const bool DefaultExportFullEquality = false;
-	private const bool DefaultDisableExport = false;
-
 	public override string Usage =>
 	$"""
 	Pulse [RequestFile] [Options]
@@ -25,25 +22,21 @@ public sealed class SendCommand : Command {
 	  path to .json request details file
 	  - If you don't have one use the "generate-request" command
 	Options:
-	  -n, --number     : number of total requests
-	  -m, --mode       : execution mode (sequential, parallel)
+	  -n, --number     : number of total requests (default: 1)
+	  -m, --mode       : execution mode (default: parallel)
 	                      * sequential = execute requests sequentially
 	                      * parallel  = execute requests using maximum resources
 	  -b, --batch      : batch size (only used in parallel mode)
 	  --json           : try to format response content as JSON
-	  -f               : use full equality (slower)
-	  --no-export      : don't export results
-	  -v, --verbose    : display verbose output
+	  -f               : use full equality (slower - default: false)
+	  --no-export      : don't export results (default: false)
+	  -v, --verbose    : display verbose output	(default: false)
 	Special:
 	  generate-request : use as command - generated sample file
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override url of the request
-	Defaults:
-	  -n, --number     = {ParametersBase.DefaultNumberOfRequests}
-	  -m, --mode       = {ParametersBase.DefaultExecutionMode}
-	  -f               = {DefaultExportFullEquality}
-	  --no-export      = {DefaultDisableExport}
-	  -v, --verbose    = {false}
+	  -h, --help       : print this help
+	  --terms-of-use   : print terms of use
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
@@ -112,6 +105,19 @@ public sealed class SendCommand : Command {
 
 		if (@params.NoOp) {
 			PrintConfiguration(@params, requestDetails);
+			return 0;
+		}
+
+		if (args.HasFlag("terms-of-use")) {
+			Out.WriteLine(
+				"""
+				By using this tool you agree to take full responsibility for the consequences of its use.
+
+				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
+				responsibility to obey all applicable local, state and federal laws.
+				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
+				"""
+			);
 			return 0;
 		}
 
