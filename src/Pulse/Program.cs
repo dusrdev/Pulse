@@ -13,18 +13,18 @@ System.Console.CancelKeyPress += (_, e) => {
 
 var firstLine = GetCurrentLine();
 
+const string version = "1.0.0";
+
 var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
 					.UseConsoleAsOutputWriter()
-					.WithMetadata(metadata => {
-						metadata.Version = "1.0.0";
-					})
+					.WithMetadata(metadata => metadata.Version = version)
 					.WithCustomHeader(
-						"""
+						$"""
 						Pulse - A hyper fast general purpose HTTP request tester
 
 						Made by: David Shnayder - dusrdev@gmail.com
-						Version: 1.0.0
+						Version: {version}
 						License: MIT
 						"""
 					)

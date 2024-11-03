@@ -42,8 +42,11 @@ public sealed class SendCommand : Command {
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
 		args.TryGetValue(["n", "number"], ParametersBase.DefaultNumberOfRequests, out int requests);
 		requests = Math.Max(requests, 1);
+		bool batchSizeModified = false;
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
-		args.TryGetValue(["b", "batch"], ParametersBase.DefaultBatchSize, out int batchSize);
+		if (args.TryGetValue(["b", "batch"], ParametersBase.DefaultBatchSize, out int batchSize)) {
+			batchSizeModified = true;
+		}
 		batchSize = Math.Max(batchSize, 1);
 		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
@@ -54,6 +57,7 @@ public sealed class SendCommand : Command {
 			Requests = requests,
 			ExecutionMode = mode,
 			BatchSize = batchSize,
+			BatchSizeModified = batchSizeModified,
 			FormatJson = formatJson,
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,

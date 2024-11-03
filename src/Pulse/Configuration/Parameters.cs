@@ -37,6 +37,11 @@ public record ParametersBase {
 	public int BatchSize { get; set; } = DefaultBatchSize;
 
 	/// <summary>
+	/// Indicating whether the batch size was modified
+	/// </summary>
+	public bool BatchSizeModified { get; set; } = false;
+
+	/// <summary>
 	/// Attempt to format response content as JSON
 	/// </summary>
 	public bool FormatJson { get; set; } = false;
