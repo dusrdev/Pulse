@@ -4,7 +4,6 @@ using PrettyConsole;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
 using Sharpify;
-using Sharpify.Collections;
 using System.Text;
 
 namespace Pulse.Core;
@@ -150,7 +149,7 @@ public class PulseSummary {
 	public static async Task ExportUniqueRequestsAsync(HashSet<Response> uniqueRequests, CancellationToken token = default) {
 		var count = uniqueRequests.Count;
 
-		if (count == 0) {
+		if (count is 0) {
 			WriteLine("No unique results found to export..." * Color.Yellow);
 			return;
 		}
@@ -162,19 +161,16 @@ public class PulseSummary {
 		if (count is 1) {
 			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, token);
 			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
-		} else {
-			var options = new ParallelOptions {
-				MaxDegreeOfParallelism = Environment.ProcessorCount,
-				CancellationToken = token
-			};
-
-			await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, token));
-
-			if (count is 1) {
-				WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
-			} else {
-				WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", "results" * Color.Yellow, " folder"]);
-			}
+			return;
 		}
+
+		var options = new ParallelOptions {
+			MaxDegreeOfParallelism = Environment.ProcessorCount,
+			CancellationToken = token
+		};
+
+		await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, token));
+
+		WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", "results" * Color.Yellow, " folder"]);
 	}
 }
