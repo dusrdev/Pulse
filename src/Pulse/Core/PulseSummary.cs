@@ -57,7 +57,7 @@ public class PulseSummary {
 				avgSize += multiplier * size;
 			}
 
-			var statusCode = result.StatusCode ?? 0;
+			var statusCode = result.StatusCode;
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 
 			// prg part
@@ -109,7 +109,7 @@ public class PulseSummary {
 		ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
 		var size = CharEncoding.GetByteCount(span);
 
-		var statusCode = result.StatusCode ?? 0;
+		var statusCode = result.StatusCode;
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
@@ -118,7 +118,7 @@ public class PulseSummary {
 			WriteLine(["Threads used: ", "1" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		}
-		if (statusCode is >= HttpStatusCode.OK and < HttpStatusCode.Ambiguous) {
+		if ((int)statusCode is >= 200 and < 300) {
 			WriteLine(["Success: ", "true" * Color.Green]);
 		} else {
 			WriteLine(["Success: ", "false" * Color.Red]);
@@ -155,16 +155,14 @@ public class PulseSummary {
 		Directory.CreateDirectory(directory);
 		Exporter.ClearFiles(directory);
 
-		if (count == 1) {
-			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, 1, token);
+		if (count is 1) {
+			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, token);
 			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
 		} else {
 			var options = new ParallelOptions {
 				MaxDegreeOfParallelism = -1,
 				CancellationToken = token
 			};
-
-			int index = 1;
 
 			var total = uniqueRequests.Count;
             var batchSize = Environment.ProcessorCount;
@@ -180,7 +178,7 @@ public class PulseSummary {
 						break;
 					}
 					var current = enumerator.Current;
-					buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(current, directory, index++, token), token));
+					buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(current, directory, token), token));
 				}
 
 				var tasks = buffer.WrittenSegment;
@@ -189,7 +187,11 @@ public class PulseSummary {
 				total -= batch;
 			} while (total > 0 && !token.IsCancellationRequested);
 
-			WriteLine([$"{count}" * Color.Cyan, " unique response exported to ", "results" * Color.Yellow, " folder"]);
+			if (count is 1) {
+				WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
+			} else {
+				WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", "results" * Color.Yellow, " folder"]);
+			}
 		}
 	}
 }

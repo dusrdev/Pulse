@@ -8,13 +8,13 @@ using Pulse.Configuration;
 namespace Pulse.Core;
 
 public static class Exporter {
-  public static async Task ExportHtmlAsync(Response result, string path, int index, CancellationToken token = default) {
+  public static async Task ExportHtmlAsync(Response result, string path, CancellationToken token = default) {
     if (token.IsCancellationRequested) {
       return;
     }
 
-    HttpStatusCode statusCode = result.StatusCode ?? 0;
-    string filename = Path.Join(path, $"response-{index}-status-code-{(int)statusCode}.html");
+    HttpStatusCode statusCode = result.StatusCode;
+    string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? "" : result.Content;
 
@@ -59,7 +59,7 @@ $$"""
 $$"""
 <!DOCTYPE html>
 <html lang="en">
-<title>Response: {{index}}</title>
+<title>Response: {{result.Id}}</title>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8"/>
 <style>
@@ -121,7 +121,7 @@ iframe {
 </style>
 </head>
 <body>
-<h1 class="title">Response: {{index}}</h1>
+<h1 class="title">Response: {{result.Id}}</h1>
 <div>
 <h2>StatusCode: {{statusCode}} ({{(int)statusCode}})</h2>
 </div>

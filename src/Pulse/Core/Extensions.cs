@@ -10,9 +10,7 @@ public static class Extensions {
 	/// <returns></returns>
 	/// <exception cref="ArgumentOutOfRangeException"></exception>
 	public static Color GetPercentageBasedColor(double percentage) {
-		if ((uint)percentage > 100) {
-			throw new ArgumentOutOfRangeException(nameof(percentage), "Must be between 0 and 100");
-		}
+		ArgumentOutOfRangeException.ThrowIfGreaterThan<uint>((uint)percentage, 100);
 
 		return percentage switch {
 			> 75 => Color.Green,

@@ -97,8 +97,8 @@ public sealed class PulseMonitor {
 	}
 
 	private static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient,bool saveContent, CancellationToken cancellationToken = default) {
-		HttpStatusCode? statusCode = null;
-		string? content = null;
+		HttpStatusCode statusCode = 0;
+		string content = "";
 		Exception? exception = null;
 		HttpResponseHeaders? headers = null;
 		int threadId = 0;

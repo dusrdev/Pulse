@@ -17,7 +17,7 @@ public readonly struct Response {
 	/// <summary>
 	/// Status code (null if it produced an exception)
 	/// </summary>
-	public required HttpStatusCode? StatusCode { get; init; }
+	public required HttpStatusCode StatusCode { get; init; }
 
 	/// <summary>
 	/// Headers (could be null if exception occurred, or server didn't include it)
@@ -25,9 +25,9 @@ public readonly struct Response {
 	public required HttpResponseHeaders? Headers { get; init; }
 
 	/// <summary>
-	/// Content (could be null if exception occurred, no export feature is used or server didn't include it)
+	/// Content (could be empty if exception occurred, no export feature is used or server didn't include it)
 	/// </summary>
-	public required string? Content { get; init; }
+	public required string Content { get; init; }
 
 	/// <summary>
 	/// The time taken from sending the request to receiving the response
@@ -105,7 +105,7 @@ public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> 
 	/// <param name="obj"></param>
 	/// <returns></returns>
 	public int GetHashCode(Response obj) {
-		int hashStatusCode = obj.StatusCode.HasValue ? obj.StatusCode.Value.GetHashCode() : 0;
+		int hashStatusCode = obj.StatusCode.GetHashCode();
 
 		int hash = 17;
 		hash = hash * 23 + hashStatusCode;
