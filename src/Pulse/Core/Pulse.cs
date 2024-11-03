@@ -1,7 +1,5 @@
 using Pulse.Configuration;
 
-using Sharpify.Collections;
-
 namespace Pulse.Core;
 
 public static class Pulse {
@@ -58,18 +56,16 @@ public static class Pulse {
             var totalRequests = parameters.Requests;
             var batchSize = parameters.BatchSize;
             var current = 1;
+            Task[] buffer = new Task[batchSize];
 
             while (totalRequests > 0 && !cancellationToken.IsCancellationRequested) {
                 var batch = Math.Min(batchSize, totalRequests);
 
-                using var buffer = new RentedBufferWriter<Task>(batch);
-
                 for (int i = 0; i < batch; i++) {
-                    buffer.WriteAndAdvance(Task.Run(() => monitor.SendAsync(current, cancellationToken), cancellationToken));
-                    current++;
+                    buffer[i] = Task.Run(() => monitor.SendAsync(Interlocked.Increment(ref current), cancellationToken), cancellationToken);
                 }
 
-                var tasks = buffer.WrittenSegment;
+                var tasks = new ArraySegment<Task>(buffer, 0, batch);
                 await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 totalRequests -= batch;
@@ -103,13 +99,9 @@ public static class Pulse {
         if (parameters.Requests is 1) {
             await monitor.SendAsync(1, cancellationToken);
         } else {
-            using var buffer = new RentedBufferWriter<Task>(parameters.Requests);
-
-            for (int i = 1; i <= parameters.Requests; i++) {
-                buffer.WriteAndAdvance(Task.Run(() => monitor.SendAsync(i, cancellationToken), cancellationToken));
-            }
-
-            var tasks = buffer.WrittenSegment;
+            var tasks = Enumerable.Range(1, parameters.Requests)
+            .AsParallel()
+            .Select(id => monitor.SendAsync(id, cancellationToken));
 
             await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
         }
