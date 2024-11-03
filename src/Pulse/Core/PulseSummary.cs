@@ -32,11 +32,13 @@ public class PulseSummary {
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
 		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
 		double multiplier = 1 / (double)Result.TotalCount;
-		int total = Parameters.Requests;
+		int total = Result.TotalCount;
 		int current = 0;
+#if !DEBUG
 		var prg = new ProgressBar {
 			ProgressColor = Color.Yellow,
 		};
+#endif
 
 		var cursorTop = System.Console.CursorTop;
 
@@ -63,7 +65,9 @@ public class PulseSummary {
 			// prg part
 			current++;
 			double percentage = 100 * (double)current / total;
+#if !DEBUG
 			prg.Update(percentage, "Cross referencing results...");
+#endif
 		}
 
 		maxSize = Math.Max(0, maxSize);
@@ -160,32 +164,11 @@ public class PulseSummary {
 			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
 		} else {
 			var options = new ParallelOptions {
-				MaxDegreeOfParallelism = -1,
+				MaxDegreeOfParallelism = Environment.ProcessorCount,
 				CancellationToken = token
 			};
 
-			var total = uniqueRequests.Count;
-            var batchSize = Environment.ProcessorCount;
-			using var enumerator = uniqueRequests.GetEnumerator();
-
-			do {
-				var batch = Math.Min(batchSize, total);
-
-				using var buffer = new RentedBufferWriter<Task>(batch);
-
-				for (int i = 0; i < batch; i++) {
-					if (!enumerator.MoveNext()) {
-						break;
-					}
-					var current = enumerator.Current;
-					buffer.WriteAndAdvance(Task.Run(() => Exporter.ExportHtmlAsync(current, directory, token), token));
-				}
-
-				var tasks = buffer.WrittenSegment;
-				await Task.WhenAll(tasks).WaitAsync(token).ConfigureAwait(false);
-
-				total -= batch;
-			} while (total > 0 && !token.IsCancellationRequested);
+			await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, token));
 
 			if (count is 1) {
 				WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
