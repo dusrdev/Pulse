@@ -72,7 +72,21 @@ public sealed class SendCommand : Command {
 	}
 
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
+		if (args.HasFlag("terms-of-use")) {
+			Out.WriteLine(
+				"""
+				By using this tool you agree to take full responsibility for the consequences of its use.
+
+				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
+				responsibility to obey all applicable local, state and federal laws.
+				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
+				"""
+			);
+			return 0;
+		}
+
 		Services.Shared = new Services(new Parameters(new ParametersBase()));
+
 		if (!args.TryGetValue(0, out string rf)) {
 			WriteLineError("request file or command name must be provided!" * Color.Red);
 			return 1;
@@ -108,18 +122,6 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-		if (args.HasFlag("terms-of-use")) {
-			Out.WriteLine(
-				"""
-				By using this tool you agree to take full responsibility for the consequences of its use.
-
-				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
-				responsibility to obey all applicable local, state and federal laws.
-				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
-				"""
-			);
-			return 0;
-		}
 
 		await Pulse.RunAsync(@params, requestDetails);
 
