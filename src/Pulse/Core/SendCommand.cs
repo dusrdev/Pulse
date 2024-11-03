@@ -126,9 +126,11 @@ public sealed class SendCommand : Command {
 		Color value = Color.White;
 
 		// System
-		WriteLine("System:" * headerColor);
-		WriteLine(["  CPU Cores: " * property, $"{Environment.ProcessorCount}" * value]);
-		WriteLine(["  OS: " * property, $"{Environment.OSVersion}" * value]);
+		if (parameters.Verbose) {
+			WriteLine("System:" * headerColor);
+			WriteLine(["  CPU Cores: " * property, $"{Environment.ProcessorCount}" * value]);
+			WriteLine(["  OS: " * property, $"{Environment.OSVersion}" * value]);
+		}
 
 		// Options
 		WriteLine("Options:" * headerColor);
