@@ -7,6 +7,7 @@ using PrettyConsole;
 using Sharpify;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
+using System.Net.Http.Headers;
 
 namespace Pulse.Core;
 
@@ -19,17 +20,7 @@ public sealed class PulseMonitor {
 	/// </summary>
 	private readonly ConcurrentStack<Response> _results;
 
-	/// <summary>
-	/// The handler used to run a request
-	/// </summary>
-	private readonly Func<CancellationToken, Task<Response>> _handler;
-
 	private readonly char[] _etaBuffer = new char[30];
-
-	/// <summary>
-	/// Total number of required requests
-	/// </summary>
-	private readonly int _requests;
 
 	/// <summary>
 	/// Timestamp of the beginning of monitoring
@@ -64,16 +55,19 @@ public sealed class PulseMonitor {
 	private readonly TaskCompletionSource _loadingTaskSource;
 	private readonly Task _indeterminateProgressBarTask;
 
+	public required int RequestCount { get; init; }
+	public required Request RequestRecipe { get; init; }
+	public required HttpClient HttpClient { get; init; }
+	public required bool SaveContent { get; init; }
+
 	/// <summary>
 	/// Creates a new pulse monitor
 	/// </summary>
 	/// <param name="handler">request delegate</param>
 	/// <param name="requests">total number of required requests</param>
-	public PulseMonitor(Func<CancellationToken, Task<Response>> handler, int requests) {
+	public PulseMonitor() {
 		_startingWorkingSet = Environment.WorkingSet;
 		_results = new();
-		_handler = handler;
-		_requests = requests;
 		_start = Stopwatch.GetTimestamp();
 		_loadingTaskSource = new();
 		var globalTCS = Services.Shared.Parameters.CancellationTokenSource;
@@ -90,8 +84,8 @@ public sealed class PulseMonitor {
 	/// </summary>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task Observe(CancellationToken cancellationToken = default) {
-		var result = await _handler(cancellationToken);
+	public async Task SendAsync(int requestId, CancellationToken cancellationToken = default) {
+		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, cancellationToken);
 		Interlocked.Increment(ref _count);
 		if (Interlocked.CompareExchange(ref _isYielding, 1, 0) == 0) {
 			_loadingTaskSource.TrySetResult();
@@ -100,6 +94,39 @@ public sealed class PulseMonitor {
 		IncrementStats(result.StatusCode);
 		PrintMetrics();
 		_results.Push(result);
+	}
+
+	private static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient,bool saveContent, CancellationToken cancellationToken = default) {
+		HttpStatusCode? statusCode = null;
+		string? content = null;
+		Exception? exception = null;
+		HttpResponseHeaders? headers = null;
+		int threadId = 0;
+		using var message = requestRecipe.CreateMessage();
+		var start = Stopwatch.GetTimestamp();
+		try {
+			threadId = Environment.CurrentManagedThreadId;
+			using var response = await httpClient.SendAsync(message, cancellationToken);
+			statusCode = response.StatusCode;
+			headers = response.Headers;
+			if (saveContent) {
+				content = await response.Content.ReadAsStringAsync(cancellationToken);
+			}
+		} catch (Exception e) {
+			exception = e;
+		} finally {
+			message?.Dispose();
+		}
+		TimeSpan duration = Stopwatch.GetElapsedTime(start);
+		return new Response {
+			Id = id,
+			StatusCode = statusCode,
+			Headers = headers,
+			Content = content,
+			Duration = duration,
+			Exception = exception is null ? StrippedException.Default : new StrippedException(exception),
+			ExecutingThreadId = threadId
+		};
 	}
 
 	/// <summary>
@@ -134,7 +161,7 @@ public sealed class PulseMonitor {
 	private void PrintMetrics() {
 		var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
-		var eta = TimeSpan.FromMilliseconds(elapsed / _count * (_requests - _count));
+		var eta = TimeSpan.FromMilliseconds(elapsed / _count * (RequestCount - _count));
 
 		double sr = Math.Round((double)_2xx / _count * 100, 2);
 
@@ -148,7 +175,7 @@ public sealed class PulseMonitor {
 		ResetColors();
 		Error.Write('/');
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_requests);
+		Error.Write(RequestCount);
 		ResetColors();
 		Error.Write(", SR: ");
 		SetColors(Extensions.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);

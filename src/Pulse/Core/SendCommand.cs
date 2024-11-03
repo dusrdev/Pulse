@@ -115,9 +115,7 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-		var pulseRunner = AbstractPulse.Match(@params, requestDetails);
-
-		await pulseRunner.RunAsync(@params.CancellationTokenSource.Token);
+		await Pulse.RunAsync(@params, requestDetails);
 
 		return 0;
 	}

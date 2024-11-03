@@ -10,6 +10,11 @@ namespace Pulse.Core;
 /// </summary>
 public readonly struct Response {
 	/// <summary>
+	/// The id of the request
+	/// </summary>
+	public required int Id { get; init; }
+
+	/// <summary>
 	/// Status code (null if it produced an exception)
 	/// </summary>
 	public required HttpStatusCode? StatusCode { get; init; }
