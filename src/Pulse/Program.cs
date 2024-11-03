@@ -17,15 +17,18 @@ var cli = CliRunner.CreateBuilder()
 					.AddCommand(SendCommand.Singleton)
 					.UseConsoleAsOutputWriter()
 					.WithMetadata(metadata => {
-						metadata.Name = "Pulse";
-						metadata.Author = "David Shnayder - dusrdev@gmail.com";
-						metadata.Description =
-						"""
-						Hyper Fast General Purpose HTTP Request Tester
-						""";
 						metadata.Version = "1.0.0";
-						metadata.License = "MIT";
 					})
+					.WithCustomHeader(
+						"""
+						Pulse - A hyper fast general purpose HTTP request tester
+
+						Made by: David Shnayder - dusrdev@gmail.com
+						Version: 1.0.0
+						License: MIT
+						"""
+					)
+					.SetHelpTextSource(HelpTextSource.CustomHeader)
 					.Build();
 
 try {
