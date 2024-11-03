@@ -37,18 +37,14 @@ public sealed class PulseMonitor {
 	/// </summary>
 	private volatile int _count;
 
-	// Number of 1xx responses
-	private volatile int _1xx;
-	// Number of 2xx responses
-	private volatile int _2xx;
-	// Number of 3xx responses
-	private volatile int _3xx;
-	// Number of 4xx responses
-	private volatile int _4xx;
-	// Number of 5xx responses
-	private volatile int _5xx;
-	// Number of other responses
-	private volatile int _others;
+	// response status code counter
+	// 0: exception
+	// 1: 1xx
+	// 2: 2xx
+	// 3: 3xx
+	// 4: 4xx
+	// 5: 5xx
+	private readonly int[] _stats = new int[6];
 
 	private volatile int _isYielding;
 
@@ -91,12 +87,15 @@ public sealed class PulseMonitor {
 			_loadingTaskSource.TrySetResult();
 			await _indeterminateProgressBarTask;
 		}
-		IncrementStats(result.StatusCode);
+		// Increment stats
+		int index = (int)result.StatusCode / 100;
+		Interlocked.Increment(ref _stats[index]);
+		// Print metrics
 		PrintMetrics();
 		_results.Push(result);
 	}
 
-	private static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient,bool saveContent, CancellationToken cancellationToken = default) {
+	private static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode statusCode = 0;
 		string content = "";
 		Exception? exception = null;
@@ -130,31 +129,6 @@ public sealed class PulseMonitor {
 	}
 
 	/// <summary>
-	/// Increments the different status code counters
-	/// </summary>
-	/// <param name="statusCode"></param>
-	private void IncrementStats(HttpStatusCode? statusCode) {
-		if (statusCode is null) {
-			Interlocked.Increment(ref _others);
-			return;
-		}
-
-		int numeric = (int)statusCode;
-
-		if (numeric < 200) {
-			Interlocked.Increment(ref _1xx);
-		} else if (numeric < 300) {
-			Interlocked.Increment(ref _2xx);
-		} else if (numeric < 400) {
-			Interlocked.Increment(ref _3xx);
-		} else if (numeric < 500) {
-			Interlocked.Increment(ref _4xx);
-		} else {
-			Interlocked.Increment(ref _5xx);
-		}
-	}
-
-	/// <summary>
 	/// Handles printing the current metrics, has to be synchronized to prevent cross writing to the console, which produces corrupted output.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.Synchronized)]
@@ -163,7 +137,7 @@ public sealed class PulseMonitor {
 
 		var eta = TimeSpan.FromMilliseconds(elapsed / _count * (RequestCount - _count));
 
-		double sr = Math.Round((double)_2xx / _count * 100, 2);
+		double sr = Math.Round((double)_stats[2] / _count * 100, 2);
 
 		var cursor = System.Console.CursorTop;
 		// Clear
@@ -188,27 +162,27 @@ public sealed class PulseMonitor {
 		// Line 2
 		Error.Write("1xx: ");
 		SetColors(Color.White, Color.DefaultBackgroundColor);
-		Error.Write(_1xx);
+		Error.Write(_stats[1]);
 		ResetColors();
 		Error.Write(", 2xx: ");
 		SetColors(Color.Green, Color.DefaultBackgroundColor);
-		Error.Write(_2xx);
+		Error.Write(_stats[2]);
 		ResetColors();
 		Error.Write(", 3xx: ");
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_3xx);
+		Error.Write(_stats[3]);
 		ResetColors();
 		Error.Write(", 4xx: ");
 		SetColors(Color.Red, Color.DefaultBackgroundColor);
-		Error.Write(_4xx);
+		Error.Write(_stats[4]);
 		ResetColors();
 		Error.Write(", 5xx: ");
 		SetColors(Color.Red, Color.DefaultBackgroundColor);
-		Error.Write(_5xx);
+		Error.Write(_stats[5]);
 		ResetColors();
 		Error.Write(", others: ");
 		SetColors(Color.Magenta, Color.DefaultBackgroundColor);
-		Error.Write(_others);
+		Error.Write(_stats[0]);
 		ResetColors();
 		NewLineError();
 		// Reset location
@@ -222,7 +196,7 @@ public sealed class PulseMonitor {
 	public PulseResult Consolidate() => new() {
 		Results = _results,
 		TotalCount = _count,
-		SuccessRate = Math.Round((double)_2xx / _count * 100, 2),
+		SuccessRate = Math.Round((double)_stats[2] / _count * 100, 2),
 		TotalDuration = Stopwatch.GetElapsedTime(_start),
 		MemoryUsed = Environment.WorkingSet - _startingWorkingSet
 	};
