@@ -56,7 +56,18 @@ jobs:
           fi
         shell: bash
 
-      - name: Package Executable
+      # Packaging for Windows
+      - name: Package Executable (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir package
+          cp src/Pulse/bin/Release/net8.0/*/${{ env.exe }} package/
+          Compress-Archive -Path package\${{ env.exe }} -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
+        shell: pwsh
+
+      # Packaging for Linux and MacOS
+      - name: Package Executable (Unix)
+        if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
           cp src/Pulse/bin/Release/net8.0/*/${{ env.exe }} package/
