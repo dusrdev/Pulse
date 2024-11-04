@@ -34,11 +34,11 @@ Pulse configuration.json
 
 During the execution, `Pulse` displays current metrics such as progress, success rate, ETA, and counts of responses from each of the 6 categories, i.e, 1xx, 2xx, 3xx, 4xx, 5xx, others. where `others` is essentially exceptions.
 
-<img width="686" alt="Screenshot 2024-11-04 at 21 55 15" src="https://github.com/user-attachments/assets/64f48192-f60e-4021-9df3-558af21c1bbd">
+![Runtime metrics](https://github.com/user-attachments/assets/64f48192-f60e-4021-9df3-558af21c1bbd)
 
 After the execution, `Pulse` produces a detailed summary of the results
 
-<img width="706" alt="Screenshot 2024-11-04 at 21 56 50" src="https://github.com/user-attachments/assets/090bcb50-19cc-49d5-aa8b-078e96815790">
+![Summary](https://github.com/user-attachments/assets/090bcb50-19cc-49d5-aa8b-078e96815790)
 
 ### Setting up a configuration file
 
