@@ -39,7 +39,7 @@ public static class Pulse {
         var (exportRequired, uniqueRequests) = summary.Summarize();
 
         if (exportRequired) {
-            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
+            await summary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
         }
     }
 
@@ -83,7 +83,7 @@ public static class Pulse {
         var (exportRequired, uniqueRequests) = summary.Summarize();
 
         if (exportRequired) {
-            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
+            await summary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
         }
     }
 
@@ -115,7 +115,7 @@ public static class Pulse {
         var (exportRequired, uniqueRequests) = summary.Summarize();
 
         if (exportRequired) {
-            await PulseSummary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
+            await summary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
         }
     }
 }
