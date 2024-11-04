@@ -1,4 +1,4 @@
-# Pulse ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dusrdev/pulse/total?style=flat&label=Downloads&labelColor=FF00FF&color=00FF00)
+# Pulse ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dusrdev/pulse/total?style=flat&label=Downloads&labelColor=FF00FF&color=00FF00&cacheSeconds=30)
 
 Pulse is a general purpose, cross-platform, performance-oriented, command-line utility for testing HTTP endpoints. Pulse was inspired by [Bombardier](https://github.com/codesenberg/bombardier), but is designed to be configured, have native support for proxies, and suited for heavier and more frequent workflows.
 
