@@ -68,7 +68,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir package
-          ls src/Pulse/bin/Release/net8.0/ -lR
+          cd src/Pulse/bin/Release/net8.0/
+          ls -lR
           cp src/Pulse/bin/Release/net8.0/${{ matrix.runtime }}/publish/${{ env.exe }} package/
           Compress-Archive -Path package\${{ env.exe }} -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
         shell: pwsh
@@ -78,7 +79,8 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
-          ls src/Pulse/bin/Release/net8.0/ -lR
+          cd src/Pulse/bin/Release/net8.0/
+          ls -lR
           cp src/Pulse/bin/Release/net8.0/${{ matrix.runtime }}/publish/${{ env.exe }} package/
           zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
         shell: bash
