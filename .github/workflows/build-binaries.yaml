@@ -68,7 +68,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir package
-          cp src/Pulse/publish/${{ env.exe }} package/
+          cp Pulse/publish/${{ env.exe }} package/
           Compress-Archive -Path package\${{ env.exe }} -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
         shell: pwsh
 
@@ -77,7 +77,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
-          cp src/Pulse/publish/${{ env.exe }} package/
+          cp Pulse/publish/${{ env.exe }} package/
           zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
         shell: bash
 
