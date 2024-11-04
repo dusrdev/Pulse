@@ -105,11 +105,13 @@ jobs:
         with:
           path: artifacts/
 
+      - name: List Artifacts for Debugging
+        run: ls -la artifacts/
+
       - name: Create and Upload Release
         uses: ncipollo/release-action@v1.6.0
         with:
           tag: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
           files: artifacts/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
