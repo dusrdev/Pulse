@@ -144,10 +144,9 @@ The developers assume no liability and are not responsible for any misuse or dam
 
 ## Contributing and Error reporting
 
-Errors, and features can be reported on the [issues](https://github.com/dusrdev/Pulse/issues) page.
-
-If you have more sensitive bug reports, you can also contact me directly at `dusrdev@gmail.com`.
-
-If anyone wants to contribute, feel free to fork the project and open a pull request.
+- Errors, and features can be reported on the [issues](https://github.com/dusrdev/Pulse/issues) page.
+- Sensitive bug reports can also be sent to `dusrdev@gmail.com`.
+- Discussions can be found on the [discussions](https://github.com/dusrdev/Pulse/discussions) page.
+- If anyone wants to contribute, feel free to fork the project and open a pull request.
 
 > This project is proudly made in Israel 🇮🇱 for the benefit of mankind.
