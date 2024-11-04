@@ -67,8 +67,8 @@ public sealed class PulseMonitor {
 	/// </summary>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task SendAsync(int requestId, CancellationToken cancellationToken = default) {
-		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, cancellationToken);
+	public async Task SendAsync(int requestId) {
+		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, CancellationToken);
 		Interlocked.Increment(ref _count);
 		// Increment stats
 		int index = (int)result.StatusCode / 100;
