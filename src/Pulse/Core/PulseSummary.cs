@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Pulse.Core;
 
-public class PulseSummary {
+public sealed class PulseSummary {
 	public required PulseResult Result { get; init; }
 	public required Parameters Parameters { get; init; }
 	public Encoding CharEncoding { get; init; } = Encoding.Default;
@@ -146,7 +146,7 @@ public class PulseSummary {
 	/// <param name="uniqueRequests"></param>
 	/// <param name="token"></param>
 	/// <returns></returns>
-	public static async Task ExportUniqueRequestsAsync(HashSet<Response> uniqueRequests, CancellationToken token = default) {
+	public async Task ExportUniqueRequestsAsync(HashSet<Response> uniqueRequests, CancellationToken token = default) {
 		var count = uniqueRequests.Count;
 
 		if (count is 0) {
@@ -159,7 +159,7 @@ public class PulseSummary {
 		Exporter.ClearFiles(directory);
 
 		if (count is 1) {
-			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, token);
+			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, Parameters.FormatJson, token);
 			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
 			return;
 		}
@@ -169,7 +169,7 @@ public class PulseSummary {
 			CancellationToken = token
 		};
 
-		await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, token));
+		await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, Parameters.FormatJson, token));
 
 		WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", "results" * Color.Yellow, " folder"]);
 	}
