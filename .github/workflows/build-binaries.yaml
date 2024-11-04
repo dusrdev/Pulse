@@ -77,6 +77,8 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
+          cd Pulse/publish
+          ls -lR
           cp Pulse/publish/${{ env.exe }} package/
           zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
         shell: bash
