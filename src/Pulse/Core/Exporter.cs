@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -8,7 +7,7 @@ using Pulse.Configuration;
 namespace Pulse.Core;
 
 public static class Exporter {
-  public static async Task ExportHtmlAsync(Response result, string path, CancellationToken token = default) {
+  public static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
     if (token.IsCancellationRequested) {
       return;
     }
@@ -20,7 +19,7 @@ public static class Exporter {
 
     if (result.Exception.IsDefault) {
       frameTitle = "Content:";
-      if (Services.Shared.Parameters.FormatJson) {
+      if (formatJson) {
         try {
           using var doc = JsonDocument.Parse(content);
           var root = doc.RootElement;
@@ -47,7 +46,7 @@ $$"""
 </div>
 """;
     string headers = "";
-    if (result.Headers is not null && result.Headers.Any()) {
+    if (result.Headers.Any()) {
       headers =
       $"""
       <div>
@@ -138,7 +137,7 @@ iframe {
   /// <param name="headers">The HttpResponseHeaders to convert.</param>
   /// <returns>A string containing the HTML table.</returns>
   /// <exception cref="ArgumentNullException">Thrown when headers is null.</exception>
-  public static string ToHtmlTable(this HttpResponseHeaders headers) {
+  internal static string ToHtmlTable(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers) {
     StringBuilder sb = new();
 
     // Start the table and add some basic styling
