@@ -79,7 +79,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
-          cd src/Pulse/bin/Release/net8.0/
+          cd src/Pulse/bin/Release/net8.0/publish
           ls -lR
           cp src/Pulse/bin/Release/net8.0/${{ matrix.runtime }}/publish/${{ env.exe }} package/
           zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
