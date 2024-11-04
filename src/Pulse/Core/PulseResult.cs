@@ -12,11 +12,6 @@ public record PulseResult {
 	public required ConcurrentStack<Response> Results { get; init; }
 
 	/// <summary>
-	/// Count of total requests
-	/// </summary>
-	public required int TotalCount { get; init; }
-
-	/// <summary>
 	/// Total duration of the pulse
 	/// </summary>
 	public required TimeSpan TotalDuration { get; init; }

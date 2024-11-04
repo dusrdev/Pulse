@@ -78,7 +78,16 @@ public sealed class PulseMonitor {
 		_results.Push(result);
 	}
 
-	private static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
+	/// <summary>
+	/// Sends a request
+	/// </summary>
+	/// <param name="id">The request id</param>
+	/// <param name="requestRecipe">The recipe for the <see cref="HttpRequestMessage"/></param>
+	/// <param name="httpClient">The <see cref="HttpClient"/> to use</param>
+	/// <param name="saveContent">Whether to save the content</param>
+	/// <param name="cancellationToken">The cancellation token</param>
+	/// <returns><see cref="Response"/></returns>
+	internal static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode statusCode = 0;
 		string content = "";
 		Exception? exception = null;
@@ -195,7 +204,6 @@ public sealed class PulseMonitor {
 	/// <returns></returns>
 	public PulseResult Consolidate() => new() {
 		Results = _results,
-		TotalCount = _count,
 		SuccessRate = Math.Round((double)_stats[2] / _count * 100, 2),
 		TotalDuration = Stopwatch.GetElapsedTime(_start),
 		MemoryUsed = Environment.WorkingSet - _startingWorkingSet
