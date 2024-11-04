@@ -16,8 +16,8 @@ public static class Extensions {
 		ArgumentOutOfRangeException.ThrowIfGreaterThan<uint>((uint)percentage, 100);
 
 		return percentage switch {
-			> 75 => Color.Green,
-			> 50 => Color.Yellow,
+			>= 75 => Color.Green,
+			>= 50 => Color.Yellow,
 			_ => Color.Red
 		};
 	}
