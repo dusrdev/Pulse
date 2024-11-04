@@ -20,4 +20,10 @@
     <PackageReference Include="PrettyConsole" Version="3.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Pulse.Tests.Unit</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>
