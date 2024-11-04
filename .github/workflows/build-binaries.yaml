@@ -36,7 +36,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
       - name: Restore Dependencies
         run: dotnet restore src/Pulse/Pulse.csproj
@@ -81,40 +81,40 @@ jobs:
           path: Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
 
   release:
-  name: Create GitHub Release
-  needs: build
-  runs-on: ubuntu-latest
-  permissions:
-    contents: write
-  steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET to Extract Version
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET to Extract Version
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
 
-    - name: Extract Version from Pulse.csproj
-      id: get_version
-      run: |
-        version=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Pulse/Pulse.csproj)
-        echo "version=$version" >> $GITHUB_OUTPUT
-      shell: bash
+      - name: Extract Version from Pulse.csproj
+        id: get_version
+        run: |
+          version=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Pulse/Pulse.csproj)
+          echo "version=$version" >> $GITHUB_OUTPUT
+        shell: bash
 
-    - name: Download Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts/
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
 
-    - name: List Artifacts for Debugging
-      run: find artifacts/ -type f
+      - name: List Artifacts for Debugging
+        run: find artifacts/ -type f
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ steps.get_version.outputs.version }}
-        name: Release ${{ steps.get_version.outputs.version }}
-        files: artifacts/**/*.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          files: artifacts/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
