@@ -66,7 +66,6 @@ public sealed class PulseMonitor {
 	/// Observe needs to be used instead of the execution delegate
 	/// </summary>
 	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
 	public async Task SendAsync(int requestId) {
 		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, CancellationToken);
 		Interlocked.Increment(ref _count);
@@ -103,6 +102,8 @@ public sealed class PulseMonitor {
 			if (saveContent) {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
+		} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
+			throw;
 		} catch (Exception e) {
 			exception = e;
 		} finally {

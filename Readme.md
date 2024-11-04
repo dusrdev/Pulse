@@ -1,4 +1,4 @@
-# Pulse
+# Pulse ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dusrdev/pulse/total?style=flat&label=Downloads&labelColor=FF00FF&color=00FF00)
 
 Pulse is a general purpose, cross-platform, performance-oriented, command-line utility for testing HTTP endpoints. Pulse was inspired by [Bombardier](https://github.com/codesenberg/bombardier), but is designed to be configured, have native support for proxies, and suited for heavier and more frequent workflows.
 
@@ -16,7 +16,7 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 
 And more!
 
-## ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dusrdev/pulse/total)
+## Installation
 
 Pulse comes in a pre-build self-contained binary, which can be downloaded from the [releases](https://github.com/dusrdev/Pulse/releases) page.
 
@@ -29,6 +29,16 @@ Pulse reads the JSON input and outputs the results respective to the working pat
 ```bash
 Pulse configuration.json
 ```
+
+### Sample outputs
+
+During the execution, `Pulse` displays current metrics such as progress, success rate, ETA, and counts of responses from each of the 6 categories, i.e, 1xx, 2xx, 3xx, 4xx, 5xx, others. where `others` is essentially exceptions.
+
+
+
+After the execution, `Pulse` produces a detailed summary of the results
+
+
 
 ### Setting up a configuration file
 
@@ -93,7 +103,7 @@ Content contains the configuration for the request content. Which is only used f
 
 Pulse has a wide range of options that can be configured in the command line, and can be viewed with `help` or `--help` which shows this:
 
-```shell
+```plaintext
 Usage: Pulse [RequestFile] [Options]
 
 RequestFile:
