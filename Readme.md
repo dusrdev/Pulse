@@ -16,7 +16,7 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 
 And more!
 
-## Installation
+## ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dusrdev/pulse/total)
 
 Pulse comes in a pre-build self-contained binary, which can be downloaded from the [releases](https://github.com/dusrdev/Pulse/releases) page.
 
@@ -93,7 +93,7 @@ Content contains the configuration for the request content. Which is only used f
 
 Pulse has a wide range of options that can be configured in the command line, and can be viewed with `help` or `--help` which shows this:
 
-```txt
+```shell
 Usage: Pulse [RequestFile] [Options]
 
 RequestFile:
