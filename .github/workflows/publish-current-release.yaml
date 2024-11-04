@@ -1,22 +1,27 @@
-name: Build and Publish Binaries
+name: Publish Current Release
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build Binaries
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
+          - os: windows-latest
+            arch: x86
+            platform: Windows
           - os: windows-latest
             arch: x64
             platform: Windows
           - os: windows-latest
             arch: arm64
             platform: Windows
+          - os: ubuntu-latest
+            arch: x86
+            platform: Linux
           - os: ubuntu-latest
             arch: x64
             platform: Linux
