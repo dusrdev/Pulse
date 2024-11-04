@@ -14,10 +14,12 @@ public static class Pulse {
 
 
     private static async Task RunSequential(Parameters parameters, RequestDetails requestDetails) {
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
+
         var monitor = new PulseMonitor {
             RequestCount = parameters.Requests,
             RequestRecipe = requestDetails.Request,
-            HttpClient = PulseHttpClientFactory.Create(requestDetails),
+            HttpClient = httpClient,
             SaveContent = parameters.Export
         };
 
@@ -42,10 +44,12 @@ public static class Pulse {
     }
 
     private static async Task RunBounded(Parameters parameters, RequestDetails requestDetails) {
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
+
         var monitor = new PulseMonitor {
             RequestCount = parameters.Requests,
             RequestRecipe = requestDetails.Request,
-            HttpClient = PulseHttpClientFactory.Create(requestDetails),
+            HttpClient = httpClient,
             SaveContent = parameters.Export
         };
 
@@ -84,10 +88,12 @@ public static class Pulse {
     }
 
     private static async Task RunUnbounded(Parameters parameters, RequestDetails requestDetails) {
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
+
         var monitor = new PulseMonitor {
             RequestCount = parameters.Requests,
             RequestRecipe = requestDetails.Request,
-            HttpClient = PulseHttpClientFactory.Create(requestDetails),
+            HttpClient = httpClient,
             SaveContent = parameters.Export
         };
 
