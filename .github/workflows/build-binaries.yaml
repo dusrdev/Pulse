@@ -13,21 +13,27 @@ jobs:
           - os: windows-latest
             arch: x64
             platform: Windows
+            runtime: win-x64
           - os: windows-latest
             arch: arm64
             platform: Windows
+            runtime: win-arm64
           - os: ubuntu-latest
             arch: x64
             platform: Linux
+            runtime: linux-x64
           - os: ubuntu-latest
             arch: arm64
             platform: Linux
+            runtime: linux-arm64
           - os: macos-latest
             arch: x64
             platform: MacOS
+            runtime: osx-x64
           - os: macos-latest
             arch: arm64
             platform: MacOS
+            runtime: osx-arm64
 
     steps:
       - name: Checkout Repository
@@ -61,7 +67,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir package
-          cp src/Pulse/bin/Release/net8.0/*/Publish/${{ env.exe }} package/
+          cp src/Pulse/bin/Release/net8.0/${{ matrix.runtime }}/publish/${{ env.exe }} package/
           Compress-Archive -Path package\${{ env.exe }} -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
         shell: pwsh
 
@@ -70,7 +76,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
-          cp src/Pulse/bin/Release/net8.0/*/Publish/${{ env.exe }} package/
+          cp src/Pulse/bin/Release/net8.0/${{ matrix.runtime }}/publish/${{ env.exe }} package/
           zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
         shell: bash
 
