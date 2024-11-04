@@ -1,0 +1,127 @@
+name: Build and Publish Binaries
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+            platform: Windows
+          - os: windows-latest
+            arch: arm64
+            platform: Windows
+          - os: ubuntu-latest
+            arch: x64
+            platform: Linux
+          - os: ubuntu-latest
+            arch: arm64
+            platform: Linux
+          - os: macos-latest
+            arch: x64
+            platform: MacOS
+          - os: macos-latest
+            arch: arm64
+            platform: MacOS
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore src/Pulse/Pulse.csproj
+
+      - name: Publish
+        run: dotnet publish src/Pulse/Pulse.csproj -c Release
+        env:
+          DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+
+      - name: Determine Executable Name
+        id: exe_name
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            echo "exe=Pulse.exe" >> $GITHUB_ENV
+          else
+            echo "exe=Pulse" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Package Executable
+        run: |
+          mkdir -p package
+          cp src/Pulse/bin/Release/net8.0/*/${{ env.exe }} package/
+          zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
+        shell: bash
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pulse-${{ matrix.platform }}-${{ matrix.arch }}
+          path: Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET to Extract Version
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Extract Version from Pulse.csproj
+        id: get_version
+        run: |
+          version=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Pulse/Pulse.csproj)
+          echo "version=$version" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Release ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          # Optional: Add release notes here or generate them dynamically
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Download all artifacts uploaded in the build job
+          path: artifacts/
+
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh -y
+
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Upload Assets to Release
+        run: |
+          for file in artifacts/*.zip; do
+            echo "Uploading $file..."
+            gh release upload ${{ steps.create_release.outputs.tag_name }} "$file" --clobber
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
