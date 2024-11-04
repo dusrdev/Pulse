@@ -58,14 +58,17 @@ The `sample.json` file contains the following:
 {
  "Proxy": {
   "Bypass": true,
+  "IgnoreSSL": false,
   "Host": "",
   "Username": "",
   "Password": ""
  },
   "Request": {
     "Url": "https://ipinfo.io/geo",
-    "Method": "GET",
-    "Headers": null,
+    "Method": {
+      "Method": "GET"
+    },
+    "Headers": {},
     "Content": {
       "ContentType": "",
       "Body": null
