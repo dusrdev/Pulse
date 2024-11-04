@@ -67,20 +67,15 @@ jobs:
       - name: Package Executable (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          mkdir package
-          cp Pulse/publish/${{ env.exe }} package/
-          Compress-Archive -Path package\${{ env.exe }} -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
+          Compress-Archive -Path publish\* -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
         shell: pwsh
 
       # Packaging for Linux and MacOS
       - name: Package Executable (Unix)
         if: matrix.os != 'windows-latest'
         run: |
-          mkdir -p package
-          cd Pulse/publish
-          ls -lR
-          cp Pulse/publish/${{ env.exe }} package/
-          zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
+          cd publish
+          zip -r ../Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip *
         shell: bash
 
       - name: Upload Artifact
