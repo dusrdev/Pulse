@@ -128,4 +128,63 @@ public class ExporterTests {
             dirInfo.Delete(true);
         }
     }
+
+    [Fact]
+    public async Task Exporter_ExportHtmlAsync_WithoutException_HasContent() {
+        // Arrange
+        var dirInfo = Directory.CreateTempSubdirectory();
+        try {
+            var response = new Response {
+                Id = 1337,
+                StatusCode = HttpStatusCode.OK,
+                Content = "Hello World",
+                Headers = [],
+                Exception = StrippedException.Default,
+                Duration = TimeSpan.FromSeconds(1),
+                ExecutingThreadId = 1
+            };
+
+            // Act
+            await Exporter.ExportHtmlAsync(response, dirInfo.FullName);
+
+            // Assert
+            var file = dirInfo.GetFiles();
+            file.Length.Should().Be(1, "because 1 file was created");
+            var content = File.ReadAllText(file[0].FullName);
+            content.Should().Contain("Hello World", "because the content is present");
+        } finally {
+            dirInfo.Delete(true);
+        }
+    }
+
+    [Fact]
+    public async Task Exporter_ExportHtmlAsync_WithException_HasExceptionAndNoContent() {
+        // Arrange
+        var dirInfo = Directory.CreateTempSubdirectory();
+        try {
+            var exception = new Exception("Test");
+
+            var response = new Response {
+                Id = 1337,
+                StatusCode = HttpStatusCode.OK,
+                Content = "Hello World",
+                Headers = [],
+                Exception = new StrippedException(exception),
+                Duration = TimeSpan.FromSeconds(1),
+                ExecutingThreadId = 1
+            };
+
+            // Act
+            await Exporter.ExportHtmlAsync(response, dirInfo.FullName);
+
+            // Assert
+            var file = dirInfo.GetFiles();
+            file.Length.Should().Be(1, "because 1 file was created");
+            var content = File.ReadAllText(file[0].FullName);
+            content.Should().NotContain("Hello World", "because the content is not present");
+            content.Should().Contain(exception.Message, "because the exception is present");
+        } finally {
+            dirInfo.Delete(true);
+        }
+    }
 }
