@@ -2,6 +2,9 @@ using PrettyConsole;
 
 namespace Pulse.Core;
 
+/// <summary>
+/// Extensions
+/// </summary>
 public static class Extensions {
 	/// <summary>
 	/// Returns a text color based on percentage

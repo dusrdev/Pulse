@@ -18,7 +18,7 @@ var firstLine = GetCurrentLine();
 const string version = "1.0.0";
 
 var cli = CliRunner.CreateBuilder()
-					.AddCommand(new SendCommand(globalCTS))
+					.AddCommand(new SendCommand(globalCTS.Token))
 					.UseConsoleAsOutputWriter()
 					.WithMetadata(metadata => metadata.Version = version)
 					.WithCustomHeader(

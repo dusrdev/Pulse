@@ -2,7 +2,15 @@ using Pulse.Configuration;
 
 namespace Pulse.Core;
 
+/// <summary>
+/// Pulse runner
+/// </summary>
 public static class Pulse {
+    /// <summary>
+    /// Runs the pulse according the specification requested in <paramref name="parameters"/>
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <param name="requestDetails"></param>
     public static Task RunAsync(Parameters parameters, RequestDetails requestDetails) {
         if (parameters.Requests is 1 || parameters.ExecutionMode is ExecutionMode.Sequential) {
             return RunSequential(parameters, requestDetails);
@@ -12,8 +20,12 @@ public static class Pulse {
             : RunUnbounded(parameters, requestDetails);
     }
 
-
-    private static async Task RunSequential(Parameters parameters, RequestDetails requestDetails) {
+    /// <summary>
+    /// Runs the pulse sequentially
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <param name="requestDetails"></param>
+    internal static async Task RunSequential(Parameters parameters, RequestDetails requestDetails) {
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
 
         var monitor = new PulseMonitor {
@@ -21,10 +33,10 @@ public static class Pulse {
             RequestRecipe = requestDetails.Request,
             HttpClient = httpClient,
             SaveContent = parameters.Export,
-            GlobalCTS = parameters.CancellationTokenSource
+            CancellationToken = parameters.CancellationToken
         };
 
-        var cancellationToken = parameters.CancellationTokenSource.Token;
+        var cancellationToken = parameters.CancellationToken;
 
         for (int i = 1; i <= parameters.Requests; i++) {
             await monitor.SendAsync(i, cancellationToken).ConfigureAwait(false);
@@ -44,7 +56,12 @@ public static class Pulse {
         }
     }
 
-    private static async Task RunBounded(Parameters parameters, RequestDetails requestDetails) {
+    /// <summary>
+    /// Runs the pulse in parallel batches
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <param name="requestDetails"></param>
+    internal static async Task RunBounded(Parameters parameters, RequestDetails requestDetails) {
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
 
         var monitor = new PulseMonitor {
@@ -52,10 +69,10 @@ public static class Pulse {
             RequestRecipe = requestDetails.Request,
             HttpClient = httpClient,
             SaveContent = parameters.Export,
-            GlobalCTS = parameters.CancellationTokenSource
+            CancellationToken = parameters.CancellationToken
         };
 
-        var cancellationToken = parameters.CancellationTokenSource.Token;
+        var cancellationToken = parameters.CancellationToken;
 
         var totalRequests = parameters.Requests;
         var batchSize = parameters.BatchSize;
@@ -89,7 +106,12 @@ public static class Pulse {
         }
     }
 
-    private static async Task RunUnbounded(Parameters parameters, RequestDetails requestDetails) {
+    /// <summary>
+    /// Runs the pulse in parallel without any batching
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <param name="requestDetails"></param>
+    internal static async Task RunUnbounded(Parameters parameters, RequestDetails requestDetails) {
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
 
         var monitor = new PulseMonitor {
@@ -97,10 +119,10 @@ public static class Pulse {
             RequestRecipe = requestDetails.Request,
             HttpClient = httpClient,
             SaveContent = parameters.Export,
-            GlobalCTS = parameters.CancellationTokenSource
+            CancellationToken = parameters.CancellationToken
         };
 
-        var cancellationToken = parameters.CancellationTokenSource.Token;
+        var cancellationToken = parameters.CancellationToken;
 
         var tasks = Enumerable.Range(1, parameters.Requests)
         .AsParallel()

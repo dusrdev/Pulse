@@ -8,9 +8,23 @@ using System.Text;
 
 namespace Pulse.Core;
 
+/// <summary>
+/// Pulse summary handles outputs and experts post-pulse
+/// </summary>
 public sealed class PulseSummary {
+	/// <summary>
+	/// The pulse result
+	/// </summary>
 	public required PulseResult Result { get; init; }
+
+	/// <summary>
+	/// The pulse parameters
+	/// </summary>
 	public required Parameters Parameters { get; init; }
+
+	/// <summary>
+	/// The character encoding to use
+	/// </summary>
 	public Encoding CharEncoding { get; init; } = Encoding.Default;
 
 	/// <summary>
@@ -19,7 +33,8 @@ public sealed class PulseSummary {
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
 	[MethodImpl(MethodImplOptions.Synchronized)]
 	public (bool exportRequired, HashSet<Response> uniqueRequests) Summarize() {
-		if (Result.Results.Count == 1) {
+		var completed = Result.Results.Count;
+		if (completed is 1) {
 			return SummarizeSingle();
 		}
 
@@ -30,8 +45,8 @@ public sealed class PulseSummary {
 		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
 		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
-		double multiplier = 1 / (double)Result.TotalCount;
-		int total = Result.TotalCount;
+		double multiplier = 1 / (double)completed;
+		int total = completed;
 		int current = 0;
 #if !DEBUG
 		var prg = new ProgressBar {
@@ -78,7 +93,7 @@ public sealed class PulseSummary {
 
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
-		WriteLine(["Request count: ", $"{Parameters.Requests}" * Color.Yellow]);
+		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
 			WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);

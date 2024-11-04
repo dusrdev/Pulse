@@ -30,10 +30,22 @@ public sealed record StrippedException {
 	public readonly bool IsDefault;
 
 	/// <summary>
+	/// Creates a stripped exception from an exception or returns the default
+	/// </summary>
+	/// <param name="exception"></param>
+	/// <returns></returns>
+	public static StrippedException FromException(Exception? exception) {
+		if (exception is null) {
+			return Default;
+		}
+		return new(exception);
+	}
+
+	/// <summary>
 	/// Creates a stripped exception from an exception
 	/// </summary>
 	/// <param name="exception"></param>
-	public StrippedException(Exception exception) {
+	private StrippedException(Exception exception) {
 		Type = exception.GetType().Name;
 		Message = exception.Message;
 		StackTrace = exception.StackTrace ?? "";

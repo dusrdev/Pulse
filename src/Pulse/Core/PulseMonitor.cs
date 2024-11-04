@@ -44,16 +44,10 @@ public sealed class PulseMonitor {
 	// 4: 4xx
 	// 5: 5xx
 	private readonly int[] _stats = new int[6];
-
-	private volatile int _isYielding;
-
-	private readonly TaskCompletionSource _loadingTaskSource;
-	private readonly Task _indeterminateProgressBarTask;
-
 	public required int RequestCount { get; init; }
 	public required Request RequestRecipe { get; init; }
 	public required HttpClient HttpClient { get; init; }
-	public required CancellationTokenSource GlobalCTS { get; init; }
+	public required CancellationToken CancellationToken { get; init; }
 	public required bool SaveContent { get; init; }
 
 	/// <summary>
@@ -65,13 +59,7 @@ public sealed class PulseMonitor {
 		_startingWorkingSet = Environment.WorkingSet;
 		_results = new();
 		_start = Stopwatch.GetTimestamp();
-		_loadingTaskSource = new();
-		GlobalCTS?.Token.Register(() => _loadingTaskSource.TrySetCanceled());
-		var indeterminateProgressBar = new IndeterminateProgressBar() {
-			DisplayElapsedTime = true,
-			UpdateRate = 100,
-		};
-		_indeterminateProgressBarTask = indeterminateProgressBar.RunAsync(_loadingTaskSource.Task, GlobalCTS!.Token);
+		PrintInitialMetrics();
 	}
 
 	/// <summary>
@@ -82,10 +70,6 @@ public sealed class PulseMonitor {
 	public async Task SendAsync(int requestId, CancellationToken cancellationToken = default) {
 		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, cancellationToken);
 		Interlocked.Increment(ref _count);
-		if (Interlocked.CompareExchange(ref _isYielding, 1, 0) == 0) {
-			_loadingTaskSource.TrySetResult();
-			await _indeterminateProgressBarTask;
-		}
 		// Increment stats
 		int index = (int)result.StatusCode / 100;
 		Interlocked.Increment(ref _stats[index]);
@@ -122,7 +106,7 @@ public sealed class PulseMonitor {
 			Headers = headers,
 			Content = content,
 			Duration = duration,
-			Exception = exception is null ? StrippedException.Default : new StrippedException(exception),
+			Exception = StrippedException.FromException(exception),
 			ExecutingThreadId = threadId
 		};
 	}
@@ -184,6 +168,23 @@ public sealed class PulseMonitor {
 		Error.Write(_stats[0]);
 		ResetColors();
 		NewLineError();
+		// Reset location
+		System.Console.SetCursorPosition(0, cursor);
+	}
+
+	/// <summary>
+	/// Prints the initial metrics to establish ui
+	/// </summary>
+	[MethodImpl(MethodImplOptions.Synchronized)]
+	private void PrintInitialMetrics() {
+		var cursor = System.Console.CursorTop;
+		// Clear
+		ClearNextLinesError(2);
+		// Line 1
+		WriteLineError(["Completed: ", "0" * Color.Yellow, $"/{RequestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow]);
+
+		// Line 2
+		WriteLineError(["1xx: ", "0" * Color.White, ", 2xx: ", "0" * Color.Green, ", 3xx: ", "0" * Color.Yellow, ", 4xx: ", "0" * Color.Red, ", 5xx: ", "0" * Color.Red, ", others: ", "0" * Color.Magenta]);
 		// Reset location
 		System.Console.SetCursorPosition(0, cursor);
 	}

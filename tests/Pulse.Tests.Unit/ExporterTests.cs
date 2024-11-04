@@ -169,7 +169,7 @@ public class ExporterTests {
                 StatusCode = HttpStatusCode.OK,
                 Content = "Hello World",
                 Headers = [],
-                Exception = new StrippedException(exception),
+                Exception = StrippedException.FromException(exception),
                 Duration = TimeSpan.FromSeconds(1),
                 ExecutingThreadId = 1
             };

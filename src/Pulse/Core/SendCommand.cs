@@ -7,11 +7,18 @@ using System.Text.Json;
 
 namespace Pulse.Core;
 
+/// <summary>
+/// The main command
+/// </summary>
 public sealed class SendCommand : Command {
-	private readonly CancellationTokenSource _globalCTS;
+	private readonly CancellationToken _cancellationToken;
 
-	public SendCommand(CancellationTokenSource globalCTS) {
-		_globalCTS = globalCTS;
+	/// <summary>
+	/// The constructor of the command
+	/// </summary>
+	/// <param name="globalCTS">A global cancellation token source that will propagate to all tasks</param>
+	public SendCommand(CancellationToken cancellationToken) {
+		_cancellationToken = cancellationToken;
 	}
 
 	public override string Name => "";
@@ -68,6 +75,12 @@ public sealed class SendCommand : Command {
 		};
 	}
 
+	/// <summary>
+	/// Gets the request details from the specified file
+	/// </summary>
+	/// <param name="requestSource"></param>
+	/// <param name="args"></param>
+	/// <returns></returns>
 	internal static Result<RequestDetails> GetRequestDetails(string requestSource, Arguments args) {
 		var path = Path.GetFullPath(requestSource);
 		var result = JsonContext.TryGetRequestDetailsFromFile(path);
@@ -77,6 +90,11 @@ public sealed class SendCommand : Command {
 		return result;
 	}
 
+	/// <summary>
+	/// Executes the command
+	/// </summary>
+	/// <param name="args"></param>
+	/// <returns></returns>
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
 		if (args.HasFlag("terms-of-use")) {
 			Out.WriteLine(
@@ -100,7 +118,7 @@ public sealed class SendCommand : Command {
 			try {
 				var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
 				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
-				await File.WriteAllTextAsync(path, json, _globalCTS.Token);
+				await File.WriteAllTextAsync(path, json, _cancellationToken);
 				WriteLine(["Sample request generated at ", path * Color.Yellow]);
 				return 0;
 			} catch (Exception e) {
@@ -118,7 +136,7 @@ public sealed class SendCommand : Command {
 		}
 
 		var requestDetails = requestDetailsResult.Value!;
-		var @params = new Parameters(parametersBase, _globalCTS);
+		var @params = new Parameters(parametersBase, _cancellationToken);
 
 		if (@params.NoOp) {
 			PrintConfiguration(@params, requestDetails);
@@ -131,6 +149,11 @@ public sealed class SendCommand : Command {
 		return 0;
 	}
 
+	/// <summary>
+	/// Prints the configuration
+	/// </summary>
+	/// <param name="parameters"></param>
+	/// <param name="requestDetails"></param>
 	internal static void PrintConfiguration(Parameters parameters, RequestDetails requestDetails) {
 		Color headerColor = Color.Cyan;
 		Color property = Color.DarkGray;

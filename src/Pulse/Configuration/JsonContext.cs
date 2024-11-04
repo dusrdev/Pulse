@@ -39,7 +39,7 @@ public partial class JsonContext : JsonSerializerContext {
 			}
 			return Result.Ok(rd);
 		} catch (Exception e) {
-			var stripped = new StrippedException(e);
+			var stripped = Configuration.StrippedException.FromException(e);
 			var message = JsonSerializer.Serialize(stripped, Default.StrippedException);
 			return Result.Fail<RequestDetails>(message, new());
 		}
@@ -50,7 +50,7 @@ public partial class JsonContext : JsonSerializerContext {
 	/// </summary>
 	/// <param name="e"></param>
 	/// <returns></returns>
-	public static string SerializeException(Exception e) => SerializeException(new StrippedException(e));
+	public static string SerializeException(Exception e) => SerializeException(Configuration.StrippedException.FromException(e));
 
 	/// <summary>
 	/// Serializes a stripped exception to a string.

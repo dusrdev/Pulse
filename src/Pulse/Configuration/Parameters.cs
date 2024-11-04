@@ -70,23 +70,13 @@ public record ParametersBase {
 /// <summary>
 /// Execution parameters
 /// </summary>
-public sealed record Parameters : ParametersBase, IDisposable {
-	private bool _disposed;
-
+public sealed record Parameters : ParametersBase {
 	/// <summary>
-	/// Application-wide cancellation token source
+	/// Application-wide cancellation token
 	/// </summary>
-	public readonly CancellationTokenSource CancellationTokenSource;
+	public readonly CancellationToken CancellationToken;
 
-	public Parameters(ParametersBase @base, CancellationTokenSource cts) : base(@base) {
-		CancellationTokenSource = cts;
+	public Parameters(ParametersBase @base, CancellationToken cancellationToken) : base(@base) {
+		CancellationToken = cancellationToken;
 	}
-
-    public void Dispose() {
-        if (_disposed) {
-			return;
-		}
-		CancellationTokenSource?.Dispose();
-		_disposed = true;
-    }
 }

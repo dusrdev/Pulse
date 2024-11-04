@@ -4,7 +4,15 @@ using Sharpify;
 
 namespace Pulse.Core;
 
+/// <summary>
+/// Http client factory
+/// </summary>
 public static class PulseHttpClientFactory {
+	/// <summary>
+	/// Creates an HttpClient with the specified <paramref name="proxyDetails"/>
+	/// </summary>
+	/// <param name="proxyDetails"></param>
+	/// <returns>An HttpClient</returns>
 	public static HttpClient Create(Proxy proxyDetails) {
 		SocketsHttpHandler handler = CreateHandler(proxyDetails);
 
@@ -13,6 +21,11 @@ public static class PulseHttpClientFactory {
 		};
 	}
 
+	/// <summary>
+	/// Creates a <see cref="SocketsHttpHandler"/> with the specified <paramref name="proxyDetails"/>
+	/// </summary>
+	/// <param name="proxyDetails"></param>
+	/// <returns><see cref="SocketsHttpHandler"/></returns>
 	internal static SocketsHttpHandler CreateHandler(Proxy proxyDetails) {
 		SocketsHttpHandler handler;
 		if (proxyDetails.Bypass || proxyDetails.Host.IsNullOrWhiteSpace()) {
