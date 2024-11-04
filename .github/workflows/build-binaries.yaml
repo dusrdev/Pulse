@@ -63,6 +63,7 @@ jobs:
         run: |
           $zipName = "pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip".ToLower()
           Compress-Archive -Path publish\* -DestinationPath $zipName
+          Add-Content -Path $env:GITHUB_ENV -Value "ZIP_NAME=$zipName"
         shell: pwsh
 
       # Packaging for Linux and MacOS
@@ -73,13 +74,14 @@ jobs:
           zipName="pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip"
           zipName=$(echo "$zipName" | tr '[:upper:]' '[:lower:]')
           zip -r ../$zipName *
+          echo "ZIP_NAME=$zipName" >> $GITHUB_ENV
         shell: bash
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pulse-${{ toLower(matrix.platform) }}-${{ matrix.arch }}
-          path: Pulse-${{ toLower(matrix.platform) }}-${{ matrix.arch }}.zip
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_NAME }}
 
   release:
     name: Create GitHub Release
