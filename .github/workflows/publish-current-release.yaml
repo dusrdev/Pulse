@@ -67,7 +67,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           $zipName = "pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip".ToLower()
-          Compress-Archive -Path publish\* -DestinationPath $zipName
+          Compress-Archive -Path publish\Pulse.exe -DestinationPath $zipName
           Add-Content -Path $env:GITHUB_ENV -Value "ZIP_NAME=$zipName"
         shell: pwsh
 
@@ -78,7 +78,7 @@ jobs:
           cd publish
           zipName="pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip"
           zipName=$(echo "$zipName" | tr '[:upper:]' '[:lower:]')
-          zip -r ../$zipName *
+          zip -r ../$zipName Pulse
           echo "ZIP_NAME=$zipName" >> $GITHUB_ENV
         shell: bash
 
