@@ -61,7 +61,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir package
-          cp src/Pulse/bin/Release/net8.0/*/${{ env.exe }} package/
+          cp src/Pulse/bin/Release/net8.0/*/Publish/${{ env.exe }} package/
           Compress-Archive -Path package\${{ env.exe }} -DestinationPath Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
         shell: pwsh
 
@@ -70,7 +70,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p package
-          cp src/Pulse/bin/Release/net8.0/*/${{ env.exe }} package/
+          cp src/Pulse/bin/Release/net8.0/*/Publish/${{ env.exe }} package/
           zip -j Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip package/${{ env.exe }}
         shell: bash
 
@@ -81,39 +81,40 @@ jobs:
           path: Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
 
   release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  name: Create GitHub Release
+  needs: build
+  runs-on: ubuntu-latest
+  permissions:
+    contents: write
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-      - name: Setup .NET to Extract Version
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+    - name: Setup .NET to Extract Version
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-      - name: Extract Version from Pulse.csproj
-        id: get_version
-        run: |
-          version=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Pulse/Pulse.csproj)
-          echo "version=$version" >> $GITHUB_OUTPUT
-        shell: bash
+    - name: Extract Version from Pulse.csproj
+      id: get_version
+      run: |
+        version=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Pulse/Pulse.csproj)
+        echo "version=$version" >> $GITHUB_OUTPUT
+      shell: bash
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
 
-      - name: List Artifacts for Debugging
-        run: ls -la artifacts/
+    - name: List Artifacts for Debugging
+      run: find artifacts/ -type f
 
-      - name: Create and Upload Release
-        uses: ncipollo/release-action@v1.11.0
-        with:
-          tag: ${{ steps.get_version.outputs.version }}
-          name: Release ${{ steps.get_version.outputs.version }}
-          artifacts: artifacts/*.zip
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        name: Release ${{ steps.get_version.outputs.version }}
+        files: artifacts/**/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
