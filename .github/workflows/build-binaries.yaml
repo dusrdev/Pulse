@@ -53,6 +53,7 @@ jobs:
             echo "exe=Pulse.exe" >> $GITHUB_ENV
           else
             echo "exe=Pulse" >> $GITHUB_ENV
+          fi
         shell: bash
 
       - name: Package Executable
