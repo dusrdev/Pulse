@@ -99,7 +99,7 @@ public sealed class PulseMonitor {
 		HttpStatusCode statusCode = 0;
 		string content = "";
 		Exception? exception = null;
-		HttpResponseHeaders? headers = null;
+		var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
 		int threadId = 0;
 		using var message = requestRecipe.CreateMessage();
 		var start = Stopwatch.GetTimestamp();

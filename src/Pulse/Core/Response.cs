@@ -22,7 +22,7 @@ public readonly struct Response {
 	/// <summary>
 	/// Headers (could be null if exception occurred, or server didn't include it)
 	/// </summary>
-	public required HttpResponseHeaders? Headers { get; init; }
+	public required IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
 
 	/// <summary>
 	/// Content (could be empty if exception occurred, no export feature is used or server didn't include it)
