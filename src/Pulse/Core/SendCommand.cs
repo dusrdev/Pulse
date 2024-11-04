@@ -8,9 +8,11 @@ using System.Text.Json;
 namespace Pulse.Core;
 
 public sealed class SendCommand : Command {
-	public static readonly SendCommand Singleton = new();
+	private readonly CancellationTokenSource _globalCTS;
 
-	private SendCommand() { }
+	public SendCommand(CancellationTokenSource globalCTS) {
+		_globalCTS = globalCTS;
+	}
 
 	public override string Name => "";
 	public override string Description => "";
@@ -89,8 +91,6 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-		Services.Shared = new Services(new Parameters(new ParametersBase()));
-
 		if (!args.TryGetValue(0, out string rf)) {
 			WriteLineError("request file or command name must be provided!" * Color.Red);
 			return 1;
@@ -100,7 +100,7 @@ public sealed class SendCommand : Command {
 			try {
 				var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
 				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
-				await File.WriteAllTextAsync(path, json, Services.Shared.Parameters.CancellationTokenSource.Token);
+				await File.WriteAllTextAsync(path, json, _globalCTS.Token);
 				WriteLine(["Sample request generated at ", path * Color.Yellow]);
 				return 0;
 			} catch (Exception e) {
@@ -118,8 +118,7 @@ public sealed class SendCommand : Command {
 		}
 
 		var requestDetails = requestDetailsResult.Value!;
-		Services.Shared.OverrideParameters(new Parameters(parametersBase));
-		var @params = Services.Shared.Parameters;
+		var @params = new Parameters(parametersBase, _globalCTS);
 
 		if (@params.NoOp) {
 			PrintConfiguration(@params, requestDetails);

@@ -20,7 +20,8 @@ public static class Pulse {
             RequestCount = parameters.Requests,
             RequestRecipe = requestDetails.Request,
             HttpClient = httpClient,
-            SaveContent = parameters.Export
+            SaveContent = parameters.Export,
+            GlobalCTS = parameters.CancellationTokenSource
         };
 
         var cancellationToken = parameters.CancellationTokenSource.Token;
@@ -50,7 +51,8 @@ public static class Pulse {
             RequestCount = parameters.Requests,
             RequestRecipe = requestDetails.Request,
             HttpClient = httpClient,
-            SaveContent = parameters.Export
+            SaveContent = parameters.Export,
+            GlobalCTS = parameters.CancellationTokenSource
         };
 
         var cancellationToken = parameters.CancellationTokenSource.Token;
@@ -94,7 +96,8 @@ public static class Pulse {
             RequestCount = parameters.Requests,
             RequestRecipe = requestDetails.Request,
             HttpClient = httpClient,
-            SaveContent = parameters.Export
+            SaveContent = parameters.Export,
+            GlobalCTS = parameters.CancellationTokenSource
         };
 
         var cancellationToken = parameters.CancellationTokenSource.Token;

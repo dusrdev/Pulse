@@ -6,9 +6,11 @@ using Sharpify.CommandLineInterface;
 using static PrettyConsole.Console;
 using PrettyConsole;
 
+using CancellationTokenSource globalCTS = new();
+
 System.Console.CancelKeyPress += (_, e) => {
 	e.Cancel = true;
-	Services.Shared.Parameters.CancellationTokenSource.Cancel();
+	globalCTS.Cancel();
 };
 
 var firstLine = GetCurrentLine();
@@ -16,7 +18,7 @@ var firstLine = GetCurrentLine();
 const string version = "1.0.0";
 
 var cli = CliRunner.CreateBuilder()
-					.AddCommand(SendCommand.Singleton)
+					.AddCommand(new SendCommand(globalCTS))
 					.UseConsoleAsOutputWriter()
 					.WithMetadata(metadata => metadata.Version = version)
 					.WithCustomHeader(

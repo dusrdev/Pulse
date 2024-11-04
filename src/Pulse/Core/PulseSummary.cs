@@ -24,7 +24,7 @@ public sealed class PulseSummary {
 		}
 
 		HashSet<Response> uniqueRequests = Parameters.Export
-												? new(ResponseWithExceptionComparer.Singleton)
+												? new(new ResponseComparer(Parameters))
 												: [];
 		Dictionary<HttpStatusCode, int> statusCounter = [];
 		HashSet<int> uniqueThreadIds = [];

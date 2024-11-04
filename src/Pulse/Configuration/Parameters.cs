@@ -76,9 +76,11 @@ public sealed record Parameters : ParametersBase, IDisposable {
 	/// <summary>
 	/// Application-wide cancellation token source
 	/// </summary>
-	public readonly CancellationTokenSource CancellationTokenSource = new();
+	public readonly CancellationTokenSource CancellationTokenSource;
 
-	public Parameters(ParametersBase @base) : base(@base) { }
+	public Parameters(ParametersBase @base, CancellationTokenSource cts) : base(@base) {
+		CancellationTokenSource = cts;
+	}
 
     public void Dispose() {
         if (_disposed) {

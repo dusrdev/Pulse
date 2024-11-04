@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 
 using Pulse.Configuration;
 
@@ -48,12 +47,10 @@ public readonly struct Response {
 /// <summary>
 /// Request comparer to be used in HashSets
 /// </summary>
-public sealed class ResponseWithExceptionComparer : IEqualityComparer<Response> {
-	public static readonly ResponseWithExceptionComparer Singleton = new(Services.Shared.Parameters);
-
+public sealed class ResponseComparer : IEqualityComparer<Response> {
 	private readonly Parameters _parameters;
 
-	private ResponseWithExceptionComparer(Parameters parameters) {
+	public ResponseComparer(Parameters parameters) {
 		_parameters = parameters;
 	}
 

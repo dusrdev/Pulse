@@ -7,7 +7,6 @@ using PrettyConsole;
 using Sharpify;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
-using System.Net.Http.Headers;
 
 namespace Pulse.Core;
 
@@ -54,6 +53,7 @@ public sealed class PulseMonitor {
 	public required int RequestCount { get; init; }
 	public required Request RequestRecipe { get; init; }
 	public required HttpClient HttpClient { get; init; }
+	public required CancellationTokenSource GlobalCTS { get; init; }
 	public required bool SaveContent { get; init; }
 
 	/// <summary>
@@ -66,13 +66,12 @@ public sealed class PulseMonitor {
 		_results = new();
 		_start = Stopwatch.GetTimestamp();
 		_loadingTaskSource = new();
-		var globalTCS = Services.Shared.Parameters.CancellationTokenSource;
-		globalTCS.Token.Register(() => _loadingTaskSource.TrySetCanceled());
+		GlobalCTS?.Token.Register(() => _loadingTaskSource.TrySetCanceled());
 		var indeterminateProgressBar = new IndeterminateProgressBar() {
 			DisplayElapsedTime = true,
 			UpdateRate = 100,
 		};
-		_indeterminateProgressBarTask = indeterminateProgressBar.RunAsync(_loadingTaskSource.Task, globalTCS.Token);
+		_indeterminateProgressBarTask = indeterminateProgressBar.RunAsync(_loadingTaskSource.Task, GlobalCTS!.Token);
 	}
 
 	/// <summary>
