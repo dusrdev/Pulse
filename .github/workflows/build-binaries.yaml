@@ -78,8 +78,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pulse-${{ matrix.platform }}-${{ matrix.arch }}
-          path: Pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip
+          name: Pulse-${{ toLower(matrix.platform) }}-${{ matrix.arch }}
+          path: Pulse-${{ toLower(matrix.platform) }}-${{ matrix.arch }}.zip
 
   release:
     name: Create GitHub Release
