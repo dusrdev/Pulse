@@ -5,13 +5,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <TrimMode>full</TrimMode>
     <OptimizationPreference>Speed</OptimizationPreference>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
     <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
     <AotCompatible>true</AotCompatible>
     <Version>1.0.0</Version>
-    <StripSymbols>false</StripSymbols>
+    <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
   <ItemGroup>
