@@ -71,7 +71,7 @@ jobs:
         run: |
           cd publish
           zipName="pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip"
-          zipName="${zipName,,}"
+          zipName=$(echo "$zipName" | tr '[:upper:]' '[:lower:]')
           zip -r ../$zipName *
         shell: bash
 
