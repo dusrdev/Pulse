@@ -108,7 +108,7 @@ jobs:
           release_name: Release ${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
-          # Optional: Add release notes here or generate them dynamically
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
