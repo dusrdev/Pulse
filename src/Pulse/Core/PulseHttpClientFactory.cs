@@ -1,23 +1,19 @@
 using System.Net;
 
-using Pulse.Configuration;
-
 using Sharpify;
 
 namespace Pulse.Core;
 
 public static class PulseHttpClientFactory {
-	public static HttpClient Create(RequestDetails details) {
-		var proxy = details.Proxy;
-
-		SocketsHttpHandler handler = CreateHandler(proxy);
+	public static HttpClient Create(Proxy proxyDetails) {
+		SocketsHttpHandler handler = CreateHandler(proxyDetails);
 
 		return new HttpClient(handler) {
 			Timeout = TimeSpan.FromMinutes(10)
 		};
 	}
 
-	private static SocketsHttpHandler CreateHandler(Proxy proxyDetails) {
+	internal static SocketsHttpHandler CreateHandler(Proxy proxyDetails) {
 		SocketsHttpHandler handler;
 		if (proxyDetails.Bypass || proxyDetails.Host.IsNullOrWhiteSpace()) {
 			handler = new SocketsHttpHandler();
