@@ -11,30 +11,24 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: windows-latest
-          #   arch: x64
-          #   platform: Windows
-          #   runtime: win-x64
-          # - os: windows-latest
-          #   arch: arm64
-          #   platform: Windows
-          #   runtime: win-arm64
-          # - os: ubuntu-latest
-          #   arch: x64
-          #   platform: Linux
-          #   runtime: linux-x64
-          # - os: ubuntu-latest
-          #   arch: arm64
-          #   platform: Linux
-          #   runtime: linux-arm64
-          # - os: macos-latest
-          #   arch: x64
-          #   platform: MacOS
-          #   runtime: osx-x64
+          - os: windows-latest
+            arch: x64
+            platform: Windows
+          - os: windows-latest
+            arch: arm64
+            platform: Windows
+          - os: ubuntu-latest
+            arch: x64
+            platform: Linux
+          - os: ubuntu-latest
+            arch: arm64
+            platform: Linux
+          - os: macos-latest
+            arch: x64
+            platform: MacOS
           - os: macos-latest
             arch: arm64
             platform: MacOS
-            runtime: osx-arm64
 
     steps:
       - name: Checkout Repository
@@ -115,7 +109,7 @@ jobs:
         run: find artifacts/ -type f
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
