@@ -106,7 +106,7 @@ jobs:
           path: artifacts/
 
       - name: Create and Upload Release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.6.0
         with:
           tag: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
