@@ -20,6 +20,7 @@ namespace Pulse.Configuration;
 [JsonSerializable(typeof(RequestDetails))]
 [JsonSerializable(typeof(StrippedException))]
 [JsonSerializable(typeof(JsonElement))]
+[JsonSerializable(typeof(ReleaseInfo))]
 public partial class JsonContext : JsonSerializerContext {
 	/// <summary>
 	/// Try to get request details from file
@@ -42,6 +43,23 @@ public partial class JsonContext : JsonSerializerContext {
 			var stripped = Configuration.StrippedException.FromException(e);
 			var message = JsonSerializer.Serialize(stripped, Default.StrippedException);
 			return Result.Fail<RequestDetails>(message, new());
+		}
+	}
+
+	/// <summary>
+	/// Deserializes the version from the release info JSON
+	/// </summary>
+	/// <param name="releaseInfoJson"></param>
+	/// <returns></returns>
+	public static Result DeserializeVersion(ReadOnlySpan<char> releaseInfoJson) {
+		try {
+			var releaseInfo = JsonSerializer.Deserialize(releaseInfoJson, Default.ReleaseInfo);
+			if (releaseInfo is null or { Body: null }) {
+				return Result.Fail("Invalid JSON");
+			}
+			return Result.Ok(releaseInfo.Body);
+		} catch {
+			return Result.Fail("Invalid JSON");
 		}
 	}
 

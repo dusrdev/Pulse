@@ -127,6 +127,7 @@ Options:
 
 Special:
   get-sample       : use as command - generated sample file
+  check-for-updates: use as command - checks for updates
   --noop           : print selected configuration but don't run
   -u, --url        : override url of the request
   -h, --help       : print this help
