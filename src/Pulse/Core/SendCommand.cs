@@ -42,6 +42,7 @@ public sealed class SendCommand : Command {
 	  -v, --verbose    : display verbose output	(default: false)
 	Special:
 	  get-sample       : use as command - generated sample file
+	  check-for-updates: use as command - checks for updates
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override url of the request
 	  -h, --help       : print this help
@@ -114,12 +115,9 @@ public sealed class SendCommand : Command {
 			return 1;
 		}
 
-		if (string.Equals(rf, "get-sample", StringComparison.InvariantCultureIgnoreCase)) {
+		if (SubCommands.TryGetValue(rf, out var subCommand)) {
 			try {
-				var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
-				var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
-				await File.WriteAllTextAsync(path, json, _cancellationToken);
-				WriteLine(["Sample request generated at ", path * Color.Yellow]);
+				await subCommand(_cancellationToken);
 				return 0;
 			} catch (Exception e) {
 				WriteLineError(e.Message * Color.Red);
@@ -148,6 +146,41 @@ public sealed class SendCommand : Command {
 
 		return 0;
 	}
+
+	internal static readonly Dictionary<string, Func<CancellationToken, ValueTask>> SubCommands = new(2, StringComparer.OrdinalIgnoreCase) {
+		["get-sample"] = async (token) => {
+			var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
+			var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
+			await File.WriteAllTextAsync(path, json, token);
+			WriteLine(["Sample request generated at ", path * Color.Yellow]);
+		},
+		["check-for-updates"] = async (token) => {
+			using var client = new HttpClient();
+			client.DefaultRequestHeaders.Add("User-Agent", "C# App");
+			client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+			using var message = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/dusrdev/Pulse/releases/latest");
+			using var response = await client.SendAsync(message, token);
+			if (response.IsSuccessStatusCode) {
+				var json = await response.Content.ReadAsStringAsync(token);
+				var result = JsonContext.DeserializeVersion(json);
+				if (result.IsFail) {
+					return;
+				}
+				var version = result.Message;
+				if (string.Compare(Program.VERSION, version) < 0) {
+					WriteLine("A new version of Pulse is available!" * Color.Yellow);
+					WriteLine(["Your version: ", Program.VERSION * Color.Yellow]);
+					WriteLine(["Latest version: ", version * Color.Green]);
+					NewLine();
+					WriteLine("Download from https://github.com/dusrdev/Pulse/releases/latest");
+				} else {
+					WriteLine("You are using the latest version of Pulse." * Color.Green);
+				}
+			} else {
+				WriteLineError("Failed to check for updates - server response was not success");
+			}
+		}
+	};
 
 	/// <summary>
 	/// Prints the configuration
