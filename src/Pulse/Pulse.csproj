@@ -13,7 +13,7 @@
     <PublishAot>true</PublishAot>
     <IsAotCompatible>true</IsAotCompatible>
     <AotCompatible>true</AotCompatible>
-    <Version>1.0.2</Version>
+    <Version>1.0.2.0</Version>
     <StripSymbols>true</StripSymbols>
     <RepositoryUrl>https://github.com/dusrdev/Pulse</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
