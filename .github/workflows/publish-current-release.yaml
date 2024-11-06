@@ -83,7 +83,6 @@ jobs:
         run: |
           cd publish
           zipName="pulse-${{ matrix.os }}-${{ matrix.arch }}.zip"
-          zipName=$(echo "$zipName" | tr '[:upper:]' '[:lower:]')
           zip -r ../$zipName Pulse
           echo "ZIP_NAME=$zipName" >> $GITHUB_ENV
         shell: bash
