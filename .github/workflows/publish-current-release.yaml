@@ -19,6 +19,12 @@ jobs:
           - os: windows-latest
             arch: arm64
             platform: Windows
+          - os: ubuntu-20.04
+            arch: x86
+            platform: Linux
+          - os: ubuntu-20.04
+            arch: x64
+            platform: Linux
           - os: ubuntu-latest
             arch: x86
             platform: Linux
@@ -66,7 +72,7 @@ jobs:
       - name: Package Executable (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          $zipName = "pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip".ToLower()
+          $zipName = "pulse-${{ matrix.os }}-${{ matrix.arch }}.zip"
           Compress-Archive -Path publish\Pulse.exe -DestinationPath $zipName
           Add-Content -Path $env:GITHUB_ENV -Value "ZIP_NAME=$zipName"
         shell: pwsh
@@ -76,7 +82,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           cd publish
-          zipName="pulse-${{ matrix.platform }}-${{ matrix.arch }}.zip"
+          zipName="pulse-${{ matrix.os }}-${{ matrix.arch }}.zip"
           zipName=$(echo "$zipName" | tr '[:upper:]' '[:lower:]')
           zip -r ../$zipName Pulse
           echo "ZIP_NAME=$zipName" >> $GITHUB_ENV
