@@ -110,10 +110,8 @@ Pulse has a wide range of options that can be configured in the command line, an
 Usage: Pulse [RequestFile] [Options]
 
 RequestFile:
-
   path to .json request details file
   - If you don't have one use the "get-sample" command
-
 Options:
   -n, --number     : number of total requests (default: 1)
   -m, --mode       : execution mode (default: parallel)
@@ -124,19 +122,21 @@ Options:
   -f               : use full equality (slower - default: false)
   --no-export      : don't export results (default: false)
   -v, --verbose    : display verbose output (default: false)
-
+  -o, --output     : output folder (default: results)
 Special:
-  get-sample       : use as command - generated sample file
+  get-sample       : use as command - generates sample file
   check-for-updates: use as command - checks for updates
   --noop           : print selected configuration but don't run
-  -u, --url        : override url of the request
-  -h, --help       : print this help
-  --terms-of-use   : print terms of use
+  -u, --url        : override the url of the request
+  -h, --help       : print this help text
+  --terms-of-use   : print the terms of use
 ```
 
+- `-v` or `--verbose` - display verbose output, this adds more metrics to the output, such as system information when using `--noop`, and system metrics in the summary that include the number of threads used, and the random access memory consumed.
 - `f` - use fully equality: by default because response content can be entire webpages, it can be a time consuming and resource heavy operation to make sure all responses are unique, so by default a simpler check is used which only compares the content length - for most cases this is sufficient since you usually expect the same content for the requests, but you can opt in for full equality.
 - `u` or `url` - can be used to override the url of the request, this can be useful if you want to keep all other settings the same, and quickly change the url of the request.
 - `noop` - is a very useful command which will print the selected configuration but not perform the pulse, this can be used to inspect the request settings after they are parsed by the program, to ensure everything is exactly as you intended.
+- `o` or `output` - can be used to specify the output folder, by default it is "results", but you can specify a different folder if you want to.
 
 ## Disclaimer
 

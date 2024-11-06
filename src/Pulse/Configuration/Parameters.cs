@@ -39,12 +39,12 @@ public record ParametersBase {
 	/// <summary>
 	/// Indicating whether the batch size was modified
 	/// </summary>
-	public bool BatchSizeModified { get; set; } = false;
+	public bool BatchSizeModified { get; set; }
 
 	/// <summary>
 	/// Attempt to format response content as JSON
 	/// </summary>
-	public bool FormatJson { get; set; } = false;
+	public bool FormatJson { get; set; }
 
 	/// <summary>
 	/// Indicating whether to export results
@@ -54,17 +54,22 @@ public record ParametersBase {
 	/// <summary>
 	/// Check full equality for response content
 	/// </summary>
-	public bool UseFullEquality { get; set; } = false;
+	public bool UseFullEquality { get; set; }
 
 	/// <summary>
 	/// Display configuration and exit
 	/// </summary>
-	public bool NoOp { get; set; } = false;
+	public bool NoOp { get; set; }
 
 	/// <summary>
 	/// Display verbose output (adds more metrics)
 	/// </summary>
-	public bool Verbose { get; set; } = false;
+	public bool Verbose { get; set; }
+
+	/// <summary>
+	/// Output folder
+	/// </summary>
+	public string OutputFolder { get; set; } = "results";
 }
 
 /// <summary>

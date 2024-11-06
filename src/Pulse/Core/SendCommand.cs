@@ -39,14 +39,15 @@ public sealed class SendCommand : Command {
 	  --json           : try to format response content as JSON
 	  -f               : use full equality (slower - default: false)
 	  --no-export      : don't export results (default: false)
-	  -v, --verbose    : display verbose output	(default: false)
+	  -v, --verbose    : display verbose output (default: false)
+	  -o, --output     : output folder (default: results)
 	Special:
-	  get-sample       : use as command - generated sample file
+	  get-sample       : use as command - generates sample file
 	  check-for-updates: use as command - checks for updates
 	  --noop           : print selected configuration but don't run
-	  -u, --url        : override url of the request
-	  -h, --help       : print this help
-	  --terms-of-use   : print terms of use
+	  -u, --url        : override the url of the request
+	  -h, --help       : print this help text
+	  --terms-of-use   : print the terms of use
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
@@ -57,13 +58,14 @@ public sealed class SendCommand : Command {
 		if (args.TryGetValue(["b", "batch"], ParametersBase.DefaultBatchSize, out int batchSize)) {
 			batchSizeModified = true;
 		}
+		args.TryGetValue(["o", "output"], "results", out string outputFolder);
 		batchSize = Math.Max(batchSize, 1);
 		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
 		bool verbose = args.HasFlag("v") || args.HasFlag("verbose");
-		return new() {
+		return new ParametersBase {
 			Requests = requests,
 			ExecutionMode = mode,
 			BatchSize = batchSize,
@@ -72,7 +74,8 @@ public sealed class SendCommand : Command {
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,
 			NoOp = noop,
-			Verbose = verbose
+			Verbose = verbose,
+			OutputFolder = outputFolder
 		};
 	}
 
@@ -212,6 +215,7 @@ public sealed class SendCommand : Command {
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);
 		WriteLine(["  Verbose: " * property, $"{parameters.Verbose}" * value]);
+		WriteLine(["  Output Folder: " * property, parameters.OutputFolder * value]);
 
 		// Request
 		WriteLine("Request:" * headerColor);

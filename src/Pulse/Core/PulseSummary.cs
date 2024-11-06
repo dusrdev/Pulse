@@ -169,13 +169,13 @@ public sealed class PulseSummary {
 			return;
 		}
 
-		string directory = Path.Join(Directory.GetCurrentDirectory(), "results/");
+		string directory = Path.Join(Directory.GetCurrentDirectory(), Parameters.OutputFolder);
 		Directory.CreateDirectory(directory);
 		Exporter.ClearFiles(directory);
 
 		if (count is 1) {
 			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, Parameters.FormatJson, token);
-			WriteLine(["1" * Color.Cyan, $" unique response exported to ", "results" * Color.Yellow, " folder"]);
+			WriteLine(["1" * Color.Cyan, $" unique response exported to ", Parameters.OutputFolder * Color.Yellow, " folder"]);
 			return;
 		}
 
@@ -186,6 +186,6 @@ public sealed class PulseSummary {
 
 		await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, Parameters.FormatJson, token));
 
-		WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", "results" * Color.Yellow, " folder"]);
+		WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", Parameters.OutputFolder * Color.Yellow, " folder"]);
 	}
 }
