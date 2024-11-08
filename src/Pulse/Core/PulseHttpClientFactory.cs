@@ -13,11 +13,11 @@ public static class PulseHttpClientFactory {
 	/// </summary>
 	/// <param name="proxyDetails"></param>
 	/// <returns>An HttpClient</returns>
-	public static HttpClient Create(Proxy proxyDetails) {
+	public static HttpClient Create(Proxy proxyDetails, int TimeoutInMs) {
 		SocketsHttpHandler handler = CreateHandler(proxyDetails);
 
 		return new HttpClient(handler) {
-			Timeout = TimeSpan.FromMinutes(10)
+			Timeout = TimeSpan.FromMilliseconds(TimeoutInMs)
 		};
 	}
 
