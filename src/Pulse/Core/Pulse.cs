@@ -26,7 +26,7 @@ public static class Pulse {
     /// <param name="parameters"></param>
     /// <param name="requestDetails"></param>
     internal static async Task RunSequential(Parameters parameters, RequestDetails requestDetails) {
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
 
         var monitor = new PulseMonitor {
             RequestCount = parameters.Requests,
@@ -60,7 +60,7 @@ public static class Pulse {
     /// <param name="parameters"></param>
     /// <param name="requestDetails"></param>
     internal static async Task RunBounded(Parameters parameters, RequestDetails requestDetails) {
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
 
         var cancellationToken = parameters.CancellationToken;
 
@@ -110,7 +110,7 @@ public static class Pulse {
     /// <param name="parameters"></param>
     /// <param name="requestDetails"></param>
     internal static async Task RunUnbounded(Parameters parameters, RequestDetails requestDetails) {
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy);
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
 
         var cancellationToken = parameters.CancellationToken;
 
