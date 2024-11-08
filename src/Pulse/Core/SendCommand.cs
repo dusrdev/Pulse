@@ -32,6 +32,7 @@ public sealed class SendCommand : Command {
 	  - If you don't have one use the "get-sample" command
 	Options:
 	  -n, --number     : number of total requests (default: 1)
+	  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
 	  -m, --mode       : execution mode (default: parallel)
 	                      * sequential = execute requests sequentially
 	                      * parallel  = execute requests using maximum resources
@@ -53,6 +54,7 @@ public sealed class SendCommand : Command {
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
 		args.TryGetValue(["n", "number"], ParametersBase.DefaultNumberOfRequests, out int requests);
 		requests = Math.Max(requests, 1);
+		args.TryGetValue(["t", "timeout"], ParametersBase.DefaultTimeoutInMs, out int timeoutInMs);
 		bool batchSizeModified = false;
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
 		if (args.TryGetValue(["b", "batch"], ParametersBase.DefaultBatchSize, out int batchSize)) {
@@ -67,6 +69,7 @@ public sealed class SendCommand : Command {
 		bool verbose = args.HasFlag("v") || args.HasFlag("verbose");
 		return new ParametersBase {
 			Requests = requests,
+			TimeoutInMs = timeoutInMs,
 			ExecutionMode = mode,
 			BatchSize = batchSize,
 			BatchSizeModified = batchSizeModified,
@@ -205,6 +208,7 @@ public sealed class SendCommand : Command {
 		// Options
 		WriteLine("Options:" * headerColor);
 		WriteLine(["  Request Count: " * property, $"{parameters.Requests}" * value]);
+		WriteLine(["  Timeout: " * property, $"{parameters.TimeoutInMs}" * value]);
 		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
 #pragma warning disable IDE0002
 		if (parameters.BatchSize is not Parameters.DefaultBatchSize) {
