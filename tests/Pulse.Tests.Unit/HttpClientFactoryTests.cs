@@ -1,17 +1,31 @@
 using System.Net;
 
+using Pulse.Configuration;
+
 using Pulse.Core;
 
 namespace Pulse.Tests.Unit;
 
 public class HttpClientFactoryTests {
     [Fact]
+    public void HttpClientFactory_DefaultTimeout_IsInfinite() {
+        // Arrange
+        var proxy = new Proxy();
+
+        // Act
+        using var httpClient = PulseHttpClientFactory.Create(proxy, Parameters.DefaultTimeoutInMs);
+
+        // Assert
+        httpClient.Timeout.Should().Be(Timeout.InfiniteTimeSpan, "because the default timeout is infinite");
+    }
+
+    [Fact]
     public void HttpClientFactory_WithoutProxy_ReturnsHttpClient() {
         // Arrange
         var proxy = new Proxy();
 
         // Act
-        using var httpClient = PulseHttpClientFactory.Create(proxy);
+        using var httpClient = PulseHttpClientFactory.Create(proxy, Parameters.DefaultTimeoutInMs);
 
         // Assert
         httpClient.Should().NotBeNull("because a HttpClient is returned");

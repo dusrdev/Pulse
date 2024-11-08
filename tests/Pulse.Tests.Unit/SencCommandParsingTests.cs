@@ -18,6 +18,22 @@ public class SendCommandParsingTests {
     }
 
     [Theory]
+    [InlineData("Pulse -v", -1)] // default
+    [InlineData("Pulse -v -t -1", -1)] // set but default
+    [InlineData("Pulse --verbose -t 30000", 30000)] // custom
+    [InlineData("Pulse --verbose --timeout 30000", 30000)] // custom
+    public void Arguments_Timeout(string arguments, int expected) {
+        // Arrange
+        var args = Parser.ParseArguments(arguments)!;
+
+        // Act
+        var @params = SendCommand.ParseParametersArgs(args);
+
+        // Assert
+        @params.TimeoutInMs.Should().Be(expected, "because parsed or default");
+    }
+
+    [Theory]
     [InlineData("Pulse -v")]
     [InlineData("Pulse --verbose")]
     public void Arguments_Flag_Verbose(string arguments) {

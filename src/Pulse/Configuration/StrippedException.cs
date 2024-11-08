@@ -49,6 +49,20 @@ public sealed record StrippedException {
 		Type = exception.GetType().Name;
 		Message = exception.Message;
 		StackTrace = exception.StackTrace ?? "";
+		IsDefault = false;
+	}
+
+	/// <summary>
+	/// Creates a stripped exception from a type, message and stack trace
+	/// </summary>
+	/// <param name="type"></param>
+	/// <param name="message"></param>
+	/// <param name="stackTrace"></param>
+	public StrippedException(string type, string message, string stackTrace) {
+		Type = type;
+		Message = message;
+		StackTrace = stackTrace;
+		IsDefault = false;
 	}
 
 	[JsonConstructor]

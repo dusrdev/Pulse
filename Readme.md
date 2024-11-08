@@ -114,6 +114,7 @@ RequestFile:
   - If you don't have one use the "get-sample" command
 Options:
   -n, --number     : number of total requests (default: 1)
+  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
   -m, --mode       : execution mode (default: parallel)
                       * sequential = execute requests sequentially
                       * parallel  = execute requests using maximum resources

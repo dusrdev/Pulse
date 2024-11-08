@@ -89,7 +89,7 @@ public sealed class PulseMonitor {
 	internal static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode statusCode = 0;
 		string content = "";
-		Exception? exception = null;
+		StrippedException exception = StrippedException.Default;
 		var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
 		int threadId = 0;
 		using var message = requestRecipe.CreateMessage();
@@ -103,9 +103,13 @@ public sealed class PulseMonitor {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
 		} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
-			throw;
+			if (cancellationToken.IsCancellationRequested) {
+				throw;
+			}
+			var elapsed = Stopwatch.GetElapsedTime(start);
+			exception = new StrippedException(nameof(TimeoutException), $"Request {id} timeout after {elapsed.TotalMilliseconds} ms", "");
 		} catch (Exception e) {
-			exception = e;
+			exception = StrippedException.FromException(e);
 		} finally {
 			message?.Dispose();
 		}
@@ -116,7 +120,7 @@ public sealed class PulseMonitor {
 			Headers = headers,
 			Content = content,
 			Duration = duration,
-			Exception = StrippedException.FromException(exception),
+			Exception = exception,
 			ExecutingThreadId = threadId
 		};
 	}
