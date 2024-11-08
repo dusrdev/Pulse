@@ -1,5 +1,3 @@
-using Pulse.Configuration;
-
 using Pulse.Core;
 
 namespace Pulse.Tests.Unit;
@@ -15,27 +13,11 @@ public class PulseMonitorTests {
                 Method = HttpMethod.Get
             }
         };
-        var pBase = ParametersBase.Default with {
-            TimeoutInMs = 50,
-            Export = false
-        };
-        var parameters = new Parameters(pBase, CancellationToken.None);
 
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
-
-        var monitor = new PulseMonitor {
-            RequestCount = parameters.Requests,
-            RequestRecipe = requestDetails.Request,
-            HttpClient = httpClient,
-            SaveContent = parameters.Export,
-            CancellationToken = parameters.CancellationToken
-        };
+        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, 50);
 
         // Act + Assert
-        await monitor.SendAsync(1);
-        var result = monitor.Consolidate();
-        result.Results.Should().HaveCount(1);
-        result.Results.TryPop(out var first).Should().BeTrue();
-        first.Exception.Type.Should().Be(nameof(TimeoutException));
+        var result = await PulseMonitor.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
+        result.Exception.Type.Should().Be(nameof(TimeoutException));
     }
 }
