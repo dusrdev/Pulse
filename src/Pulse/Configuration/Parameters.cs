@@ -17,6 +17,11 @@ public record ParametersBase {
 	public const int DefaultBatchSize = 1;
 
 	/// <summary>
+	/// Default timeout in milliseconds (infinity)
+	/// </summary>
+	public const int DefaultTimeoutInMs = -1;
+
+	/// <summary>
 	/// Default execution mode
 	/// </summary>
 	public const ExecutionMode DefaultExecutionMode = ExecutionMode.Parallel;
@@ -25,6 +30,11 @@ public record ParametersBase {
 	/// Sets the number of requests (default = 100)
 	/// </summary>
 	public int Requests { get; set; } = DefaultNumberOfRequests;
+
+	/// <summary>
+	/// Sets the timeout in milliseconds
+	/// </summary>
+	public int TimeoutInMs { get; set; } = DefaultTimeoutInMs;
 
 	/// <summary>
 	/// Sets the execution mode (default = <see cref="DefaultExecutionMode"/>)
