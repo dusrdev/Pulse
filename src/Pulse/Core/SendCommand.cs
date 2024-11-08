@@ -172,11 +172,15 @@ public sealed class SendCommand : Command {
 				if (result.IsFail) {
 					return;
 				}
-				var version = result.Message;
-				if (string.Compare(Program.VERSION, version) < 0) {
+				if (!Version.TryParse(result.Message, out Version? remoteVersion)) {
+					WriteLineError("Failed to parse remote version.");
+					return;
+				}
+				var currentVersion = Version.Parse(Program.VERSION);
+				if (currentVersion < remoteVersion) {
 					WriteLine("A new version of Pulse is available!" * Color.Yellow);
 					WriteLine(["Your version: ", Program.VERSION * Color.Yellow]);
-					WriteLine(["Latest version: ", version * Color.Green]);
+					WriteLine(["Latest version: ", remoteVersion.ToString() * Color.Green]);
 					NewLine();
 					WriteLine("Download from https://github.com/dusrdev/Pulse/releases/latest");
 				} else {
