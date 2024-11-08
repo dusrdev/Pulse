@@ -103,7 +103,11 @@ public sealed class PulseMonitor {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
 		} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
-			throw;
+			if (cancellationToken.IsCancellationRequested) {
+				throw;
+			}
+			var elapsed = Stopwatch.GetElapsedTime(start);
+			exception = new TimeoutException($"Request {id} timeout after {elapsed.TotalMilliseconds} ms");
 		} catch (Exception e) {
 			exception = e;
 		} finally {
