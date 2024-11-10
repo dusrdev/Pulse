@@ -39,9 +39,9 @@ public readonly struct Response {
 	public required StrippedException Exception { get; init; }
 
 	/// <summary>
-	/// The id of the thread that executed the request
+	/// The maximum concurrency level at the time of the request
 	/// </summary>
-	public required int ExecutingThreadId { get; init; }
+	public required int MaximumConcurrencyLevel { get; init; }
 }
 
 /// <summary>
