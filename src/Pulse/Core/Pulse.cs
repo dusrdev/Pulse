@@ -72,23 +72,20 @@ public static class Pulse {
             CancellationToken = cancellationToken
         };
 
-        var totalRequests = parameters.Requests;
-        var batchSize = parameters.BatchSize;
-        var current = 1;
-        Task[] buffer = new Task[batchSize];
+        using var semaphore = new SemaphoreSlim(parameters.BatchSize);
 
-        while (totalRequests > 0 && !cancellationToken.IsCancellationRequested) {
-            var batch = Math.Min(batchSize, totalRequests);
-
-            for (int i = 0; i < batch; i++) {
-                buffer[i] = Task.Run(() => monitor.SendAsync(Interlocked.Increment(ref current)), cancellationToken);
+        var tasks = Enumerable.Range(1, parameters.Requests)
+        .AsParallel()
+        .Select(async requestId => {
+            try {
+                await semaphore.WaitAsync(cancellationToken);
+                await monitor.SendAsync(requestId);
+            } finally {
+                semaphore.Release();
             }
+        });
 
-            var tasks = new ArraySegment<Task>(buffer, 0, batch);
-            await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
-
-            totalRequests -= batch;
-        }
+        await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
 
         var result = monitor.Consolidate();
 
