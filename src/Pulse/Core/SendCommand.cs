@@ -34,9 +34,9 @@ public sealed class SendCommand : Command {
 	  -n, --number     : number of total requests (default: 1)
 	  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
 	  -m, --mode       : execution mode (default: parallel)
-	                      * sequential = execute requests sequentially
-	                      * parallel  = execute requests using maximum resources
-	  -b, --batch      : batch size (only used in parallel mode)
+	      * sequential = execute requests sequentially
+	      * parallel  = execute requests using maximum resources
+		    -c         : max concurrent connections (default: infinity)
 	  --json           : try to format response content as JSON
 	  -f               : use full equality (slower - default: false)
 	  --no-export      : don't export results (default: false)
@@ -56,12 +56,17 @@ public sealed class SendCommand : Command {
 		requests = Math.Max(requests, 1);
 		args.TryGetValue(["t", "timeout"], ParametersBase.DefaultTimeoutInMs, out int timeoutInMs);
 		bool batchSizeModified = false;
+		int maxConnections = 0;
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
-		if (args.TryGetValue(["b", "batch"], ParametersBase.DefaultBatchSize, out int batchSize)) {
-			batchSizeModified = true;
+		if (mode is ExecutionMode.Parallel) {
+			if (args.TryGetValue("c", ParametersBase.DefaultMaxConnections, out maxConnections)) {
+				batchSizeModified = true;
+			}
+		} else if (mode is ExecutionMode.Sequential) {
+			// relief delay - not implemented yet
 		}
 		args.TryGetValue(["o", "output"], "results", out string outputFolder);
-		batchSize = Math.Max(batchSize, 1);
+		maxConnections = Math.Max(maxConnections, Parameters.DefaultMaxConnections);
 		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
@@ -71,8 +76,8 @@ public sealed class SendCommand : Command {
 			Requests = requests,
 			TimeoutInMs = timeoutInMs,
 			ExecutionMode = mode,
-			BatchSize = batchSize,
-			BatchSizeModified = batchSizeModified,
+			MaxConnections = maxConnections,
+			MaxConnectionsModified = batchSizeModified,
 			FormatJson = formatJson,
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,
@@ -211,14 +216,12 @@ public sealed class SendCommand : Command {
 
 		// Options
 		WriteLine("Options:" * headerColor);
-		WriteLine(["  Request Count: " * property, $"{parameters.Requests}" * value]);
+		WriteLine(["  Request count: " * property, $"{parameters.Requests}" * value]);
 		WriteLine(["  Timeout: " * property, $"{parameters.TimeoutInMs}" * value]);
-		WriteLine(["  Execution Mode: " * property, $"{parameters.ExecutionMode}" * value]);
-#pragma warning disable IDE0002
-		if (parameters.BatchSize is not Parameters.DefaultBatchSize) {
-			WriteLine(["  Batch Size: " * property, $"{parameters.BatchSize}" * value]);
+		WriteLine(["  Execution mode: " * property, $"{parameters.ExecutionMode}" * value]);
+		if (parameters.ExecutionMode is ExecutionMode.Parallel && parameters.MaxConnectionsModified) {
+			WriteLine(["  Maximum concurrent connections: " * property, $"{parameters.MaxConnections}" * value]);
 		}
-#pragma warning restore IDE0002
 		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);

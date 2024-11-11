@@ -15,7 +15,7 @@ public static class Pulse {
         if (parameters.Requests is 1 || parameters.ExecutionMode is ExecutionMode.Sequential) {
             return RunSequential(parameters, requestDetails);
         }
-        return parameters.BatchSizeModified
+        return parameters.MaxConnectionsModified
             ? RunBounded(parameters, requestDetails)
             : RunUnbounded(parameters, requestDetails);
     }
@@ -72,7 +72,7 @@ public static class Pulse {
             CancellationToken = cancellationToken
         };
 
-        using var semaphore = new SemaphoreSlim(parameters.BatchSize);
+        using var semaphore = new SemaphoreSlim(parameters.MaxConnections);
 
         var tasks = Enumerable.Range(1, parameters.Requests)
         .AsParallel()
