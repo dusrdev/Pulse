@@ -94,6 +94,7 @@ public sealed class PulseMonitor {
 	internal static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode statusCode = 0;
 		string content = "";
+		long contentLength = 0;
 		int currentConcurrencyLevel = 0;
 		StrippedException exception = StrippedException.Default;
 		var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
@@ -105,6 +106,10 @@ public sealed class PulseMonitor {
 			Interlocked.Decrement(ref _concurrencyLevel);
 			statusCode = response.StatusCode;
 			headers = response.Headers;
+			var length = response.Content.Headers.ContentLength;
+			if (length.HasValue) {
+				contentLength = length.Value;
+			}
 			if (saveContent) {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
@@ -125,6 +130,7 @@ public sealed class PulseMonitor {
 			StatusCode = statusCode,
 			Headers = headers,
 			Content = content,
+			ContentLength = contentLength,
 			Duration = duration,
 			Exception = exception,
 			MaximumConcurrencyLevel = currentConcurrencyLevel
