@@ -29,6 +29,11 @@ public readonly struct Response {
 	public required string Content { get; init; }
 
 	/// <summary>
+	/// The response content length
+	/// </summary>
+	public required long ContentLength { get; init; }
+
+	/// <summary>
 	/// The time taken from sending the request to receiving the response
 	/// </summary>
 	public required TimeSpan Duration { get; init; }

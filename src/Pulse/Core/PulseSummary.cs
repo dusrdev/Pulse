@@ -23,11 +23,6 @@ public sealed class PulseSummary {
 	public required Parameters Parameters { get; init; }
 
 	/// <summary>
-	/// The character encoding to use
-	/// </summary>
-	public Encoding CharEncoding { get; init; } = Encoding.Default;
-
-	/// <summary>
 	/// Produces a summary, and saves unique requests if export is enabled.
 	/// </summary>
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
@@ -65,8 +60,7 @@ public sealed class PulseSummary {
 			maxDuration = Math.Max(maxDuration, duration);
 			avgDuration += multiplier * duration;
 			// size
-			ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
-			var size = CharEncoding.GetByteCount(span);
+			var size = result.ContentLength;
 			if (size > 0) {
 				minSize = Math.Min(minSize, size);
 				maxSize = Math.Max(maxSize, size);
@@ -124,10 +118,8 @@ public sealed class PulseSummary {
 	public (bool exportRequired, HashSet<Response> uniqueRequests) SummarizeSingle() {
 		var result = Result.Results.First();
 		double duration = result.Duration.TotalMilliseconds;
-		ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
-		var size = CharEncoding.GetByteCount(span);
-
 		var statusCode = result.StatusCode;
+
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
@@ -142,7 +134,7 @@ public sealed class PulseSummary {
 			WriteLine(["Success: ", "false" * Color.Red]);
 		}
 		WriteLine(["Request Duration: ", $"{duration:0.##}ms" * Color.Cyan]);
-		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(size) * Color.Cyan]);
+		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(result.ContentLength) * Color.Cyan]);
 		if (statusCode is 0) {
 			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
 		} else {

@@ -4,6 +4,7 @@
 
 - Implemented much better mechanism to keep to track of concurrent connections, as well vastly improved the control and execution model of limited max connections parallel pulse.
 - `-b`, `--batch` is not longer a valid parameter, now the parameter is `-c` (connections) to better reflect the real behavioral effect.
+- Implement better mechanism to keep track of content size, now it should require less resources and be available even when `--no-export` is used.
 
 ## Version 1.0.3.0
 
