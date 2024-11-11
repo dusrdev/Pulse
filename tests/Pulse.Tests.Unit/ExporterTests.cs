@@ -48,7 +48,7 @@ public class ExporterTests {
             Headers = headers,
             Exception = StrippedException.Default,
             Duration = TimeSpan.FromSeconds(1),
-            ExecutingThreadId = 1
+            MaximumConcurrencyLevel = 1
         };
 
         // Act
@@ -75,7 +75,7 @@ public class ExporterTests {
                 Headers = [],
                 Exception = StrippedException.Default,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -107,7 +107,7 @@ public class ExporterTests {
                 Headers = headers,
                 Exception = StrippedException.Default,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -141,7 +141,7 @@ public class ExporterTests {
                 Headers = [],
                 Exception = StrippedException.Default,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -171,7 +171,7 @@ public class ExporterTests {
                 Headers = [],
                 Exception = StrippedException.FromException(exception),
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act

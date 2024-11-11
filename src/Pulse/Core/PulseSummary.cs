@@ -42,10 +42,10 @@ public sealed class PulseSummary {
 												? new(new ResponseComparer(Parameters))
 												: [];
 		Dictionary<HttpStatusCode, int> statusCounter = [];
-		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
 		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
 		double multiplier = 1 / (double)completed;
+		int maximumConcurrencyLevel = 0;
 		int total = completed;
 		int current = 0;
 #if !DEBUG
@@ -58,7 +58,7 @@ public sealed class PulseSummary {
 
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
-			uniqueThreadIds.Add(result.ExecutingThreadId);
+			maximumConcurrencyLevel = Math.Max(maximumConcurrencyLevel, result.MaximumConcurrencyLevel);
 			// duration
 			var duration = result.Duration.TotalMilliseconds;
 			minDuration = Math.Min(minDuration, duration);
@@ -96,7 +96,7 @@ public sealed class PulseSummary {
 		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
-			WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);
+			WriteLine(["Maximum concurrent connections: ", $"{maximumConcurrencyLevel}" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", getSize(Result.MemoryUsed) * Color.Yellow]);
 		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
@@ -133,7 +133,7 @@ public sealed class PulseSummary {
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
-			WriteLine(["Threads used: ", "1" * Color.Yellow]);
+			WriteLine(["Maximum concurrent connections: ", $"{result.MaximumConcurrencyLevel}" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		}
 		if ((int)statusCode is >= 200 and < 300) {
