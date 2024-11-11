@@ -11,8 +11,8 @@ public class ParametersTests {
         // Assert
         @params.Requests.Should().Be(1, "because the default is 1");
         @params.ExecutionMode.Should().Be(ExecutionMode.Parallel, "because the default is parallel");
-        @params.BatchSize.Should().Be(1, "because the default is 1");
-        @params.BatchSizeModified.Should().BeFalse("because the default is false");
+        @params.MaxConnections.Should().Be(1, "because the default is 1");
+        @params.MaxConnectionsModified.Should().BeFalse("because the default is false");
         @params.FormatJson.Should().BeFalse("because the default is false");
         @params.UseFullEquality.Should().BeFalse("because the default is false");
         @params.Export.Should().BeTrue("because the default is true");
@@ -28,8 +28,8 @@ public class ParametersTests {
         // Assert
         @params.Requests.Should().Be(1, "because the default is 1");
         @params.ExecutionMode.Should().Be(ExecutionMode.Parallel, "because the default is parallel");
-        @params.BatchSize.Should().Be(1, "because the default is 1");
-        @params.BatchSizeModified.Should().BeFalse("because the default is false");
+        @params.MaxConnections.Should().Be(1, "because the default is 1");
+        @params.MaxConnectionsModified.Should().BeFalse("because the default is false");
         @params.FormatJson.Should().BeFalse("because the default is false");
         @params.UseFullEquality.Should().BeFalse("because the default is false");
         @params.Export.Should().BeTrue("because the default is true");

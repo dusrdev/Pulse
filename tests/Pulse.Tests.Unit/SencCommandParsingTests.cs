@@ -58,21 +58,21 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.BatchSizeModified.Should().BeFalse("because the option is not present");
-        @params.BatchSize.Should().Be(1, "because the default is 1");
+        @params.MaxConnectionsModified.Should().BeFalse("because the option is not present");
+        @params.MaxConnections.Should().Be(1, "because the default is 1");
     }
 
     [Fact]
-    public void Arguments_BatchSize_Modified() {
+    public void Arguments_MaxConnections_Modified() {
         // Arrange
-        var args = Parser.ParseArguments("Pulse -b 5")!;
+        var args = Parser.ParseArguments("Pulse -c 5")!;
 
         // Act
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.BatchSizeModified.Should().BeTrue("because the option is present");
-        @params.BatchSize.Should().Be(5, "because the 5 is requested");
+        @params.MaxConnectionsModified.Should().BeTrue("because the option is present");
+        @params.MaxConnections.Should().Be(5, "because the 5 is requested");
     }
 
     [Theory]

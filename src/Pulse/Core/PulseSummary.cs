@@ -23,11 +23,6 @@ public sealed class PulseSummary {
 	public required Parameters Parameters { get; init; }
 
 	/// <summary>
-	/// The character encoding to use
-	/// </summary>
-	public Encoding CharEncoding { get; init; } = Encoding.Default;
-
-	/// <summary>
 	/// Produces a summary, and saves unique requests if export is enabled.
 	/// </summary>
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
@@ -42,10 +37,10 @@ public sealed class PulseSummary {
 												? new(new ResponseComparer(Parameters))
 												: [];
 		Dictionary<HttpStatusCode, int> statusCounter = [];
-		HashSet<int> uniqueThreadIds = [];
 		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
 		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
 		double multiplier = 1 / (double)completed;
+		int maximumConcurrencyLevel = 0;
 		int total = completed;
 		int current = 0;
 #if !DEBUG
@@ -58,15 +53,14 @@ public sealed class PulseSummary {
 
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
-			uniqueThreadIds.Add(result.ExecutingThreadId);
+			maximumConcurrencyLevel = Math.Max(maximumConcurrencyLevel, result.MaximumConcurrencyLevel);
 			// duration
 			var duration = result.Duration.TotalMilliseconds;
 			minDuration = Math.Min(minDuration, duration);
 			maxDuration = Math.Max(maxDuration, duration);
 			avgDuration += multiplier * duration;
 			// size
-			ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
-			var size = CharEncoding.GetByteCount(span);
+			var size = result.ContentLength;
 			if (size > 0) {
 				minSize = Math.Min(minSize, size);
 				maxSize = Math.Max(maxSize, size);
@@ -96,7 +90,7 @@ public sealed class PulseSummary {
 		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
-			WriteLine(["Threads used: ", $"{uniqueThreadIds.Count}" * Color.Yellow]);
+			WriteLine(["Maximum concurrent connections: ", $"{maximumConcurrencyLevel}" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", getSize(Result.MemoryUsed) * Color.Yellow]);
 		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
@@ -124,16 +118,14 @@ public sealed class PulseSummary {
 	public (bool exportRequired, HashSet<Response> uniqueRequests) SummarizeSingle() {
 		var result = Result.Results.First();
 		double duration = result.Duration.TotalMilliseconds;
-		ReadOnlySpan<char> span = result.Content ?? ReadOnlySpan<char>.Empty;
-		var size = CharEncoding.GetByteCount(span);
-
 		var statusCode = result.StatusCode;
+
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
-			WriteLine(["Threads used: ", "1" * Color.Yellow]);
+			WriteLine(["Maximum concurrent connections: ", $"{result.MaximumConcurrencyLevel}" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		}
 		if ((int)statusCode is >= 200 and < 300) {
@@ -142,7 +134,7 @@ public sealed class PulseSummary {
 			WriteLine(["Success: ", "false" * Color.Red]);
 		}
 		WriteLine(["Request Duration: ", $"{duration:0.##}ms" * Color.Cyan]);
-		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(size) * Color.Cyan]);
+		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(result.ContentLength) * Color.Cyan]);
 		if (statusCode is 0) {
 			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
 		} else {

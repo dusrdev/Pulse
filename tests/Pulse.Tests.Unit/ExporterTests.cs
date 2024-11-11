@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 
 using Pulse.Configuration;
 
@@ -41,24 +42,27 @@ public class ExporterTests {
                 new("X-Custom-Header", ["value1", "value2"])
             };
 
+        const string content = "Hello World";
+
         var response = new Response {
             Id = 1337,
             StatusCode = HttpStatusCode.OK,
-            Content = "Hello World",
+            Content = content,
+            ContentLength = Encoding.Default.GetByteCount(content),
             Headers = headers,
             Exception = StrippedException.Default,
             Duration = TimeSpan.FromSeconds(1),
-            ExecutingThreadId = 1
+            MaximumConcurrencyLevel = 1
         };
 
         // Act
-        var content = Exporter.ToHtmlTable(response.Headers);
+        var fileContent = Exporter.ToHtmlTable(response.Headers);
 
         // Assert
         foreach (var header in headers) {
-            content.Should().Contain(header.Key);
+            fileContent.Should().Contain(header.Key);
             foreach (var value in header.Value) {
-                content.Should().Contain(value);
+                fileContent.Should().Contain(value);
             }
         }
     }
@@ -68,14 +72,17 @@ public class ExporterTests {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
+            const string content = "Hello World";
+
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = "Hello World",
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = StrippedException.Default,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -100,14 +107,17 @@ public class ExporterTests {
                 new("X-Custom-Header", ["value1", "value2"])
             };
 
+            const string content = "Hello World";
+
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = "Hello World",
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = headers,
                 Exception = StrippedException.Default,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -116,12 +126,12 @@ public class ExporterTests {
             // Assert
             var file = dirInfo.GetFiles();
             file.Length.Should().Be(1, "because 1 file was created");
-            var content = File.ReadAllText(file[0].FullName);
+            var fileContent = File.ReadAllText(file[0].FullName);
 
             foreach (var header in headers) {
-                content.Should().Contain(header.Key);
+                fileContent.Should().Contain(header.Key);
                 foreach (var value in header.Value) {
-                    content.Should().Contain(value);
+                    fileContent.Should().Contain(value);
                 }
             }
         } finally {
@@ -134,14 +144,17 @@ public class ExporterTests {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
+            const string content = "Hello World";
+
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = "Hello World",
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = StrippedException.Default,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -150,8 +163,8 @@ public class ExporterTests {
             // Assert
             var file = dirInfo.GetFiles();
             file.Length.Should().Be(1, "because 1 file was created");
-            var content = File.ReadAllText(file[0].FullName);
-            content.Should().Contain("Hello World", "because the content is present");
+            var fileContent = File.ReadAllText(file[0].FullName);
+            fileContent.Should().Contain("Hello World", "because the content is present");
         } finally {
             dirInfo.Delete(true);
         }
@@ -162,16 +175,18 @@ public class ExporterTests {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
-            var exception = new Exception("Test");
+            const string content = "Hello World";
+            var exception = new StrippedException(nameof(Exception), "test", "");
 
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = "Hello World",
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
-                Exception = StrippedException.FromException(exception),
+                Exception = exception,
                 Duration = TimeSpan.FromSeconds(1),
-                ExecutingThreadId = 1
+                MaximumConcurrencyLevel = 1
             };
 
             // Act
@@ -180,9 +195,9 @@ public class ExporterTests {
             // Assert
             var file = dirInfo.GetFiles();
             file.Length.Should().Be(1, "because 1 file was created");
-            var content = File.ReadAllText(file[0].FullName);
-            content.Should().NotContain("Hello World", "because the content is not present");
-            content.Should().Contain(exception.Message, "because the exception is present");
+            var fileContent = File.ReadAllText(file[0].FullName);
+            fileContent.Should().NotContain("Hello World", "because the content is not present");
+            fileContent.Should().Contain(exception.Message, "because the exception is present");
         } finally {
             dirInfo.Delete(true);
         }

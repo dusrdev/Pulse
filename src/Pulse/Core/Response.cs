@@ -29,6 +29,11 @@ public readonly struct Response {
 	public required string Content { get; init; }
 
 	/// <summary>
+	/// The response content length
+	/// </summary>
+	public required long ContentLength { get; init; }
+
+	/// <summary>
 	/// The time taken from sending the request to receiving the response
 	/// </summary>
 	public required TimeSpan Duration { get; init; }
@@ -39,9 +44,9 @@ public readonly struct Response {
 	public required StrippedException Exception { get; init; }
 
 	/// <summary>
-	/// The id of the thread that executed the request
+	/// The maximum concurrency level at the time of the request
 	/// </summary>
-	public required int ExecutingThreadId { get; init; }
+	public required int MaximumConcurrencyLevel { get; init; }
 }
 
 /// <summary>

@@ -107,7 +107,7 @@ Content contains the configuration for the request content. Which is only used f
 Pulse has a wide range of options that can be configured in the command line, and can be viewed with `help` or `--help` which shows this:
 
 ```plaintext
-Usage: Pulse [RequestFile] [Options]
+Pulse [RequestFile] [Options]
 
 RequestFile:
   path to .json request details file
@@ -116,9 +116,9 @@ Options:
   -n, --number     : number of total requests (default: 1)
   -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
   -m, --mode       : execution mode (default: parallel)
-                      * sequential = execute requests sequentially
-                      * parallel  = execute requests using maximum resources
-  -b, --batch      : batch size (only used in parallel mode)
+      * sequential = execute requests sequentially
+      * parallel  = execute requests using maximum resources
+        -c         : max concurrent connections (default: infinity)
   --json           : try to format response content as JSON
   -f               : use full equality (slower - default: false)
   --no-export      : don't export results (default: false)

@@ -36,6 +36,11 @@ public sealed class PulseMonitor {
 	/// </summary>
 	private volatile int _count;
 
+	/// <summary>
+	/// Current concurrency level
+	/// </summary>
+	private static volatile int _concurrencyLevel;
+
 	// response status code counter
 	// 0: exception
 	// 1: 1xx
@@ -89,16 +94,22 @@ public sealed class PulseMonitor {
 	internal static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
 		HttpStatusCode statusCode = 0;
 		string content = "";
+		long contentLength = 0;
+		int currentConcurrencyLevel = 0;
 		StrippedException exception = StrippedException.Default;
 		var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
-		int threadId = 0;
 		using var message = requestRecipe.CreateMessage();
 		var start = Stopwatch.GetTimestamp();
 		try {
-			threadId = Environment.CurrentManagedThreadId;
+			currentConcurrencyLevel = Interlocked.Increment(ref _concurrencyLevel);
 			using var response = await httpClient.SendAsync(message, cancellationToken);
+			Interlocked.Decrement(ref _concurrencyLevel);
 			statusCode = response.StatusCode;
 			headers = response.Headers;
+			var length = response.Content.Headers.ContentLength;
+			if (length.HasValue) {
+				contentLength = length.Value;
+			}
 			if (saveContent) {
 				content = await response.Content.ReadAsStringAsync(cancellationToken);
 			}
@@ -119,9 +130,10 @@ public sealed class PulseMonitor {
 			StatusCode = statusCode,
 			Headers = headers,
 			Content = content,
+			ContentLength = contentLength,
 			Duration = duration,
 			Exception = exception,
-			ExecutingThreadId = threadId
+			MaximumConcurrencyLevel = currentConcurrencyLevel
 		};
 	}
 

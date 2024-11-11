@@ -12,9 +12,9 @@ public record ParametersBase {
 	public const int DefaultNumberOfRequests = 1;
 
 	/// <summary>
-	/// Default batch size
+	/// Default maximum active connections
 	/// </summary>
-	public const int DefaultBatchSize = 1;
+	public const int DefaultMaxConnections = 1;
 
 	/// <summary>
 	/// Default timeout in milliseconds (infinity)
@@ -42,14 +42,14 @@ public record ParametersBase {
 	public ExecutionMode ExecutionMode { get; set; } = DefaultExecutionMode;
 
 	/// <summary>
-	/// Sets the batch size (default = <see cref="DefaultBatchSize"/>)
+	/// Sets the maximum connections (default = <see cref="DefaultMaxConnections"/>)
 	/// </summary>
-	public int BatchSize { get; set; } = DefaultBatchSize;
+	public int MaxConnections { get; set; } = DefaultMaxConnections;
 
 	/// <summary>
-	/// Indicating whether the batch size was modified
+	/// Indicating whether the max connections parameter was modified
 	/// </summary>
-	public bool BatchSizeModified { get; set; }
+	public bool MaxConnectionsModified { get; set; }
 
 	/// <summary>
 	/// Attempt to format response content as JSON
