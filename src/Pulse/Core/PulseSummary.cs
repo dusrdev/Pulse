@@ -38,7 +38,7 @@ public sealed class PulseSummary {
 		}
 
 		HashSet<Response> uniqueRequests = Parameters.Export
-												? new(new ResponseComparer(Parameters))
+												? new HashSet<Response>(new ResponseComparer(Parameters))
 												: [];
 		Dictionary<HttpStatusCode, int> statusCounter = [];
 		double minLatency = double.MaxValue, maxLatency = double.MinValue, avgLatency = 0;
@@ -46,16 +46,12 @@ public sealed class PulseSummary {
 		double multiplier = 1 / (double)completed;
 		long totalSize = 0;
 		int peakConcurrentConnections = 0;
-		int total = completed;
-		int current = 0;
+
+		var currentLine = GetCurrentLine();
+
 #if !DEBUG
-		var prg = new ProgressBar {
-			ProgressColor = Color.Yellow,
-		};
+		OverrideCurrentLine(["Cross referencing results..."]);
 #endif
-
-		var cursorTop = System.Console.CursorTop;
-
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
 			peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
@@ -78,28 +74,27 @@ public sealed class PulseSummary {
 
 			var statusCode = result.StatusCode;
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
-
-			// prg part
-			current++;
-			double percentage = 100 * (double)current / total;
-#if !DEBUG
-			prg.Update(percentage, "Cross referencing results...");
-#endif
 		}
-
+#if !DEBUG
+		OverrideCurrentLine(["Cross referencing results...", " done!" * Color.Green]);
+		OverrideCurrentLine([]);
+#endif
 		maxSize = Math.Max(0, maxSize);
 		minSize = Math.Min(minSize, maxSize);
-
-		System.Console.SetCursorPosition(0, cursorTop);
 
 		Func<double, string> getSize = Utils.Strings.FormatBytes;
 		double throughput = totalSize / Result.TotalDuration.TotalSeconds;
 
-		ClearNextLinesError(3);
+		ClearNextLines(3);
+		GoToLine(currentLine);
+		if (Parameters.Verbose) {
+			NewLineError();
+		}
+
 		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
 		WriteLine(["Peak concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
+		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Helper.GetPercentageBasedColor(Result.SuccessRate)]);
 		WriteLine(["Latency:       Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
 		WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
 		WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
@@ -109,7 +104,7 @@ public sealed class PulseSummary {
 			if (key is 0) {
 				WriteLine([$" {key}" * Color.Magenta, $" --> {kvp.Value}	[StatusCode 0 = Exception]"]);
 			} else {
-				WriteLine([$"	{key}" * Extensions.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
+				WriteLine([$"	{key}" * Helper.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
 			}
 		}
 		NewLine();
@@ -140,7 +135,7 @@ public sealed class PulseSummary {
 		if (statusCode is 0) {
 			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
 		} else {
-			WriteLine(["Status code: ", $"{statusCode}" * Extensions.GetStatusCodeBasedColor((int)statusCode)]);
+			WriteLine(["Status code: ", $"{statusCode}" * Helper.GetStatusCodeBasedColor((int)statusCode)]);
 		}
 		NewLine();
 
@@ -178,7 +173,7 @@ public sealed class PulseSummary {
 			CancellationToken = token
 		};
 
-		await Parallel.ForEachAsync(uniqueRequests, options, async (request, token) => await Exporter.ExportHtmlAsync(request, directory, Parameters.FormatJson, token));
+		await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportHtmlAsync(request, directory, Parameters.FormatJson, tkn));
 
 		WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", Parameters.OutputFolder * Color.Yellow, " folder"]);
 	}
