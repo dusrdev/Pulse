@@ -88,9 +88,9 @@ public sealed class PulseSummary {
 		ClearNextLinesError(3);
 		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
+		WriteLine(["Peak concurrent connections: ", $"{maximumConcurrencyLevel}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
-			WriteLine(["Maximum concurrent connections: ", $"{maximumConcurrencyLevel}" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", getSize(Result.MemoryUsed) * Color.Yellow]);
 		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
@@ -125,7 +125,6 @@ public sealed class PulseSummary {
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if (Parameters.Verbose) {
-			WriteLine(["Maximum concurrent connections: ", $"{result.MaximumConcurrencyLevel}" * Color.Yellow]);
 			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
 		}
 		if ((int)statusCode is >= 200 and < 300) {
