@@ -44,7 +44,8 @@ public static class Pulse {
 
         var summary = new PulseSummary {
             Result = result,
-            Parameters = parameters
+            Parameters = parameters,
+            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
         };
 
         var (exportRequired, uniqueRequests) = summary.Summarize();
@@ -91,7 +92,8 @@ public static class Pulse {
 
         var summary = new PulseSummary {
             Result = result,
-            Parameters = parameters
+            Parameters = parameters,
+            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
         };
 
         var (exportRequired, uniqueRequests) = summary.Summarize();
@@ -129,7 +131,8 @@ public static class Pulse {
 
         var summary = new PulseSummary {
             Result = result,
-            Parameters = parameters
+            Parameters = parameters,
+            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
         };
 
         var (exportRequired, uniqueRequests) = summary.Summarize();
