@@ -27,9 +27,9 @@ public sealed class PulseMonitor {
 	private readonly long _start;
 
 	/// <summary>
-	/// Current number of requests processed
+	/// Current number of responses received
 	/// </summary>
-	private volatile int _count;
+	private volatile int _responses;
 
 	/// <summary>
 	/// Current concurrency level
@@ -67,7 +67,7 @@ public sealed class PulseMonitor {
 	/// <param name="cancellationToken"></param>
 	public async Task SendAsync(int requestId) {
 		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, CancellationToken);
-		Interlocked.Increment(ref _count);
+		Interlocked.Increment(ref _responses);
 		// Increment stats
 		int index = (int)result.StatusCode / 100;
 		Interlocked.Increment(ref _stats[index]);
@@ -139,9 +139,9 @@ public sealed class PulseMonitor {
 	private void PrintMetrics() {
 		var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
-		var eta = TimeSpan.FromMilliseconds(elapsed / _count * (RequestCount - _count));
+		var eta = TimeSpan.FromMilliseconds(elapsed / _responses * (RequestCount - _responses));
 
-		double sr = Math.Round((double)_stats[2] / _count * 100, 2);
+		double sr = Math.Round((double)_stats[2] / _responses * 100, 2);
 
 		var cursor = System.Console.CursorTop;
 		// Clear
@@ -149,7 +149,7 @@ public sealed class PulseMonitor {
 		// Line 1
 		Error.Write("Completed: ");
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_count);
+		Error.Write(_responses);
 		ResetColors();
 		Error.Write('/');
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
@@ -216,7 +216,7 @@ public sealed class PulseMonitor {
 	/// <returns></returns>
 	public PulseResult Consolidate() => new() {
 		Results = _results,
-		SuccessRate = Math.Round((double)_stats[2] / _count * 100, 2),
+		SuccessRate = Math.Round((double)_stats[2] / _responses * 100, 2),
 		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
 }
