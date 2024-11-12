@@ -39,6 +39,21 @@ public static class Extensions {
 	}
 
 	/// <summary>
+	/// Returns a colored header for the request
+	/// </summary>
+	/// <param name="request"></param>
+	public static ColoredOutput[] CreateHeader(Request request) {
+		Color color = request.Method.Method switch {
+			"GET" => Color.Green,
+			"DELETE" => Color.Red,
+			"POST" => Color.Magenta,
+			_ => Color.Yellow
+		};
+
+		return [request.Method.Method * color, " => ", request.Url];
+	}
+
+	/// <summary>
 	/// Configures SSL handling
 	/// </summary>
 	/// <param name="handler"></param>
