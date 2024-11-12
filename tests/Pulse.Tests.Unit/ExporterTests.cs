@@ -52,7 +52,7 @@ public class ExporterTests {
             Headers = headers,
             Exception = StrippedException.Default,
             Latency = TimeSpan.FromSeconds(1),
-            MaximumConcurrencyLevel = 1
+            CurrentConcurrentConnections = 1
         };
 
         // Act
@@ -82,7 +82,7 @@ public class ExporterTests {
                 Headers = [],
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -117,7 +117,7 @@ public class ExporterTests {
                 Headers = headers,
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -154,7 +154,7 @@ public class ExporterTests {
                 Headers = [],
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -186,7 +186,7 @@ public class ExporterTests {
                 Headers = [],
                 Exception = exception,
                 Latency = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                CurrentConcurrentConnections = 1
             };
 
             // Act
