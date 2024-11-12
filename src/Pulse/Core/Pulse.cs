@@ -32,7 +32,8 @@ public static class Pulse {
         var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
 
         for (int i = 1; i <= parameters.Requests; i++) {
-            await monitor.SendAsync(i).ConfigureAwait(false);
+            await Task.Delay(parameters.DelayInMs);
+            await monitor.SendAsync(i);
         }
 
         var result = monitor.Consolidate();
