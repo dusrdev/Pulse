@@ -8,16 +8,17 @@ namespace Pulse.Core;
 /// Http client factory
 /// </summary>
 public static class PulseHttpClientFactory {
-	/// <summary>
-	/// Creates an HttpClient with the specified <paramref name="proxyDetails"/>
-	/// </summary>
-	/// <param name="proxyDetails"></param>
-	/// <returns>An HttpClient</returns>
-	public static HttpClient Create(Proxy proxyDetails, int TimeoutInMs) {
+    /// <summary>
+    /// Creates an HttpClient with the specified <paramref name="proxyDetails"/>
+    /// </summary>
+    /// <param name="proxyDetails"></param>
+    /// <param name="timeoutInMs"></param>
+    /// <returns>An HttpClient</returns>
+    public static HttpClient Create(Proxy proxyDetails, int timeoutInMs) {
 		SocketsHttpHandler handler = CreateHandler(proxyDetails);
 
 		return new HttpClient(handler) {
-			Timeout = TimeSpan.FromMilliseconds(TimeoutInMs)
+			Timeout = TimeSpan.FromMilliseconds(timeoutInMs)
 		};
 	}
 
@@ -43,7 +44,7 @@ public static class PulseHttpClientFactory {
 				Proxy = proxy
 			};
 		}
-		handler.ConfigureSSLHandling(proxyDetails);
+		handler.ConfigureSslHandling(proxyDetails);
 		return handler;
 	}
 }

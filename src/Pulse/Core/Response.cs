@@ -7,7 +7,7 @@ namespace Pulse.Core;
 /// <summary>
 /// The model used for response
 /// </summary>
-public readonly struct Response {
+public readonly record struct Response {
 	/// <summary>
 	/// The id of the request
 	/// </summary>
@@ -59,14 +59,6 @@ public sealed class ResponseComparer : IEqualityComparer<Response> {
 		_parameters = parameters;
 	}
 
-	public bool Equals(Response? x, Response? y) {
-		if (x is null || y is null) {
-			return false;
-		}
-
-		return Equals(x.Value, y.Value);
-	}
-
 	/// <summary>
 	/// Equality here does not take into account all properties as some are not valuable for the response itself,
 	/// for instance ThreadId doesn't matter for response equality, neither duration.
@@ -83,9 +75,7 @@ public sealed class ResponseComparer : IEqualityComparer<Response> {
 		if (_parameters.UseFullEquality) {
 			basicEquality &= string.Equals(x.Content, y.Content, StringComparison.Ordinal);
 		} else {
-			int lenX = x.Content?.Length ?? 0;
-			int lenY = y.Content?.Length ?? 0;
-			basicEquality &= lenX == lenY;
+			basicEquality &= x.ContentLength == y.ContentLength;
 		}
 
 		if (!basicEquality) {
@@ -114,7 +104,7 @@ public sealed class ResponseComparer : IEqualityComparer<Response> {
 
 		if (obj.Exception.IsDefault) {
 			// no exception -> should have content
-			hash = hash * 23 + obj.Content?.GetHashCode() ?? 0;
+			hash = hash * 23 + obj.Content.GetHashCode();
 		} else {
 			// exception = no content (usually)
 			hash = hash * 23 + obj.Exception.Message.GetHashCode();
