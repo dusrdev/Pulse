@@ -35,6 +35,7 @@ public sealed class SendCommand : Command {
 	  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
 	  -m, --mode       : execution mode (default: parallel)
 	      * sequential = execute requests sequentially
+		    --delay    : delay between requests in milliseconds (default: 0)
 	      * parallel  = execute requests using maximum resources
 		    -c         : max concurrent connections (default: infinity)
 	  --json           : try to format response content as JSON
@@ -57,13 +58,15 @@ public sealed class SendCommand : Command {
 		args.TryGetValue(["t", "timeout"], ParametersBase.DefaultTimeoutInMs, out int timeoutInMs);
 		bool batchSizeModified = false;
 		int maxConnections = 0;
+		int delayInMs = 0;
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
 		if (mode is ExecutionMode.Parallel) {
 			if (args.TryGetValue("c", ParametersBase.DefaultMaxConnections, out maxConnections)) {
 				batchSizeModified = true;
 			}
 		} else if (mode is ExecutionMode.Sequential) {
-			// relief delay - not implemented yet
+			args.TryGetValue("delay", 0, out delayInMs);
+			delayInMs = Math.Max(0, delayInMs);
 		}
 		args.TryGetValue(["o", "output"], "results", out string outputFolder);
 		maxConnections = Math.Max(maxConnections, ParametersBase.DefaultMaxConnections);
@@ -75,6 +78,7 @@ public sealed class SendCommand : Command {
 		return new ParametersBase {
 			Requests = requests,
 			TimeoutInMs = timeoutInMs,
+			DelayInMs = delayInMs,
 			ExecutionMode = mode,
 			MaxConnections = maxConnections,
 			MaxConnectionsModified = batchSizeModified,
