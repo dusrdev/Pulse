@@ -36,9 +36,9 @@ During the execution, `Pulse` displays current metrics such as progress, success
 
 ![Runtime metrics](https://github.com/user-attachments/assets/64f48192-f60e-4021-9df3-558af21c1bbd)
 
-After the execution, `Pulse` produces a detailed summary of the results
+After the execution (different configuration in this example), `Pulse` produces a detailed summary of the results
 
-![Summary](https://github.com/user-attachments/assets/090bcb50-19cc-49d5-aa8b-078e96815790)
+![Summary](https://github.com/user-attachments/assets/9a05ff6e-8d3d-46af-8509-013b5b1536a0)
 
 ### Setting up a configuration file
 
