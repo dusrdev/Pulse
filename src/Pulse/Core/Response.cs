@@ -34,9 +34,9 @@ public readonly struct Response {
 	public required long ContentLength { get; init; }
 
 	/// <summary>
-	/// The time taken from sending the request to receiving the response
+	/// The time taken from sending the request to receiving the response headers
 	/// </summary>
-	public required TimeSpan Duration { get; init; }
+	public required TimeSpan Latency { get; init; }
 
 	/// <summary>
 	/// The exception (if occurred)

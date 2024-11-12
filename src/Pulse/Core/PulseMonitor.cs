@@ -99,10 +99,11 @@ public sealed class PulseMonitor {
 		StrippedException exception = StrippedException.Default;
 		var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
 		using var message = requestRecipe.CreateMessage();
-		var start = Stopwatch.GetTimestamp();
+		long start = Stopwatch.GetTimestamp(), end = 0;
 		try {
 			currentConcurrencyLevel = Interlocked.Increment(ref _concurrencyLevel);
-			using var response = await httpClient.SendAsync(message, cancellationToken);
+			using var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+			end = Stopwatch.GetTimestamp();
 			Interlocked.Decrement(ref _concurrencyLevel);
 			statusCode = response.StatusCode;
 			headers = response.Headers;
@@ -120,18 +121,18 @@ public sealed class PulseMonitor {
 			var elapsed = Stopwatch.GetElapsedTime(start);
 			exception = new StrippedException(nameof(TimeoutException), $"Request {id} timeout after {elapsed.TotalMilliseconds} ms", "");
 		} catch (Exception e) {
+			end = Stopwatch.GetTimestamp();
 			exception = StrippedException.FromException(e);
 		} finally {
 			message?.Dispose();
 		}
-		TimeSpan duration = Stopwatch.GetElapsedTime(start);
 		return new Response {
 			Id = id,
 			StatusCode = statusCode,
 			Headers = headers,
 			Content = content,
 			ContentLength = contentLength,
-			Duration = duration,
+			Latency = Stopwatch.GetElapsedTime(start, end),
 			Exception = exception,
 			MaximumConcurrencyLevel = currentConcurrencyLevel
 		};

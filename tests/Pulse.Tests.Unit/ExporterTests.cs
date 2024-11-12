@@ -51,7 +51,7 @@ public class ExporterTests {
             ContentLength = Encoding.Default.GetByteCount(content),
             Headers = headers,
             Exception = StrippedException.Default,
-            Duration = TimeSpan.FromSeconds(1),
+            Latency = TimeSpan.FromSeconds(1),
             MaximumConcurrencyLevel = 1
         };
 
@@ -81,7 +81,7 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = StrippedException.Default,
-                Duration = TimeSpan.FromSeconds(1),
+                Latency = TimeSpan.FromSeconds(1),
                 MaximumConcurrencyLevel = 1
             };
 
@@ -116,7 +116,7 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = headers,
                 Exception = StrippedException.Default,
-                Duration = TimeSpan.FromSeconds(1),
+                Latency = TimeSpan.FromSeconds(1),
                 MaximumConcurrencyLevel = 1
             };
 
@@ -153,7 +153,7 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = StrippedException.Default,
-                Duration = TimeSpan.FromSeconds(1),
+                Latency = TimeSpan.FromSeconds(1),
                 MaximumConcurrencyLevel = 1
             };
 
@@ -185,7 +185,7 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = exception,
-                Duration = TimeSpan.FromSeconds(1),
+                Latency = TimeSpan.FromSeconds(1),
                 MaximumConcurrencyLevel = 1
             };
 

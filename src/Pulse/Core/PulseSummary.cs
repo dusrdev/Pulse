@@ -4,7 +4,6 @@ using PrettyConsole;
 using System.Runtime.CompilerServices;
 using Pulse.Configuration;
 using Sharpify;
-using System.Text;
 
 namespace Pulse.Core;
 
@@ -37,7 +36,7 @@ public sealed class PulseSummary {
 												? new(new ResponseComparer(Parameters))
 												: [];
 		Dictionary<HttpStatusCode, int> statusCounter = [];
-		double minDuration = double.MaxValue, maxDuration = double.MinValue, avgDuration = 0;
+		double minLatency = double.MaxValue, maxLatency = double.MinValue, avgLatency = 0;
 		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
 		double multiplier = 1 / (double)completed;
 		int maximumConcurrencyLevel = 0;
@@ -55,10 +54,10 @@ public sealed class PulseSummary {
 			uniqueRequests.Add(result);
 			maximumConcurrencyLevel = Math.Max(maximumConcurrencyLevel, result.MaximumConcurrencyLevel);
 			// duration
-			var duration = result.Duration.TotalMilliseconds;
-			minDuration = Math.Min(minDuration, duration);
-			maxDuration = Math.Max(maxDuration, duration);
-			avgDuration += multiplier * duration;
+			var latency = result.Latency.TotalMilliseconds;
+			minLatency = Math.Min(minLatency, latency);
+			maxLatency = Math.Max(maxLatency, latency);
+			avgLatency += multiplier * latency;
 			// size
 			var size = result.ContentLength;
 			if (size > 0) {
@@ -94,7 +93,7 @@ public sealed class PulseSummary {
 			WriteLine(["RAM Consumed: ", getSize(Result.MemoryUsed) * Color.Yellow]);
 		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
-		WriteLine(["Request Duration:  Min: ", $"{minDuration:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgDuration:0.##}ms" * Color.Yellow, ", Max: ", $"{maxDuration:0.##}ms" * Color.Red]);
+		WriteLine(["Latency:  Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
 		WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
@@ -117,7 +116,7 @@ public sealed class PulseSummary {
 	[MethodImpl(MethodImplOptions.Synchronized)]
 	public (bool exportRequired, HashSet<Response> uniqueRequests) SummarizeSingle() {
 		var result = Result.Results.First();
-		double duration = result.Duration.TotalMilliseconds;
+		double duration = result.Latency.TotalMilliseconds;
 		var statusCode = result.StatusCode;
 
 		ClearNextLinesError(3);
@@ -132,7 +131,7 @@ public sealed class PulseSummary {
 		} else {
 			WriteLine(["Success: ", "false" * Color.Red]);
 		}
-		WriteLine(["Request Duration: ", $"{duration:0.##}ms" * Color.Cyan]);
+		WriteLine(["Latency: ", $"{duration:0.##}ms" * Color.Cyan]);
 		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(result.ContentLength) * Color.Cyan]);
 		if (statusCode is 0) {
 			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);

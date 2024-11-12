@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.5.0
+
+- Request duration is was changed to latency, a more important metric to measure
+- Latency is properly measured immediately after response is received, reading the response content is now a separate step - saving resources in the process, especially when `--no-export` is used
+
 ## Version 1.0.4.0
 
 - Implemented much better mechanism to keep to track of concurrent connections, as well vastly improved the control and execution model of limited max connections parallel pulse.
