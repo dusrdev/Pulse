@@ -117,6 +117,7 @@ Options:
   -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
   -m, --mode       : execution mode (default: parallel)
       * sequential = execute requests sequentially
+        --delay    : delay between requests in milliseconds (default: 0)
       * parallel  = execute requests using maximum resources
         -c         : max concurrent connections (default: infinity)
   --json           : try to format response content as JSON
@@ -133,7 +134,7 @@ Special:
   --terms-of-use   : print the terms of use
 ```
 
-- `-v` or `--verbose` - display verbose output, this adds more metrics to the output, such as system information when using `--noop`, and system metrics in the summary that include the number of threads used, and the random access memory consumed.
+- `-v` or `--verbose` - display verbose output, this changes the output format, instead of displaying a dashboard, it prints requests/responses as they are being processed.
 - `f` - use fully equality: by default because response content can be entire webpages, it can be a time consuming and resource heavy operation to make sure all responses are unique, so by default a simpler check is used which only compares the content length - for most cases this is sufficient since you usually expect the same content for the requests, but you can opt in for full equality.
 - `u` or `url` - can be used to override the url of the request, this can be useful if you want to keep all other settings the same, and quickly change the url of the request.
 - `noop` - is a very useful command which will print the selected configuration but not perform the pulse, this can be used to inspect the request settings after they are parsed by the program, to ensure everything is exactly as you intended.
