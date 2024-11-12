@@ -152,7 +152,7 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-
+		WriteLine(Extensions.CreateHeader(requestDetails.Request));
 		await Pulse.RunAsync(@params, requestDetails);
 
 		return 0;
