@@ -16,7 +16,7 @@ public sealed class SendCommand : Command {
 	/// <summary>
 	/// The constructor of the command
 	/// </summary>
-	/// <param name="globalCTS">A global cancellation token source that will propagate to all tasks</param>
+	/// <param name="cancellationToken">A global cancellation token source that will propagate to all tasks</param>
 	public SendCommand(CancellationToken cancellationToken) {
 		_cancellationToken = cancellationToken;
 	}
@@ -66,7 +66,7 @@ public sealed class SendCommand : Command {
 			// relief delay - not implemented yet
 		}
 		args.TryGetValue(["o", "output"], "results", out string outputFolder);
-		maxConnections = Math.Max(maxConnections, Parameters.DefaultMaxConnections);
+		maxConnections = Math.Max(maxConnections, ParametersBase.DefaultMaxConnections);
 		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
@@ -152,7 +152,7 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-
+		WriteLine(Helper.CreateHeader(requestDetails.Request));
 		await Pulse.RunAsync(@params, requestDetails);
 
 		return 0;
@@ -165,7 +165,7 @@ public sealed class SendCommand : Command {
 			await File.WriteAllTextAsync(path, json, token);
 			WriteLine(["Sample request generated at ", path * Color.Yellow]);
 		},
-		["check-for-updates"] = async (token) => {
+		["check-for-updates"] = async token => {
 			using var client = new HttpClient();
 			client.DefaultRequestHeaders.Add("User-Agent", "C# App");
 			client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
@@ -206,13 +206,6 @@ public sealed class SendCommand : Command {
 		Color headerColor = Color.Cyan;
 		Color property = Color.DarkGray;
 		Color value = Color.White;
-
-		// System
-		if (parameters.Verbose) {
-			WriteLine("System:" * headerColor);
-			WriteLine(["  CPU Cores: " * property, $"{Environment.ProcessorCount}" * value]);
-			WriteLine(["  OS: " * property, $"{Environment.OSVersion}" * value]);
-		}
 
 		// Options
 		WriteLine("Options:" * headerColor);

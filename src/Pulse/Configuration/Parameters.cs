@@ -4,8 +4,6 @@ namespace Pulse.Configuration;
 /// Execution parameters
 /// </summary>
 public record ParametersBase {
-	public static readonly ParametersBase Default = new();
-
 	/// <summary>
 	/// Default number of requests
 	/// </summary>
@@ -39,47 +37,47 @@ public record ParametersBase {
 	/// <summary>
 	/// Sets the execution mode (default = <see cref="DefaultExecutionMode"/>)
 	/// </summary>
-	public ExecutionMode ExecutionMode { get; set; } = DefaultExecutionMode;
+	public ExecutionMode ExecutionMode { get; init; } = DefaultExecutionMode;
 
 	/// <summary>
 	/// Sets the maximum connections (default = <see cref="DefaultMaxConnections"/>)
 	/// </summary>
-	public int MaxConnections { get; set; } = DefaultMaxConnections;
+	public int MaxConnections { get; init; } = DefaultMaxConnections;
 
 	/// <summary>
 	/// Indicating whether the max connections parameter was modified
 	/// </summary>
-	public bool MaxConnectionsModified { get; set; }
+	public bool MaxConnectionsModified { get; init; }
 
 	/// <summary>
 	/// Attempt to format response content as JSON
 	/// </summary>
-	public bool FormatJson { get; set; }
+	public bool FormatJson { get; init; }
 
 	/// <summary>
 	/// Indicating whether to export results
 	/// </summary>
-	public bool Export { get; set; } = true;
+	public bool Export { get; init; } = true;
 
 	/// <summary>
 	/// Check full equality for response content
 	/// </summary>
-	public bool UseFullEquality { get; set; }
+	public bool UseFullEquality { get; init; }
 
 	/// <summary>
 	/// Display configuration and exit
 	/// </summary>
-	public bool NoOp { get; set; }
+	public bool NoOp { get; init; }
 
 	/// <summary>
 	/// Display verbose output (adds more metrics)
 	/// </summary>
-	public bool Verbose { get; set; }
+	public bool Verbose { get; init; }
 
 	/// <summary>
 	/// Output folder
 	/// </summary>
-	public string OutputFolder { get; set; } = "results";
+	public string OutputFolder { get; init; } = "results";
 }
 
 /// <summary>

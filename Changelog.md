@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 1.0.5.0
+
+- Request duration is was changed to latency, a more important metric to measure
+- Latency is properly measured immediately after response is received, reading the response content is now a separate step - saving resources in the process, especially when `--no-export` is used
+- Summary was redesigned to be more informative
+  - Removed "Summary" header, result looks cleaner now
+  - Total throughput measurement was implemented and now is displayed
+  - `verbose` no longer prints used memory, this metric didn't have much to do the purpose of `Pulse`, and it is also not recorded anymore.
+- A header showing the request method and url is now printed before the pulse starts, makes easier to track that you're executing the right thing, when the URL is hidden in the request file.
+- `verbose` mode now changes the output format, instead of displaying a dashboard, it prints which request/response is being processed.
+- The progress bar that was used when cross referencing results was removed, now it is replaced by a simpler text output. This is because it produced artifacts with the headers
+
 ## Version 1.0.4.0
 
 - Implemented much better mechanism to keep to track of concurrent connections, as well vastly improved the control and execution model of limited max connections parallel pulse.

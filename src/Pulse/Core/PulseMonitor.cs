@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net;
 
 using static PrettyConsole.Console;
 using PrettyConsole;
 using Sharpify;
 using System.Runtime.CompilerServices;
+
+using static Pulse.Core.IPulseMonitor;
 using Pulse.Configuration;
 
 namespace Pulse.Core;
@@ -13,7 +14,7 @@ namespace Pulse.Core;
 /// <summary>
 /// PulseMonitor wraps the execution delegate and handles display of metrics and cross-thread data collection
 /// </summary>
-public sealed class PulseMonitor {
+public sealed class PulseMonitor : IPulseMonitor {
 	/// <summary>
 	/// Holds the results of all the requests
 	/// </summary>
@@ -27,19 +28,9 @@ public sealed class PulseMonitor {
 	private readonly long _start;
 
 	/// <summary>
-	/// The memory used before the operation has begun
+	/// Current number of responses received
 	/// </summary>
-	private readonly long _startingWorkingSet;
-
-	/// <summary>
-	/// Current number of requests processed
-	/// </summary>
-	private volatile int _count;
-
-	/// <summary>
-	/// Current concurrency level
-	/// </summary>
-	private static volatile int _concurrencyLevel;
+	private volatile int _responses;
 
 	// response status code counter
 	// 0: exception
@@ -49,31 +40,33 @@ public sealed class PulseMonitor {
 	// 4: 4xx
 	// 5: 5xx
 	private readonly int[] _stats = new int[6];
-	public required int RequestCount { get; init; }
-	public required Request RequestRecipe { get; init; }
-	public required HttpClient HttpClient { get; init; }
-	public required CancellationToken CancellationToken { get; init; }
-	public required bool SaveContent { get; init; }
+	private readonly RequestExecutionContext _requestExecutionContext;
+
+	private readonly int _requestCount;
+	private readonly bool _saveContent;
+	private readonly CancellationToken _cancellationToken;
+	private readonly HttpClient _httpClient;
+	private readonly Request _requestRecipe;
 
 	/// <summary>
 	/// Creates a new pulse monitor
 	/// </summary>
-	/// <param name="handler">request delegate</param>
-	/// <param name="requests">total number of required requests</param>
-	public PulseMonitor() {
-		_startingWorkingSet = Environment.WorkingSet;
-		_results = new();
-		_start = Stopwatch.GetTimestamp();
+	public PulseMonitor(HttpClient client, Request requestRecipe, Parameters parameters) {
+		_results = new ConcurrentStack<Response>();
+		_requestCount = parameters.Requests;
+		_saveContent = parameters.Export;
+		_cancellationToken = parameters.CancellationToken;
+		_httpClient = client;
+		_requestRecipe = requestRecipe;
+		_requestExecutionContext = new RequestExecutionContext();
 		PrintInitialMetrics();
+		_start = Stopwatch.GetTimestamp();
 	}
 
-	/// <summary>
-	/// Observe needs to be used instead of the execution delegate
-	/// </summary>
-	/// <param name="cancellationToken"></param>
-	public async Task SendAsync(int requestId) {
-		var result = await SendRequest(requestId, RequestRecipe, HttpClient, SaveContent, CancellationToken);
-		Interlocked.Increment(ref _count);
+    /// <inheritdoc />
+    public async Task SendAsync(int requestId) {
+		var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken);
+		Interlocked.Increment(ref _responses);
 		// Increment stats
 		int index = (int)result.StatusCode / 100;
 		Interlocked.Increment(ref _stats[index]);
@@ -83,70 +76,15 @@ public sealed class PulseMonitor {
 	}
 
 	/// <summary>
-	/// Sends a request
-	/// </summary>
-	/// <param name="id">The request id</param>
-	/// <param name="requestRecipe">The recipe for the <see cref="HttpRequestMessage"/></param>
-	/// <param name="httpClient">The <see cref="HttpClient"/> to use</param>
-	/// <param name="saveContent">Whether to save the content</param>
-	/// <param name="cancellationToken">The cancellation token</param>
-	/// <returns><see cref="Response"/></returns>
-	internal static async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken = default) {
-		HttpStatusCode statusCode = 0;
-		string content = "";
-		long contentLength = 0;
-		int currentConcurrencyLevel = 0;
-		StrippedException exception = StrippedException.Default;
-		var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
-		using var message = requestRecipe.CreateMessage();
-		var start = Stopwatch.GetTimestamp();
-		try {
-			currentConcurrencyLevel = Interlocked.Increment(ref _concurrencyLevel);
-			using var response = await httpClient.SendAsync(message, cancellationToken);
-			Interlocked.Decrement(ref _concurrencyLevel);
-			statusCode = response.StatusCode;
-			headers = response.Headers;
-			var length = response.Content.Headers.ContentLength;
-			if (length.HasValue) {
-				contentLength = length.Value;
-			}
-			if (saveContent) {
-				content = await response.Content.ReadAsStringAsync(cancellationToken);
-			}
-		} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
-			if (cancellationToken.IsCancellationRequested) {
-				throw;
-			}
-			var elapsed = Stopwatch.GetElapsedTime(start);
-			exception = new StrippedException(nameof(TimeoutException), $"Request {id} timeout after {elapsed.TotalMilliseconds} ms", "");
-		} catch (Exception e) {
-			exception = StrippedException.FromException(e);
-		} finally {
-			message?.Dispose();
-		}
-		TimeSpan duration = Stopwatch.GetElapsedTime(start);
-		return new Response {
-			Id = id,
-			StatusCode = statusCode,
-			Headers = headers,
-			Content = content,
-			ContentLength = contentLength,
-			Duration = duration,
-			Exception = exception,
-			MaximumConcurrencyLevel = currentConcurrencyLevel
-		};
-	}
-
-	/// <summary>
 	/// Handles printing the current metrics, has to be synchronized to prevent cross writing to the console, which produces corrupted output.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.Synchronized)]
 	private void PrintMetrics() {
 		var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
-		var eta = TimeSpan.FromMilliseconds(elapsed / _count * (RequestCount - _count));
+		var eta = TimeSpan.FromMilliseconds(elapsed / _responses * (_requestCount - _responses));
 
-		double sr = Math.Round((double)_stats[2] / _count * 100, 2);
+		double sr = Math.Round((double)_stats[2] / _responses * 100, 2);
 
 		var cursor = System.Console.CursorTop;
 		// Clear
@@ -154,14 +92,14 @@ public sealed class PulseMonitor {
 		// Line 1
 		Error.Write("Completed: ");
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_count);
+		Error.Write(_responses);
 		ResetColors();
 		Error.Write('/');
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(RequestCount);
+		Error.Write(_requestCount);
 		ResetColors();
 		Error.Write(", SR: ");
-		SetColors(Extensions.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
+		SetColors(Helper.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
 		Error.Write(sr);
 		ResetColors();
 		Error.Write("%, ETA: ");
@@ -207,7 +145,7 @@ public sealed class PulseMonitor {
 		// Clear
 		ClearNextLinesError(2);
 		// Line 1
-		WriteLineError(["Completed: ", "0" * Color.Yellow, $"/{RequestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow]);
+		WriteLineError(["Completed: ", "0" * Color.Yellow, $"/{_requestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow]);
 
 		// Line 2
 		WriteLineError(["1xx: ", "0" * Color.White, ", 2xx: ", "0" * Color.Green, ", 3xx: ", "0" * Color.Yellow, ", 4xx: ", "0" * Color.Red, ", 5xx: ", "0" * Color.Red, ", others: ", "0" * Color.Magenta]);
@@ -215,14 +153,10 @@ public sealed class PulseMonitor {
 		System.Console.SetCursorPosition(0, cursor);
 	}
 
-	/// <summary>
-	/// Consolidates the results into an object
-	/// </summary>
-	/// <returns></returns>
+    /// <inheritdoc />
 	public PulseResult Consolidate() => new() {
 		Results = _results,
-		SuccessRate = Math.Round((double)_stats[2] / _count * 100, 2),
-		TotalDuration = Stopwatch.GetElapsedTime(_start),
-		MemoryUsed = Environment.WorkingSet - _startingWorkingSet
+		SuccessRate = Math.Round((double)_stats[2] / _responses * 100, 2),
+		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
 }

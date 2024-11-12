@@ -101,6 +101,37 @@ public class Request {
 
 		return message;
 	}
+
+	/// <summary>
+	/// Returns the request size in bytes
+	/// </summary>
+	public long GetRequestLength() {
+		long length = 0;
+		const long contentTypeHeaderLength = 14; // "Content-Type: "
+
+		foreach (var header in Headers) {
+			if (header.Value is null) {
+				continue;
+			}
+			var value = header.Value.ToString();
+			length += GetLength(header.Key);
+			length += 2 + GetLength(value);
+		}
+
+		if (Content.Body.HasValue) {
+			var media = Content.GetContentType();
+			var messageContent = Content.Body.ToString()!;
+			Debug.Assert(messageContent is not null);
+			length += contentTypeHeaderLength + GetLength(media);
+			length += GetLength(messageContent);
+		}
+
+		return length;
+
+		static long GetLength(ReadOnlySpan<char> span) {
+			return Encoding.Default.GetByteCount(span);
+		}
+	}
 }
 
 /// <summary>

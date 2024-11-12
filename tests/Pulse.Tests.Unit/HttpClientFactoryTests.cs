@@ -13,7 +13,7 @@ public class HttpClientFactoryTests {
         var proxy = new Proxy();
 
         // Act
-        using var httpClient = PulseHttpClientFactory.Create(proxy, Parameters.DefaultTimeoutInMs);
+        using var httpClient = PulseHttpClientFactory.Create(proxy, ParametersBase.DefaultTimeoutInMs);
 
         // Assert
         httpClient.Timeout.Should().Be(Timeout.InfiniteTimeSpan, "because the default timeout is infinite");
@@ -25,7 +25,7 @@ public class HttpClientFactoryTests {
         var proxy = new Proxy();
 
         // Act
-        using var httpClient = PulseHttpClientFactory.Create(proxy, Parameters.DefaultTimeoutInMs);
+        using var httpClient = PulseHttpClientFactory.Create(proxy, ParametersBase.DefaultTimeoutInMs);
 
         // Assert
         httpClient.Should().NotBeNull("because a HttpClient is returned");
@@ -84,7 +84,7 @@ public class HttpClientFactoryTests {
     [Fact]
     public void CreateHandler_WithProxy_WithoutPassword_NoCredentials() {
         // Arrange
-        var proxy = new Proxy() {
+        var proxy = new Proxy {
             Bypass = false,
             Host = "127.0.0.1:8080",
             Username = "username",
@@ -102,7 +102,7 @@ public class HttpClientFactoryTests {
     [Fact]
     public void CreateHandler_WithProxy_WithCredentials() {
         // Arrange
-        var proxy = new Proxy() {
+        var proxy = new Proxy {
             Bypass = false,
             Host = "127.0.0.1:8080",
             Username = "username",

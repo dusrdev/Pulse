@@ -30,19 +30,19 @@ public partial class JsonContext : JsonSerializerContext {
 	public static Result<RequestDetails> TryGetRequestDetailsFromFile(string path) {
 		try {
 			if (!File.Exists(path)) {
-				return Result.Fail<RequestDetails>($"{path} - does not exist.", new());
+				return Result.Fail($"{path} - does not exist.", new RequestDetails());
 			}
 
 			var json = File.ReadAllText(path);
 			var rd = JsonSerializer.Deserialize(json, Default.RequestDetails);
 			if (rd is null) {
-				return Result.Fail<RequestDetails>($"{path} - contained empty or invalid JSON.", new());
+				return Result.Fail($"{path} - contained empty or invalid JSON.", new RequestDetails());
 			}
 			return Result.Ok(rd);
 		} catch (Exception e) {
 			var stripped = Configuration.StrippedException.FromException(e);
 			var message = JsonSerializer.Serialize(stripped, Default.StrippedException);
-			return Result.Fail<RequestDetails>(message, new());
+			return Result.Fail(message, new RequestDetails());
 		}
 	}
 
