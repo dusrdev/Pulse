@@ -12,6 +12,11 @@ namespace Pulse.Core;
 /// </summary>
 public sealed class PulseSummary {
 	/// <summary>
+	/// The size of the request in bytes
+	/// </summary>
+	public required long RequestSizeInBytes { get; init; }
+
+	/// <summary>
 	/// The pulse result
 	/// </summary>
 	public required PulseResult Result { get; init; }
@@ -39,7 +44,8 @@ public sealed class PulseSummary {
 		double minLatency = double.MaxValue, maxLatency = double.MinValue, avgLatency = 0;
 		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
 		double multiplier = 1 / (double)completed;
-		int maximumConcurrencyLevel = 0;
+		long totalSize = 0;
+		int peakConcurrentConnections = 0;
 		int total = completed;
 		int current = 0;
 #if !DEBUG
@@ -52,7 +58,8 @@ public sealed class PulseSummary {
 
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
-			maximumConcurrencyLevel = Math.Max(maximumConcurrencyLevel, result.MaximumConcurrencyLevel);
+			peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
+			totalSize += RequestSizeInBytes;
 			// duration
 			var latency = result.Latency.TotalMilliseconds;
 			minLatency = Math.Min(minLatency, latency);
@@ -64,6 +71,9 @@ public sealed class PulseSummary {
 				minSize = Math.Min(minSize, size);
 				maxSize = Math.Max(maxSize, size);
 				avgSize += multiplier * size;
+				if (Parameters.Export) {
+					totalSize += size;
+				}
 			}
 
 			var statusCode = result.StatusCode;
@@ -83,18 +93,16 @@ public sealed class PulseSummary {
 		System.Console.SetCursorPosition(0, cursorTop);
 
 		Func<double, string> getSize = Utils.Strings.FormatBytes;
+		double throughput = totalSize / Result.TotalDuration.TotalSeconds;
 
 		ClearNextLinesError(3);
-		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
-		WriteLine(["Peak concurrent connections: ", $"{maximumConcurrencyLevel}" * Color.Yellow]);
+		WriteLine(["Peak concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		if (Parameters.Verbose) {
-			WriteLine(["RAM Consumed: ", getSize(Result.MemoryUsed) * Color.Yellow]);
-		}
 		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Extensions.GetPercentageBasedColor(Result.SuccessRate)]);
-		WriteLine(["Latency:  Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
+		WriteLine(["Latency:       Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
 		WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
+		WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
 		WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
 			var key = (int)kvp.Key;
@@ -120,18 +128,14 @@ public sealed class PulseSummary {
 		var statusCode = result.StatusCode;
 
 		ClearNextLinesError(3);
-		WriteLine("Summary:" * Color.Green);
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		if (Parameters.Verbose) {
-			WriteLine(["RAM Consumed: ", Utils.Strings.FormatBytes(Result.MemoryUsed) * Color.Yellow]);
-		}
 		if ((int)statusCode is >= 200 and < 300) {
 			WriteLine(["Success: ", "true" * Color.Green]);
 		} else {
 			WriteLine(["Success: ", "false" * Color.Red]);
 		}
-		WriteLine(["Latency: ", $"{duration:0.##}ms" * Color.Cyan]);
+		WriteLine(["Latency:      ", $"{duration:0.##}ms" * Color.Cyan]);
 		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(result.ContentLength) * Color.Cyan]);
 		if (statusCode is 0) {
 			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
