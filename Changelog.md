@@ -11,6 +11,7 @@
 - A header showing the request method and url is now printed before the pulse starts, makes easier to track that you're executing the right thing, when the URL is hidden in the request file.
 - `verbose` mode now changes the output format, instead of displaying a dashboard, it prints which request/response is being processed.
 - The progress bar that was used when cross referencing results was removed, now it is replaced by a simpler text output. This is because it produced artifacts with the headers
+- Added `--delay` parameter to specify the delay between requests in milliseconds (default: 0) - only applicable when execution mode is sequential
 
 ## Version 1.0.4.0
 
