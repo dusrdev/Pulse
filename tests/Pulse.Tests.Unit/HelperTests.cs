@@ -4,7 +4,7 @@ using Pulse.Core;
 
 namespace Pulse.Tests.Unit;
 
-public class ExtensionsTests {
+public class HelperTests {
     [Theory]
     [InlineData(100, ConsoleColor.Green)]
     [InlineData(80, ConsoleColor.Green)]
@@ -15,7 +15,7 @@ public class ExtensionsTests {
     [InlineData(0, ConsoleColor.Red)]
     public void Extensions_GetPercentageBasedColor(double percentage, ConsoleColor expected) {
         // Arrange
-        var color = Extensions.GetPercentageBasedColor(percentage);
+        var color = Helper.GetPercentageBasedColor(percentage);
 
         // Assert
         color.ConsoleColor.Should().Be(expected, "because the percentage is correct");
@@ -30,7 +30,7 @@ public class ExtensionsTests {
     [InlineData(HttpStatusCode.PermanentRedirect, ConsoleColor.Yellow)]
     public void Extensions_GetStatusCodeBasedColor(HttpStatusCode statusCode, ConsoleColor expected) {
         // Arrange
-        var color = Extensions.GetStatusCodeBasedColor((int)statusCode);
+        var color = Helper.GetStatusCodeBasedColor((int)statusCode);
 
         // Assert
         color.ConsoleColor.Should().Be(expected, "because the percentage is correct");
