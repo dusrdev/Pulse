@@ -34,6 +34,23 @@ public class SendCommandParsingTests {
     }
 
     [Theory]
+    [InlineData("Pulse --delay 50", 0)] // default
+    [InlineData("Pulse --delay -9", 0)] // default
+    [InlineData("Pulse -m Sequential", 0)] // not set but default
+    [InlineData("Pulse -m Sequential --delay 50", 50)] // set
+    [InlineData("Pulse -m Sequential --delay -9", 0)] // set but default since negative
+    public void Arguments_Delay(string arguments, int expected) {
+        // Arrange
+        var args = Parser.ParseArguments(arguments)!;
+
+        // Act
+        var @params = SendCommand.ParseParametersArgs(args);
+
+        // Assert
+        @params.DelayInMs.Should().Be(expected, "because parsed or default");
+    }
+
+    [Theory]
     [InlineData("Pulse -v")]
     [InlineData("Pulse --verbose")]
     public void Arguments_Flag_Verbose(string arguments) {
