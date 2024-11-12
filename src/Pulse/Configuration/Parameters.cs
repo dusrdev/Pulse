@@ -35,6 +35,11 @@ public record ParametersBase {
 	public int TimeoutInMs { get; set; } = DefaultTimeoutInMs;
 
 	/// <summary>
+	/// The delay between requests in milliseconds (Only used when <see cref="ExecutionMode"/> is <see cref="ExecutionMode.Sequential"/>)
+	/// </summary>
+	public int DelayInMs { get; set; }
+
+	/// <summary>
 	/// Sets the execution mode (default = <see cref="DefaultExecutionMode"/>)
 	/// </summary>
 	public ExecutionMode ExecutionMode { get; init; } = DefaultExecutionMode;
