@@ -20,9 +20,4 @@ public record PulseResult {
 	/// Success rate (percentage of 2xx responses)
 	/// </summary>
 	public required double SuccessRate { get; init; }
-
-	/// <summary>
-	/// The amount of total memory used by the operation (in bytes)
-	/// </summary>
-	public required long MemoryUsed { get; init; }
 }
