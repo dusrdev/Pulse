@@ -16,7 +16,7 @@ public sealed class SendCommand : Command {
 	/// <summary>
 	/// The constructor of the command
 	/// </summary>
-	/// <param name="globalCTS">A global cancellation token source that will propagate to all tasks</param>
+	/// <param name="cancellationToken">A global cancellation token source that will propagate to all tasks</param>
 	public SendCommand(CancellationToken cancellationToken) {
 		_cancellationToken = cancellationToken;
 	}
@@ -35,6 +35,7 @@ public sealed class SendCommand : Command {
 	  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
 	  -m, --mode       : execution mode (default: parallel)
 	      * sequential = execute requests sequentially
+		    --delay    : delay between requests in milliseconds (default: 0)
 	      * parallel  = execute requests using maximum resources
 		    -c         : max concurrent connections (default: infinity)
 	  --json           : try to format response content as JSON
@@ -57,16 +58,18 @@ public sealed class SendCommand : Command {
 		args.TryGetValue(["t", "timeout"], ParametersBase.DefaultTimeoutInMs, out int timeoutInMs);
 		bool batchSizeModified = false;
 		int maxConnections = 0;
+		int delayInMs = 0;
 		args.TryGetEnum(["m", "mode"], ParametersBase.DefaultExecutionMode, true, out ExecutionMode mode);
 		if (mode is ExecutionMode.Parallel) {
 			if (args.TryGetValue("c", ParametersBase.DefaultMaxConnections, out maxConnections)) {
 				batchSizeModified = true;
 			}
 		} else if (mode is ExecutionMode.Sequential) {
-			// relief delay - not implemented yet
+			args.TryGetValue("delay", 0, out delayInMs);
+			delayInMs = Math.Max(0, delayInMs);
 		}
 		args.TryGetValue(["o", "output"], "results", out string outputFolder);
-		maxConnections = Math.Max(maxConnections, Parameters.DefaultMaxConnections);
+		maxConnections = Math.Max(maxConnections, ParametersBase.DefaultMaxConnections);
 		bool formatJson = args.HasFlag("json");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
@@ -75,6 +78,7 @@ public sealed class SendCommand : Command {
 		return new ParametersBase {
 			Requests = requests,
 			TimeoutInMs = timeoutInMs,
+			DelayInMs = delayInMs,
 			ExecutionMode = mode,
 			MaxConnections = maxConnections,
 			MaxConnectionsModified = batchSizeModified,
@@ -152,7 +156,7 @@ public sealed class SendCommand : Command {
 			return 0;
 		}
 
-
+		WriteLine(Helper.CreateHeader(requestDetails.Request));
 		await Pulse.RunAsync(@params, requestDetails);
 
 		return 0;
@@ -165,7 +169,7 @@ public sealed class SendCommand : Command {
 			await File.WriteAllTextAsync(path, json, token);
 			WriteLine(["Sample request generated at ", path * Color.Yellow]);
 		},
-		["check-for-updates"] = async (token) => {
+		["check-for-updates"] = async token => {
 			using var client = new HttpClient();
 			client.DefaultRequestHeaders.Add("User-Agent", "C# App");
 			client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
@@ -206,13 +210,6 @@ public sealed class SendCommand : Command {
 		Color headerColor = Color.Cyan;
 		Color property = Color.DarkGray;
 		Color value = Color.White;
-
-		// System
-		if (parameters.Verbose) {
-			WriteLine("System:" * headerColor);
-			WriteLine(["  CPU Cores: " * property, $"{Environment.ProcessorCount}" * value]);
-			WriteLine(["  OS: " * property, $"{Environment.OSVersion}" * value]);
-		}
 
 		// Options
 		WriteLine("Options:" * headerColor);

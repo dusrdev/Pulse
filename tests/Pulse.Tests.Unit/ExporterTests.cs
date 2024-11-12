@@ -37,10 +37,10 @@ public class ExporterTests {
     [Fact]
     public void Exporter_ToHtmlTable_ContainsAllHeaders() {
         // Arrange
-        List<KeyValuePair<string, IEnumerable<string>>> headers = new() {
-                new("Content-Type", ["application/json"]),
-                new("X-Custom-Header", ["value1", "value2"])
-            };
+        List<KeyValuePair<string, IEnumerable<string>>> headers = [
+            new("Content-Type", ["application/json"]),
+            new("X-Custom-Header", ["value1", "value2"])
+        ];
 
         const string content = "Hello World";
 
@@ -51,8 +51,8 @@ public class ExporterTests {
             ContentLength = Encoding.Default.GetByteCount(content),
             Headers = headers,
             Exception = StrippedException.Default,
-            Duration = TimeSpan.FromSeconds(1),
-            MaximumConcurrencyLevel = 1
+            Latency = TimeSpan.FromSeconds(1),
+            CurrentConcurrentConnections = 1
         };
 
         // Act
@@ -81,8 +81,8 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = StrippedException.Default,
-                Duration = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -102,10 +102,10 @@ public class ExporterTests {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
-            List<KeyValuePair<string, IEnumerable<string>>> headers = new() {
+            List<KeyValuePair<string, IEnumerable<string>>> headers = [
                 new("Content-Type", ["application/json"]),
                 new("X-Custom-Header", ["value1", "value2"])
-            };
+            ];
 
             const string content = "Hello World";
 
@@ -116,8 +116,8 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = headers,
                 Exception = StrippedException.Default,
-                Duration = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -126,7 +126,7 @@ public class ExporterTests {
             // Assert
             var file = dirInfo.GetFiles();
             file.Length.Should().Be(1, "because 1 file was created");
-            var fileContent = File.ReadAllText(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
 
             foreach (var header in headers) {
                 fileContent.Should().Contain(header.Key);
@@ -153,8 +153,8 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = StrippedException.Default,
-                Duration = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -163,7 +163,7 @@ public class ExporterTests {
             // Assert
             var file = dirInfo.GetFiles();
             file.Length.Should().Be(1, "because 1 file was created");
-            var fileContent = File.ReadAllText(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
             fileContent.Should().Contain("Hello World", "because the content is present");
         } finally {
             dirInfo.Delete(true);
@@ -185,8 +185,8 @@ public class ExporterTests {
                 ContentLength = Encoding.Default.GetByteCount(content),
                 Headers = [],
                 Exception = exception,
-                Duration = TimeSpan.FromSeconds(1),
-                MaximumConcurrencyLevel = 1
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
             };
 
             // Act
@@ -195,7 +195,7 @@ public class ExporterTests {
             // Assert
             var file = dirInfo.GetFiles();
             file.Length.Should().Be(1, "because 1 file was created");
-            var fileContent = File.ReadAllText(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
             fileContent.Should().NotContain("Hello World", "because the content is not present");
             fileContent.Should().Contain(exception.Message, "because the exception is present");
         } finally {

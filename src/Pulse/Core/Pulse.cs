@@ -15,6 +15,7 @@ public static class Pulse {
         if (parameters.Requests is 1 || parameters.ExecutionMode is ExecutionMode.Sequential) {
             return RunSequential(parameters, requestDetails);
         }
+
         return parameters.MaxConnectionsModified
             ? RunBounded(parameters, requestDetails)
             : RunUnbounded(parameters, requestDetails);
@@ -28,23 +29,19 @@ public static class Pulse {
     internal static async Task RunSequential(Parameters parameters, RequestDetails requestDetails) {
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
 
-        var monitor = new PulseMonitor {
-            RequestCount = parameters.Requests,
-            RequestRecipe = requestDetails.Request,
-            HttpClient = httpClient,
-            SaveContent = parameters.Export,
-            CancellationToken = parameters.CancellationToken
-        };
+        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
 
         for (int i = 1; i <= parameters.Requests; i++) {
-            await monitor.SendAsync(i).ConfigureAwait(false);
+            await Task.Delay(parameters.DelayInMs);
+            await monitor.SendAsync(i);
         }
 
         var result = monitor.Consolidate();
 
         var summary = new PulseSummary {
             Result = result,
-            Parameters = parameters
+            Parameters = parameters,
+            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
         };
 
         var (exportRequired, uniqueRequests) = summary.Summarize();
@@ -64,26 +61,20 @@ public static class Pulse {
 
         var cancellationToken = parameters.CancellationToken;
 
-        var monitor = new PulseMonitor {
-            RequestCount = parameters.Requests,
-            RequestRecipe = requestDetails.Request,
-            HttpClient = httpClient,
-            SaveContent = parameters.Export,
-            CancellationToken = cancellationToken
-        };
+        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
 
         using var semaphore = new SemaphoreSlim(parameters.MaxConnections);
 
         var tasks = Enumerable.Range(1, parameters.Requests)
-        .AsParallel()
-        .Select(async requestId => {
-            try {
-                await semaphore.WaitAsync(cancellationToken);
-                await monitor.SendAsync(requestId);
-            } finally {
-                semaphore.Release();
-            }
-        });
+            .AsParallel()
+            .Select(async requestId => {
+                try {
+                    await semaphore.WaitAsync(cancellationToken);
+                    await monitor.SendAsync(requestId);
+                } finally {
+                    semaphore.Release();
+                }
+            });
 
         await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -91,7 +82,8 @@ public static class Pulse {
 
         var summary = new PulseSummary {
             Result = result,
-            Parameters = parameters
+            Parameters = parameters,
+            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
         };
 
         var (exportRequired, uniqueRequests) = summary.Summarize();
@@ -111,17 +103,11 @@ public static class Pulse {
 
         var cancellationToken = parameters.CancellationToken;
 
-        var monitor = new PulseMonitor {
-            RequestCount = parameters.Requests,
-            RequestRecipe = requestDetails.Request,
-            HttpClient = httpClient,
-            SaveContent = parameters.Export,
-            CancellationToken = cancellationToken
-        };
+        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
 
         var tasks = Enumerable.Range(1, parameters.Requests)
-        .AsParallel()
-        .Select(monitor.SendAsync);
+            .AsParallel()
+            .Select(monitor.SendAsync);
 
         await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -129,7 +115,8 @@ public static class Pulse {
 
         var summary = new PulseSummary {
             Result = result,
-            Parameters = parameters
+            Parameters = parameters,
+            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
         };
 
         var (exportRequired, uniqueRequests) = summary.Summarize();

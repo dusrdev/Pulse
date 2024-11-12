@@ -7,7 +7,7 @@ namespace Pulse.Core;
 /// <summary>
 /// The model used for response
 /// </summary>
-public readonly struct Response {
+public readonly record struct Response {
 	/// <summary>
 	/// The id of the request
 	/// </summary>
@@ -34,9 +34,9 @@ public readonly struct Response {
 	public required long ContentLength { get; init; }
 
 	/// <summary>
-	/// The time taken from sending the request to receiving the response
+	/// The time taken from sending the request to receiving the response headers
 	/// </summary>
-	public required TimeSpan Duration { get; init; }
+	public required TimeSpan Latency { get; init; }
 
 	/// <summary>
 	/// The exception (if occurred)
@@ -44,9 +44,9 @@ public readonly struct Response {
 	public required StrippedException Exception { get; init; }
 
 	/// <summary>
-	/// The maximum concurrency level at the time of the request
+	/// The current number of concurrent connections at the time of the request
 	/// </summary>
-	public required int MaximumConcurrencyLevel { get; init; }
+	public required int CurrentConcurrentConnections { get; init; }
 }
 
 /// <summary>
@@ -57,14 +57,6 @@ public sealed class ResponseComparer : IEqualityComparer<Response> {
 
 	public ResponseComparer(Parameters parameters) {
 		_parameters = parameters;
-	}
-
-	public bool Equals(Response? x, Response? y) {
-		if (x is null || y is null) {
-			return false;
-		}
-
-		return Equals(x.Value, y.Value);
 	}
 
 	/// <summary>
@@ -83,9 +75,7 @@ public sealed class ResponseComparer : IEqualityComparer<Response> {
 		if (_parameters.UseFullEquality) {
 			basicEquality &= string.Equals(x.Content, y.Content, StringComparison.Ordinal);
 		} else {
-			int lenX = x.Content?.Length ?? 0;
-			int lenY = y.Content?.Length ?? 0;
-			basicEquality &= lenX == lenY;
+			basicEquality &= x.ContentLength == y.ContentLength;
 		}
 
 		if (!basicEquality) {
@@ -114,7 +104,7 @@ public sealed class ResponseComparer : IEqualityComparer<Response> {
 
 		if (obj.Exception.IsDefault) {
 			// no exception -> should have content
-			hash = hash * 23 + obj.Content?.GetHashCode() ?? 0;
+			hash = hash * 23 + obj.Content.GetHashCode();
 		} else {
 			// exception = no content (usually)
 			hash = hash * 23 + obj.Exception.Message.GetHashCode();

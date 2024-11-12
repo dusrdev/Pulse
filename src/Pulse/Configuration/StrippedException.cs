@@ -38,7 +38,7 @@ public sealed record StrippedException {
 		if (exception is null) {
 			return Default;
 		}
-		return new(exception);
+		return new StrippedException(exception);
 	}
 
 	/// <summary>
