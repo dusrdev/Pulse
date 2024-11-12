@@ -27,11 +27,6 @@ public sealed class PulseMonitor {
 	private readonly long _start;
 
 	/// <summary>
-	/// The memory used before the operation has begun
-	/// </summary>
-	private readonly long _startingWorkingSet;
-
-	/// <summary>
 	/// Current number of requests processed
 	/// </summary>
 	private volatile int _count;
@@ -61,7 +56,6 @@ public sealed class PulseMonitor {
 	/// <param name="handler">request delegate</param>
 	/// <param name="requests">total number of required requests</param>
 	public PulseMonitor() {
-		_startingWorkingSet = Environment.WorkingSet;
 		_results = new();
 		_start = Stopwatch.GetTimestamp();
 		PrintInitialMetrics();
@@ -134,7 +128,7 @@ public sealed class PulseMonitor {
 			ContentLength = contentLength,
 			Latency = Stopwatch.GetElapsedTime(start, end),
 			Exception = exception,
-			MaximumConcurrencyLevel = currentConcurrencyLevel
+			CurrentConcurrentConnections = currentConcurrencyLevel
 		};
 	}
 
@@ -223,7 +217,6 @@ public sealed class PulseMonitor {
 	public PulseResult Consolidate() => new() {
 		Results = _results,
 		SuccessRate = Math.Round((double)_stats[2] / _count * 100, 2),
-		TotalDuration = Stopwatch.GetElapsedTime(_start),
-		MemoryUsed = Environment.WorkingSet - _startingWorkingSet
+		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
 }
