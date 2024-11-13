@@ -1,4 +1,8 @@
+using static PrettyConsole.Console;
 using PrettyConsole;
+
+using Pulse.Configuration;
+
 
 namespace Pulse.Core;
 
@@ -62,5 +66,14 @@ public static class Helper {
         if (proxy.IgnoreSSL) {
             handler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
         }
+    }
+
+    /// <summary>
+    /// Prints the exception
+    /// </summary>
+    /// <param name="e"></param>
+    public static void PrintException(this StrippedException e) {
+        WriteLineError(["Exception Type: " * Color.Yellow, e.Type]);
+        WriteLineError(["Message: " * Color.Yellow, e.Message]);
     }
 }

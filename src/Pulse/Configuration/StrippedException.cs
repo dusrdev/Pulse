@@ -19,11 +19,6 @@ public sealed record StrippedException {
 	public readonly string Message;
 
 	/// <summary>
-	/// Stack trace of the exception
-	/// </summary>
-	public readonly string StackTrace;
-
-	/// <summary>
 	/// Indicating whether the exception is the default exception (i.e. no exception)
 	/// </summary>
 	[JsonIgnore]
@@ -48,7 +43,6 @@ public sealed record StrippedException {
 	private StrippedException(Exception exception) {
 		Type = exception.GetType().Name;
 		Message = exception.Message;
-		StackTrace = exception.StackTrace ?? "";
 		IsDefault = false;
 	}
 
@@ -58,18 +52,16 @@ public sealed record StrippedException {
 	/// <param name="type"></param>
 	/// <param name="message"></param>
 	/// <param name="stackTrace"></param>
-	public StrippedException(string type, string message, string stackTrace) {
+	public StrippedException(string type, string message) {
 		Type = type;
 		Message = message;
-		StackTrace = stackTrace;
 		IsDefault = false;
 	}
 
 	[JsonConstructor]
 	public StrippedException() {
-		Type = "";
-		Message = "";
-		StackTrace = "";
+		Type = string.Empty;
+		Message = string.Empty;
 		IsDefault = true;
 	}
 }

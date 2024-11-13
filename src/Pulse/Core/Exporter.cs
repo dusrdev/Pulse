@@ -15,7 +15,7 @@ public static class Exporter {
     HttpStatusCode statusCode = result.StatusCode;
     string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
     string frameTitle;
-    string content = string.IsNullOrWhiteSpace(result.Content) ? "" : result.Content;
+    string content = string.IsNullOrWhiteSpace(result.Content) ? string.Empty : result.Content;
 
     if (result.Exception.IsDefault) {
       frameTitle = "Content:";
@@ -32,7 +32,7 @@ public static class Exporter {
       frameTitle = "Exception:";
       content = $"<pre>{JsonContext.SerializeException(result.Exception)}</pre>";
     }
-    string contentFrame = content == "" ?
+    string contentFrame = content == string.Empty ?
 """
 <div>
 <h2>Content: Empty...</h2>
@@ -45,7 +45,7 @@ $$"""
 <iframe title="Content" width="100%" height="100%" srcdoc='{{content}}'></iframe>
 </div>
 """;
-    string headers = "";
+    string headers = string.Empty;
     if (result.Headers.Any()) {
       headers =
       $"""

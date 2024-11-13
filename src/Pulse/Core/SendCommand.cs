@@ -21,8 +21,8 @@ public sealed class SendCommand : Command {
 		_cancellationToken = cancellationToken;
 	}
 
-	public override string Name => "";
-	public override string Description => "";
+	public override string Name => string.Empty;
+	public override string Description => string.Empty;
 	public override string Usage =>
 	$"""
 	Pulse [RequestFile] [Options]

@@ -7,7 +7,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 internal class Program {
-	internal const string VERSION = "1.0.5.0";
+    internal const string VERSION = "1.0.6.0";
 
     private static async Task<int> Main(string[] args) {
         using CancellationTokenSource globalCTS = new();
@@ -45,9 +45,10 @@ internal class Program {
             GoToLine(firstLine);
             ClearNextLines(4);
             ClearNextLinesError(4);
-            WriteLineError("Unexpected error! Contact developer and provide the following output:" * Color.Red);
+            WriteLineError("Unexpected error! Contact developer at dusrdev@gmail.com" * Color.Red);
+            WriteLineError("And provide the following output:" * Color.Red);
             NewLine();
-            WriteLine(JsonContext.SerializeException(e));
+            Helper.PrintException(StrippedException.FromException(e));
             return 1;
         }
     }
