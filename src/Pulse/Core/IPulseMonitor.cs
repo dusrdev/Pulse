@@ -50,7 +50,7 @@ public interface IPulseMonitor {
 		/// <returns><see cref="Response"/></returns>
 		public async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken) {
 			HttpStatusCode statusCode = 0;
-			string content = "";
+			string content = string.Empty;
 			long contentLength = 0;
 			int currentConcurrencyLevel = 0;
 			StrippedException exception = StrippedException.Default;
@@ -76,10 +76,10 @@ public interface IPulseMonitor {
 					throw;
 				}
 				var elapsed = Stopwatch.GetElapsedTime(start);
-				exception = new StrippedException(nameof(TimeoutException), $"Request {id} timeout after {elapsed.TotalMilliseconds} ms", "");
-			} catch (Exception e) {
-				end = Stopwatch.GetTimestamp();
-				exception = StrippedException.FromException(e);
+				exception = new StrippedException(nameof(TimeoutException),
+				$"Request {id} timeout after {elapsed.TotalMilliseconds} ms");
+			} catch (Exception) {
+				throw;
 			}
 			return new Response {
 				Id = id,

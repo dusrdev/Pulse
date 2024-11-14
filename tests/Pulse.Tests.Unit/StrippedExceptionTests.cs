@@ -12,7 +12,6 @@ public class StrippedExceptionTests {
         exception.IsDefault.Should().BeTrue("because the exception is the default");
         exception.Type.Should().BeEmpty("because the exception is the default");
         exception.Message.Should().BeEmpty("because the exception is the default");
-        exception.StackTrace.Should().BeEmpty("because the exception is the default");
     }
 
     [Fact]
@@ -24,7 +23,6 @@ public class StrippedExceptionTests {
         exception.IsDefault.Should().BeTrue("because the exception is the default");
         exception.Type.Should().BeEmpty("because the exception is the default");
         exception.Message.Should().BeEmpty("because the exception is the default");
-        exception.StackTrace.Should().BeEmpty("because the exception is the default");
     }
 
     [Fact]
@@ -36,7 +34,6 @@ public class StrippedExceptionTests {
         exception.IsDefault.Should().BeTrue("because the exception is the default");
         exception.Type.Should().BeEmpty("because the exception is the default");
         exception.Message.Should().BeEmpty("because the exception is the default");
-        exception.StackTrace.Should().BeEmpty("because the exception is the default");
     }
 
     [Fact]
@@ -51,6 +48,5 @@ public class StrippedExceptionTests {
         stripped.IsDefault.Should().BeFalse("because the exception is not the default");
         stripped.Type.Should().Be(exception.GetType().Name, "because the exception type is correct");
         stripped.Message.Should().Be(exception.Message, "because the exception message is correct");
-        stripped.StackTrace.Should().BeEmpty("because the exception stack trace is empty");
     }
 }

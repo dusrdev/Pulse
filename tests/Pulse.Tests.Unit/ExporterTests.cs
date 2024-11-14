@@ -176,7 +176,7 @@ public class ExporterTests {
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
             const string content = "Hello World";
-            var exception = new StrippedException(nameof(Exception), "test", "");
+            var exception = new StrippedException(nameof(Exception), "test");
 
             var response = new Response {
                 Id = 1337,

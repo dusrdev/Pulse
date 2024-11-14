@@ -86,9 +86,9 @@ public sealed class PulseMonitor : IPulseMonitor {
 
 		double sr = Math.Round((double)_stats[2] / _responses * 100, 2);
 
-		var cursor = System.Console.CursorTop;
+		var currentLine = GetCurrentLine();
 		// Clear
-		ClearNextLinesError(2);
+		ClearNextLines(2, OutputPipe.Error);
 		// Line 1
 		Error.Write("Completed: ");
 		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
@@ -103,8 +103,8 @@ public sealed class PulseMonitor : IPulseMonitor {
 		Error.Write(sr);
 		ResetColors();
 		Error.Write("%, ETA: ");
-		WriteError(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), Color.Yellow, Color.DefaultBackgroundColor);
-		NewLineError();
+		Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow, Color.DefaultBackgroundColor);
+		NewLine(OutputPipe.Error);
 
 		// Line 2
 		Error.Write("1xx: ");
@@ -131,9 +131,9 @@ public sealed class PulseMonitor : IPulseMonitor {
 		SetColors(Color.Magenta, Color.DefaultBackgroundColor);
 		Error.Write(_stats[0]);
 		ResetColors();
-		NewLineError();
+		NewLine(OutputPipe.Error);
 		// Reset location
-		System.Console.SetCursorPosition(0, cursor);
+		GoToLine(currentLine);
 	}
 
 	/// <summary>
@@ -141,16 +141,16 @@ public sealed class PulseMonitor : IPulseMonitor {
 	/// </summary>
 	[MethodImpl(MethodImplOptions.Synchronized)]
 	private void PrintInitialMetrics() {
-		var cursor = System.Console.CursorTop;
+		var currentLine = GetCurrentLine();
 		// Clear
-		ClearNextLinesError(2);
+		ClearNextLines(2, OutputPipe.Error);
 		// Line 1
-		WriteLineError(["Completed: ", "0" * Color.Yellow, $"/{_requestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow]);
+		WriteLine(["Completed: ", "0" * Color.Yellow, $"/{_requestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow], OutputPipe.Error);
 
 		// Line 2
-		WriteLineError(["1xx: ", "0" * Color.White, ", 2xx: ", "0" * Color.Green, ", 3xx: ", "0" * Color.Yellow, ", 4xx: ", "0" * Color.Red, ", 5xx: ", "0" * Color.Red, ", others: ", "0" * Color.Magenta]);
+		WriteLine(["1xx: ", "0" * Color.White, ", 2xx: ", "0" * Color.Green, ", 3xx: ", "0" * Color.Yellow, ", 4xx: ", "0" * Color.Red, ", 5xx: ", "0" * Color.Red, ", others: ", "0" * Color.Magenta], OutputPipe.Error);
 		// Reset location
-		System.Console.SetCursorPosition(0, cursor);
+		GoToLine(currentLine);
 	}
 
     /// <inheritdoc />

@@ -50,7 +50,7 @@ public sealed class PulseSummary {
 		var currentLine = GetCurrentLine();
 
 #if !DEBUG
-		OverrideCurrentLine(["Cross referencing results..."]);
+		OverrideCurrentLine(["Cross referencing results..."], OutputPipe.Error);
 #endif
 		foreach (var result in Result.Results) {
 			uniqueRequests.Add(result);
@@ -76,7 +76,7 @@ public sealed class PulseSummary {
 			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 		}
 #if !DEBUG
-		OverrideCurrentLine(["Cross referencing results...", " done!" * Color.Green]);
+		OverrideCurrentLine(["Cross referencing results...", " done!" * Color.Green], OutputPipe.Error);
 		OverrideCurrentLine([]);
 #endif
 		maxSize = Math.Max(0, maxSize);
@@ -85,10 +85,9 @@ public sealed class PulseSummary {
 		Func<double, string> getSize = Utils.Strings.FormatBytes;
 		double throughput = totalSize / Result.TotalDuration.TotalSeconds;
 
-		ClearNextLines(3);
-		GoToLine(currentLine);
+		ClearNextLines(3, OutputPipe.Error);
 		if (Parameters.Verbose) {
-			NewLineError();
+			NewLine(OutputPipe.Error);
 		}
 
 		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
@@ -98,7 +97,7 @@ public sealed class PulseSummary {
 		WriteLine(["Latency:       Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
 		WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
 		WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
-		WriteLine("Status codes:");
+		Out.WriteLine("Status codes:");
 		foreach (var kvp in statusCounter) {
 			var key = (int)kvp.Key;
 			if (key is 0) {
@@ -122,7 +121,7 @@ public sealed class PulseSummary {
 		double duration = result.Latency.TotalMilliseconds;
 		var statusCode = result.StatusCode;
 
-		ClearNextLinesError(3);
+		ClearNextLines(3, OutputPipe.Out);
 		WriteLine(["Request count: ", "1" * Color.Yellow]);
 		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 		if ((int)statusCode is >= 200 and < 300) {

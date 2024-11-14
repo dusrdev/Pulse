@@ -21,8 +21,8 @@ public sealed class SendCommand : Command {
 		_cancellationToken = cancellationToken;
 	}
 
-	public override string Name => "";
-	public override string Description => "";
+	public override string Name => string.Empty;
+	public override string Description => string.Empty;
 	public override string Usage =>
 	$"""
 	Pulse [RequestFile] [Options]
@@ -126,7 +126,7 @@ public sealed class SendCommand : Command {
 		}
 
 		if (!args.TryGetValue(0, out string rf)) {
-			WriteLineError("request file or command name must be provided!" * Color.Red);
+			WriteLine("request file or command name must be provided!" * Color.Red, OutputPipe.Error);
 			return 1;
 		}
 
@@ -135,7 +135,7 @@ public sealed class SendCommand : Command {
 				await subCommand(_cancellationToken);
 				return 0;
 			} catch (Exception e) {
-				WriteLineError(e.Message * Color.Red);
+				WriteLine(e.Message * Color.Red, OutputPipe.Error);
 				return 1;
 			}
 		}
@@ -144,7 +144,7 @@ public sealed class SendCommand : Command {
 		var requestDetailsResult = GetRequestDetails(rf, args);
 
 		if (requestDetailsResult.IsFail) {
-			WriteLineError(requestDetailsResult.Message * Color.Red);
+			WriteLine(requestDetailsResult.Message * Color.Red, OutputPipe.Error);
 			return 1;
 		}
 
@@ -182,7 +182,7 @@ public sealed class SendCommand : Command {
 					return;
 				}
 				if (!Version.TryParse(result.Message, out Version? remoteVersion)) {
-					WriteLineError("Failed to parse remote version.");
+					WriteLine("Failed to parse remote version.", OutputPipe.Error);
 					return;
 				}
 				var currentVersion = Version.Parse(Program.VERSION);
@@ -196,7 +196,7 @@ public sealed class SendCommand : Command {
 					WriteLine("You are using the latest version of Pulse." * Color.Green);
 				}
 			} else {
-				WriteLineError("Failed to check for updates - server response was not success");
+				WriteLine("Failed to check for updates - server response was not success", OutputPipe.Error);
 			}
 		}
 	};

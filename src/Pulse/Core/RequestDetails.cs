@@ -37,17 +37,17 @@ public class Proxy {
 	/// <summary>
 	/// Host
 	/// </summary>
-	public string Host { get; set; } = "";
+	public string Host { get; set; } = string.Empty;
 
 	/// <summary>
 	/// Proxy authentication username
 	/// </summary>
-	public string Username { get; set; } = "";
+	public string Username { get; set; } = string.Empty;
 
 	/// <summary>
 	/// Proxy authentication password
 	/// </summary>
-	public string Password { get; set; } = "";
+	public string Password { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -139,15 +139,15 @@ public class Request {
 /// </summary>
 public readonly struct Content {
 	[JsonConstructor]
-    public Content() {
-		ContentType = "";
+	public Content() {
+		ContentType = string.Empty;
 		Body = null;
 	}
 
-    /// <summary>
-    /// Declares the content type
-    /// </summary>
-    public string ContentType { get; init; }
+	/// <summary>
+	/// Declares the content type
+	/// </summary>
+	public string ContentType { get; init; }
 
 	/// <summary>
 	/// Content
@@ -158,8 +158,7 @@ public readonly struct Content {
 	/// Returns the content type after defaulting if empty
 	/// </summary>
 	/// <returns></returns>
-	public string GetContentType() => ContentType switch {
-		"" => "application/json",
-		_ => ContentType
-	};
+	public string GetContentType() => ContentType.Length is 0
+									? "application/json"
+									: ContentType;
 }

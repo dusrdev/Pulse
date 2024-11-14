@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TrimMode>full</TrimMode>
@@ -13,16 +13,18 @@
     <PublishAot>true</PublishAot>
     <IsAotCompatible>true</IsAotCompatible>
     <AotCompatible>true</AotCompatible>
-    <Version>1.0.5.0</Version>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <StackTraceSupport>false</StackTraceSupport>
+    <Version>1.0.6.0</Version>
     <StripSymbols>true</StripSymbols>
     <RepositoryUrl>https://github.com/dusrdev/Pulse</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sharpify" Version="2.4.0" />
-    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.4.0" />
-    <PackageReference Include="PrettyConsole" Version="3.0.0" />
+    <PackageReference Include="Sharpify" Version="2.5.0" />
+    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.5.0" />
+    <PackageReference Include="PrettyConsole" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
