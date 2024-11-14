@@ -73,7 +73,7 @@ public static class Helper {
     /// </summary>
     /// <param name="e"></param>
     public static void PrintException(this StrippedException e) {
-        WriteLineError(["Exception Type: " * Color.Yellow, e.Type]);
-        WriteLineError(["Message: " * Color.Yellow, e.Message]);
+        WriteLine(["Exception Type: " * Color.Yellow, e.Type], OutputPipe.Error);
+        WriteLine(["Message: " * Color.Yellow, e.Message], OutputPipe.Error);
     }
 }

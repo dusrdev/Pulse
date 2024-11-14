@@ -3,6 +3,7 @@
 ## Version 1.0.6.0
 
 - Updated to .NET 9.0
+- Optimized using new version of `PrettyConsole` (3.1.0)
 
 ## Version 1.0.5.0
 
