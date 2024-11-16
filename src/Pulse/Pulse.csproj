@@ -15,7 +15,7 @@
     <AotCompatible>true</AotCompatible>
     <InvariantGlobalization>true</InvariantGlobalization>
     <StackTraceSupport>false</StackTraceSupport>
-    <Version>1.0.6.0</Version>
+    <Version>1.0.7.0</Version>
     <StripSymbols>true</StripSymbols>
     <RepositoryUrl>https://github.com/dusrdev/Pulse</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

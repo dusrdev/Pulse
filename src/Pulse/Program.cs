@@ -7,7 +7,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 internal class Program {
-    internal const string VERSION = "1.0.6.0";
+    internal const string VERSION = "1.0.7.0";
 
     private static async Task<int> Main(string[] args) {
         using CancellationTokenSource globalCTS = new();
