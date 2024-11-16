@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 
 using Pulse.Configuration;
 
@@ -70,6 +71,13 @@ public interface IPulseMonitor {
 				}
 				if (saveContent) {
 					content = await response.Content.ReadAsStringAsync(cancellationToken);
+					if (contentLength == 0) {
+						var charSet = response.Content.Headers.ContentType?.CharSet;
+						var encoding = charSet is null
+								? Encoding.UTF8 // doesn't exist - fallback to UTF8
+								: Encoding.GetEncoding(charSet); // exist - use server's
+						contentLength = encoding.GetByteCount(content.AsSpan());
+					}
 				}
 			} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
 				if (cancellationToken.IsCancellationRequested) {
@@ -78,9 +86,15 @@ public interface IPulseMonitor {
 				var elapsed = Stopwatch.GetElapsedTime(start);
 				exception = new StrippedException(nameof(TimeoutException),
 				$"Request {id} timeout after {elapsed.TotalMilliseconds} ms");
+#if DEBUG
+			} catch (Exception e) {
+				throw e;
+			}
+#else
 			} catch (Exception) {
 				throw;
 			}
+#endif
 			return new Response {
 				Id = id,
 				StatusCode = statusCode,
