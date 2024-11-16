@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using Pulse.Core;
+
 namespace Pulse.Configuration;
 
 /// <summary>
@@ -17,6 +19,16 @@ public sealed record StrippedException {
 	/// Message of the exception
 	/// </summary>
 	public readonly string Message;
+
+	/// <summary>
+	/// Detail of the exception (if any)
+	/// </summary>
+	public readonly string? Detail;
+
+	/// <summary>
+	/// Inner exception (if any)
+	/// </summary>
+	public readonly StrippedException? InnerException;
 
 	/// <summary>
 	/// Indicating whether the exception is the default exception (i.e. no exception)
@@ -43,6 +55,10 @@ public sealed record StrippedException {
 	private StrippedException(Exception exception) {
 		Type = exception.GetType().Name;
 		Message = exception.Message;
+		Detail = Helper.AddExceptionDetail(exception);
+		if (exception.InnerException is not null) {
+			InnerException = FromException(exception.InnerException);
+		}
 		IsDefault = false;
 	}
 

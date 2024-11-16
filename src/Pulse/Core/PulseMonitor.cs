@@ -4,7 +4,6 @@ using System.Diagnostics;
 using static PrettyConsole.Console;
 using PrettyConsole;
 using Sharpify;
-using System.Runtime.CompilerServices;
 
 using static Pulse.Core.IPulseMonitor;
 using Pulse.Configuration;
@@ -48,6 +47,8 @@ public sealed class PulseMonitor : IPulseMonitor {
 	private readonly HttpClient _httpClient;
 	private readonly Request _requestRecipe;
 
+	private readonly Lock _lock = new();
+
 	/// <summary>
 	/// Creates a new pulse monitor
 	/// </summary>
@@ -78,79 +79,81 @@ public sealed class PulseMonitor : IPulseMonitor {
 	/// <summary>
 	/// Handles printing the current metrics, has to be synchronized to prevent cross writing to the console, which produces corrupted output.
 	/// </summary>
-	[MethodImpl(MethodImplOptions.Synchronized)]
 	private void PrintMetrics() {
-		var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
+		lock (_lock) {
+			var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
-		var eta = TimeSpan.FromMilliseconds(elapsed / _responses * (_requestCount - _responses));
+			var eta = TimeSpan.FromMilliseconds(elapsed / _responses * (_requestCount - _responses));
 
-		double sr = Math.Round((double)_stats[2] / _responses * 100, 2);
+			double sr = Math.Round((double)_stats[2] / _responses * 100, 2);
 
-		var currentLine = GetCurrentLine();
-		// Clear
-		ClearNextLines(2, OutputPipe.Error);
-		// Line 1
-		Error.Write("Completed: ");
-		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_responses);
-		ResetColors();
-		Error.Write('/');
-		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_requestCount);
-		ResetColors();
-		Error.Write(", SR: ");
-		SetColors(Helper.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
-		Error.Write(sr);
-		ResetColors();
-		Error.Write("%, ETA: ");
-		Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow, Color.DefaultBackgroundColor);
-		NewLine(OutputPipe.Error);
+			var currentLine = GetCurrentLine();
+			// Clear
+			ClearNextLines(2, OutputPipe.Error);
+			// Line 1
+			Error.Write("Completed: ");
+			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+			Error.Write(_responses);
+			ResetColors();
+			Error.Write('/');
+			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+			Error.Write(_requestCount);
+			ResetColors();
+			Error.Write(", SR: ");
+			SetColors(Helper.GetPercentageBasedColor(sr), Color.DefaultBackgroundColor);
+			Error.Write(sr);
+			ResetColors();
+			Error.Write("%, ETA: ");
+			Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow, Color.DefaultBackgroundColor);
+			NewLine(OutputPipe.Error);
 
-		// Line 2
-		Error.Write("1xx: ");
-		SetColors(Color.White, Color.DefaultBackgroundColor);
-		Error.Write(_stats[1]);
-		ResetColors();
-		Error.Write(", 2xx: ");
-		SetColors(Color.Green, Color.DefaultBackgroundColor);
-		Error.Write(_stats[2]);
-		ResetColors();
-		Error.Write(", 3xx: ");
-		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(_stats[3]);
-		ResetColors();
-		Error.Write(", 4xx: ");
-		SetColors(Color.Red, Color.DefaultBackgroundColor);
-		Error.Write(_stats[4]);
-		ResetColors();
-		Error.Write(", 5xx: ");
-		SetColors(Color.Red, Color.DefaultBackgroundColor);
-		Error.Write(_stats[5]);
-		ResetColors();
-		Error.Write(", others: ");
-		SetColors(Color.Magenta, Color.DefaultBackgroundColor);
-		Error.Write(_stats[0]);
-		ResetColors();
-		NewLine(OutputPipe.Error);
-		// Reset location
-		GoToLine(currentLine);
+			// Line 2
+			Error.Write("1xx: ");
+			SetColors(Color.White, Color.DefaultBackgroundColor);
+			Error.Write(_stats[1]);
+			ResetColors();
+			Error.Write(", 2xx: ");
+			SetColors(Color.Green, Color.DefaultBackgroundColor);
+			Error.Write(_stats[2]);
+			ResetColors();
+			Error.Write(", 3xx: ");
+			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+			Error.Write(_stats[3]);
+			ResetColors();
+			Error.Write(", 4xx: ");
+			SetColors(Color.Red, Color.DefaultBackgroundColor);
+			Error.Write(_stats[4]);
+			ResetColors();
+			Error.Write(", 5xx: ");
+			SetColors(Color.Red, Color.DefaultBackgroundColor);
+			Error.Write(_stats[5]);
+			ResetColors();
+			Error.Write(", others: ");
+			SetColors(Color.Magenta, Color.DefaultBackgroundColor);
+			Error.Write(_stats[0]);
+			ResetColors();
+			NewLine(OutputPipe.Error);
+			// Reset location
+			GoToLine(currentLine);
+		}
 	}
 
 	/// <summary>
 	/// Prints the initial metrics to establish ui
 	/// </summary>
-	[MethodImpl(MethodImplOptions.Synchronized)]
 	private void PrintInitialMetrics() {
-		var currentLine = GetCurrentLine();
-		// Clear
-		ClearNextLines(2, OutputPipe.Error);
-		// Line 1
-		WriteLine(["Completed: ", "0" * Color.Yellow, $"/{_requestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow], OutputPipe.Error);
+		lock (_lock) {
+			var currentLine = GetCurrentLine();
+			// Clear
+			ClearNextLines(2, OutputPipe.Error);
+			// Line 1
+			WriteLine(["Completed: ", "0" * Color.Yellow, $"/{_requestCount}, SR: ", "0%" * Color.Red, ", ETA: ", "NaN" * Color.Yellow], OutputPipe.Error);
 
-		// Line 2
-		WriteLine(["1xx: ", "0" * Color.White, ", 2xx: ", "0" * Color.Green, ", 3xx: ", "0" * Color.Yellow, ", 4xx: ", "0" * Color.Red, ", 5xx: ", "0" * Color.Red, ", others: ", "0" * Color.Magenta], OutputPipe.Error);
-		// Reset location
-		GoToLine(currentLine);
+			// Line 2
+			WriteLine(["1xx: ", "0" * Color.White, ", 2xx: ", "0" * Color.Green, ", 3xx: ", "0" * Color.Yellow, ", 4xx: ", "0" * Color.Red, ", 5xx: ", "0" * Color.Red, ", others: ", "0" * Color.Magenta], OutputPipe.Error);
+			// Reset location
+			GoToLine(currentLine);
+		}
 	}
 
     /// <inheritdoc />

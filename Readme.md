@@ -126,8 +126,9 @@ Options:
   -v, --verbose    : display verbose output (default: false)
   -o, --output     : output folder (default: results)
 Special:
-  get-sample       : use as command - generates sample file
-  check-for-updates: use as command - checks for updates
+  get-sample       : command - generates sample file
+  get-schema       : command - generates a json schema file
+  check-for-updates: command - checks for updates
   --noop           : print selected configuration but don't run
   -u, --url        : override the url of the request
   -h, --help       : print this help text

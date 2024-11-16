@@ -23,14 +23,14 @@ public static class Exporter {
         try {
           using var doc = JsonDocument.Parse(content);
           var root = doc.RootElement;
-          var json = JsonSerializer.Serialize(root, JsonContext.Default.JsonElement);
+          var json = JsonSerializer.Serialize(root, InputJsonContext.Default.JsonElement);
           content = $"<pre>{json}</pre>";
         } catch (JsonException) { } // Ignore - Keep content as is
       }
       content = content.Replace('\'', '\"');
     } else {
       frameTitle = "Exception:";
-      content = $"<pre>{JsonContext.SerializeException(result.Exception)}</pre>";
+      content = $"<pre>{DefaultJsonContext.SerializeException(result.Exception)}</pre>";
     }
     string contentFrame = content == string.Empty ?
 """

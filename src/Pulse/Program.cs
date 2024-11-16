@@ -7,7 +7,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 internal class Program {
-    internal const string VERSION = "1.0.6.0";
+    internal const string VERSION = "1.0.7.0";
 
     private static async Task<int> Main(string[] args) {
         using CancellationTokenSource globalCTS = new();
@@ -45,8 +45,7 @@ internal class Program {
             GoToLine(firstLine);
             ClearNextLines(4, OutputPipe.Out);
             ClearNextLines(4, OutputPipe.Error);
-            WriteLine("Unexpected error! Contact developer at dusrdev@gmail.com" * Color.Red, OutputPipe.Error);
-            WriteLine("And provide the following output:" * Color.Red, OutputPipe.Error);
+            WriteLine("Unexpected exception! Contact developer at dusrdev@gmail.com and provide the following:" * Color.Red, OutputPipe.Error);
             NewLine(OutputPipe.Error);
             Helper.PrintException(StrippedException.FromException(e));
             return 1;

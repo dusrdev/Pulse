@@ -5,7 +5,6 @@ using Pulse.Configuration;
 using static PrettyConsole.Console;
 using PrettyConsole;
 using static Pulse.Core.IPulseMonitor;
-using System.Runtime.CompilerServices;
 
 namespace Pulse.Core;
 
@@ -39,6 +38,8 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 	private readonly Request _requestRecipe;
 	private readonly RequestExecutionContext _requestExecutionContext;
 
+	private readonly Lock _lock = new();
+
 	/// <summary>
 	/// Creates a new verbose pulse monitor
 	/// </summary>
@@ -66,24 +67,26 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 		_results.Push(result);
 	}
 
-	[MethodImpl(MethodImplOptions.Synchronized)]
-	private static void PrintPreRequest(int requestId) {
-		Error.Write("Sending request id: ");
-		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.WriteLine(requestId);
-		ResetColors();
+	private void PrintPreRequest(int requestId) {
+		lock (_lock) {
+			Error.Write("Sending request id: ");
+			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+			Error.WriteLine(requestId);
+			ResetColors();
+		}
 	}
 
-	[MethodImpl(MethodImplOptions.Synchronized)]
-	private static void PrintPostRequest(int requestId, int statusCode) {
-		Error.Write("Received response id: ");
-		SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-		Error.Write(requestId);
-		ResetColors();
-		Error.Write(", status code: ");
-		SetColors(Helper.GetStatusCodeBasedColor(statusCode), Color.DefaultBackgroundColor);
-		Error.WriteLine(statusCode);
-		ResetColors();
+	private void PrintPostRequest(int requestId, int statusCode) {
+		lock (_lock) {
+			Error.Write("Received response id: ");
+			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
+			Error.Write(requestId);
+			ResetColors();
+			Error.Write(", status code: ");
+			SetColors(Helper.GetStatusCodeBasedColor(statusCode), Color.DefaultBackgroundColor);
+			Error.WriteLine(statusCode);
+			ResetColors();
+		}
 	}
 
     /// <inheritdoc />

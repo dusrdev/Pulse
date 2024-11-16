@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.0.7.0
+
+- Added `get-schema` command to generate a json schema file
+- Implemented a workaround for calculating the content length of a response when not provider in the response headers - only viable when exporting results
+- Implemented a recursive exception tracking mechanism allow for better error reporting
+- Removed redundant empty lines before summary output in `--verbose` mode
+- Implemented more efficient locking mechanism for output synchronization
+
 ## Version 1.0.6.0
 
 - Updated to .NET 9.0

@@ -26,121 +26,126 @@ public sealed class PulseSummary {
 	/// </summary>
 	public required Parameters Parameters { get; init; }
 
+	private readonly Lock _lock = new();
+
 	/// <summary>
 	/// Produces a summary, and saves unique requests if export is enabled.
 	/// </summary>
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
-	[MethodImpl(MethodImplOptions.Synchronized)]
 	public (bool exportRequired, HashSet<Response> uniqueRequests) Summarize() {
 		var completed = Result.Results.Count;
 		if (completed is 1) {
 			return SummarizeSingle();
 		}
 
-		HashSet<Response> uniqueRequests = Parameters.Export
-												? new HashSet<Response>(new ResponseComparer(Parameters))
-												: [];
-		Dictionary<HttpStatusCode, int> statusCounter = [];
-		double minLatency = double.MaxValue, maxLatency = double.MinValue, avgLatency = 0;
-		double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
-		double multiplier = 1 / (double)completed;
-		long totalSize = 0;
-		int peakConcurrentConnections = 0;
+		lock (_lock) {
+			HashSet<Response> uniqueRequests = Parameters.Export
+													? new HashSet<Response>(new ResponseComparer(Parameters))
+													: [];
+			Dictionary<HttpStatusCode, int> statusCounter = [];
+			double minLatency = double.MaxValue, maxLatency = double.MinValue, avgLatency = 0;
+			double minSize = double.MaxValue, maxSize = double.MinValue, avgSize = 0;
+			double multiplier = 1 / (double)completed;
+			long totalSize = 0;
+			int peakConcurrentConnections = 0;
 
-		var currentLine = GetCurrentLine();
+			var currentLine = GetCurrentLine();
 
 #if !DEBUG
 		OverrideCurrentLine(["Cross referencing results..."], OutputPipe.Error);
 #endif
-		foreach (var result in Result.Results) {
-			uniqueRequests.Add(result);
-			peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
-			totalSize += RequestSizeInBytes;
-			// duration
-			var latency = result.Latency.TotalMilliseconds;
-			minLatency = Math.Min(minLatency, latency);
-			maxLatency = Math.Max(maxLatency, latency);
-			avgLatency += multiplier * latency;
-			// size
-			var size = result.ContentLength;
-			if (size > 0) {
-				minSize = Math.Min(minSize, size);
-				maxSize = Math.Max(maxSize, size);
-				avgSize += multiplier * size;
-				if (Parameters.Export) {
-					totalSize += size;
+			foreach (var result in Result.Results) {
+				uniqueRequests.Add(result);
+				peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
+				totalSize += RequestSizeInBytes;
+				// duration
+				var latency = result.Latency.TotalMilliseconds;
+				minLatency = Math.Min(minLatency, latency);
+				maxLatency = Math.Max(maxLatency, latency);
+				avgLatency += multiplier * latency;
+				// size
+				var size = result.ContentLength;
+				if (size > 0) {
+					minSize = Math.Min(minSize, size);
+					maxSize = Math.Max(maxSize, size);
+					avgSize += multiplier * size;
+					if (Parameters.Export) {
+						totalSize += size;
+					}
 				}
-			}
 
-			var statusCode = result.StatusCode;
-			statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
-		}
+				var statusCode = result.StatusCode;
+				statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
+			}
 #if !DEBUG
 		OverrideCurrentLine(["Cross referencing results...", " done!" * Color.Green], OutputPipe.Error);
 		OverrideCurrentLine([]);
 #endif
-		maxSize = Math.Max(0, maxSize);
-		minSize = Math.Min(minSize, maxSize);
+			maxSize = Math.Max(0, maxSize);
+			minSize = Math.Min(minSize, maxSize);
 
-		Func<double, string> getSize = Utils.Strings.FormatBytes;
-		double throughput = totalSize / Result.TotalDuration.TotalSeconds;
+			Func<double, string> getSize = Utils.Strings.FormatBytes;
+			double throughput = totalSize / Result.TotalDuration.TotalSeconds;
 
-		ClearNextLines(3, OutputPipe.Error);
-		if (Parameters.Verbose) {
-			NewLine(OutputPipe.Error);
-		}
-
-		WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
-		WriteLine(["Peak concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
-		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Helper.GetPercentageBasedColor(Result.SuccessRate)]);
-		WriteLine(["Latency:       Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
-		WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
-		WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
-		Out.WriteLine("Status codes:");
-		foreach (var kvp in statusCounter) {
-			var key = (int)kvp.Key;
-			if (key is 0) {
-				WriteLine([$" {key}" * Color.Magenta, $" --> {kvp.Value}	[StatusCode 0 = Exception]"]);
+			if (Parameters.Verbose) {
+				NewLine(OutputPipe.Error);
 			} else {
-				WriteLine([$"	{key}" * Helper.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
+				ClearNextLines(3, OutputPipe.Out);
 			}
-		}
-		NewLine();
 
-		return (Parameters.Export, uniqueRequests);
+			WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
+			WriteLine(["Peak concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
+			WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
+			WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Helper.GetPercentageBasedColor(Result.SuccessRate)]);
+			WriteLine(["Latency:       Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
+			WriteLine(["Content Size:  Min: ", getSize(minSize) * Color.Cyan, ", Avg: ", getSize(avgSize) * Color.Yellow, ", Max: ", getSize(maxSize) * Color.Red]);
+			WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
+			Out.WriteLine("Status codes:");
+			foreach (var kvp in statusCounter) {
+				var key = (int)kvp.Key;
+				if (key is 0) {
+					WriteLine([$" {key}" * Color.Magenta, $" --> {kvp.Value}	[StatusCode 0 = Exception]"]);
+				} else {
+					WriteLine([$"	{key}" * Helper.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
+				}
+			}
+			NewLine();
+
+			return (Parameters.Export, uniqueRequests);
+		}
 	}
 
 	/// <summary>
 	/// Produces a summary for a single result
 	/// </summary>
 	/// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
-	[MethodImpl(MethodImplOptions.Synchronized)]
 	public (bool exportRequired, HashSet<Response> uniqueRequests) SummarizeSingle() {
-		var result = Result.Results.First();
-		double duration = result.Latency.TotalMilliseconds;
-		var statusCode = result.StatusCode;
+		lock (_lock) {
+			var result = Result.Results.First();
+			double duration = result.Latency.TotalMilliseconds;
+			var statusCode = result.StatusCode;
 
-		ClearNextLines(3, OutputPipe.Out);
-		WriteLine(["Request count: ", "1" * Color.Yellow]);
-		WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
-		if ((int)statusCode is >= 200 and < 300) {
-			WriteLine(["Success: ", "true" * Color.Green]);
-		} else {
-			WriteLine(["Success: ", "false" * Color.Red]);
+			ClearNextLines(3, OutputPipe.Out);
+			WriteLine(["Request count: ", "1" * Color.Yellow]);
+			WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
+			if ((int)statusCode is >= 200 and < 300) {
+				WriteLine(["Success: ", "true" * Color.Green]);
+			} else {
+				WriteLine(["Success: ", "false" * Color.Red]);
+			}
+			WriteLine(["Latency:      ", $"{duration:0.##}ms" * Color.Cyan]);
+			WriteLine(["Content Size: ", Utils.Strings.FormatBytes(result.ContentLength) * Color.Cyan]);
+			if (statusCode is 0) {
+				WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
+			} else {
+				WriteLine(["Status code: ", $"{statusCode}" * Helper.GetStatusCodeBasedColor((int)statusCode)]);
+			}
+			NewLine();
+
+			var uniqueRequests = new HashSet<Response>(1) { result };
+
+			return (Parameters.Export, uniqueRequests);
 		}
-		WriteLine(["Latency:      ", $"{duration:0.##}ms" * Color.Cyan]);
-		WriteLine(["Content Size: ", Utils.Strings.FormatBytes(result.ContentLength) * Color.Cyan]);
-		if (statusCode is 0) {
-			WriteLine(["Status code: ", "0 [Exception]" * Color.Red]);
-		} else {
-			WriteLine(["Status code: ", $"{statusCode}" * Helper.GetStatusCodeBasedColor((int)statusCode)]);
-		}
-		NewLine();
-
-		var uniqueRequests = new HashSet<Response>(1) { result };
-
-		return (Parameters.Export, uniqueRequests);
 	}
 
 	/// <summary>

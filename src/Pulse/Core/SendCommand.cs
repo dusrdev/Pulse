@@ -4,6 +4,7 @@ using Sharpify;
 using PrettyConsole;
 using static PrettyConsole.Console;
 using System.Text.Json;
+using System.Text.Json.Schema;
 
 namespace Pulse.Core;
 
@@ -24,7 +25,7 @@ public sealed class SendCommand : Command {
 	public override string Name => string.Empty;
 	public override string Description => string.Empty;
 	public override string Usage =>
-	$"""
+	"""
 	Pulse [RequestFile] [Options]
 
 	RequestFile:
@@ -44,8 +45,9 @@ public sealed class SendCommand : Command {
 	  -v, --verbose    : display verbose output (default: false)
 	  -o, --output     : output folder (default: results)
 	Special:
-	  get-sample       : use as command - generates sample file
-	  check-for-updates: use as command - checks for updates
+	  get-sample       : command - generates sample file
+	  get-schema       : command - generates a json schema file
+	  check-for-updates: command - checks for updates
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override the url of the request
 	  -h, --help       : print this help text
@@ -99,7 +101,7 @@ public sealed class SendCommand : Command {
 	/// <returns></returns>
 	internal static Result<RequestDetails> GetRequestDetails(string requestSource, Arguments args) {
 		var path = Path.GetFullPath(requestSource);
-		var result = JsonContext.TryGetRequestDetailsFromFile(path);
+		var result = InputJsonContext.TryGetRequestDetailsFromFile(path);
 		if (args.TryGetValue(["u", "url"], out string url)) {
 			result.Value!.Request.Url = url;
 		}
@@ -163,11 +165,20 @@ public sealed class SendCommand : Command {
 	}
 
 	internal static readonly Dictionary<string, Func<CancellationToken, ValueTask>> SubCommands = new(2, StringComparer.OrdinalIgnoreCase) {
-		["get-sample"] = async (token) => {
+		["get-sample"] = async token => {
 			var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
-			var json = JsonSerializer.Serialize(new RequestDetails(), JsonContext.Default.RequestDetails);
+			var json = JsonSerializer.Serialize(new RequestDetails(), InputJsonContext.Default.RequestDetails);
 			await File.WriteAllTextAsync(path, json, token);
 			WriteLine(["Sample request generated at ", path * Color.Yellow]);
+		},
+		["get-schema"] = async token => {
+			var path = Path.Join(Directory.GetCurrentDirectory(), "schema.json");
+			var options = new JsonSchemaExporterOptions {
+				TreatNullObliviousAsNonNullable = true,
+			};
+			var schema = InputJsonContext.Default.RequestDetails.GetJsonSchemaAsNode(options).ToString();
+			await File.WriteAllTextAsync(path, schema, token);
+			WriteLine(["Schema generated at ", path * Color.Yellow]);
 		},
 		["check-for-updates"] = async token => {
 			using var client = new HttpClient();
@@ -177,7 +188,7 @@ public sealed class SendCommand : Command {
 			using var response = await client.SendAsync(message, token);
 			if (response.IsSuccessStatusCode) {
 				var json = await response.Content.ReadAsStringAsync(token);
-				var result = JsonContext.DeserializeVersion(json);
+				var result = DefaultJsonContext.DeserializeVersion(json);
 				if (result.IsFail) {
 					return;
 				}
