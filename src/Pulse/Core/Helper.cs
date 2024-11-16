@@ -2,6 +2,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 
 using Pulse.Configuration;
+using System.Net;
 
 
 namespace Pulse.Core;
@@ -72,14 +73,41 @@ public static class Helper {
     /// Prints the exception
     /// </summary>
     /// <param name="e"></param>
-    public static void PrintException(this StrippedException e) {
+    public static void PrintException(this StrippedException e, int indent = 0) {
+        Span<char> padding = stackalloc char[indent];
+        padding.Fill(' ');
+        Error.Write(padding);
         WriteLine(["Exception Type" * Color.Yellow, ": ", e.Type], OutputPipe.Error);
+        Error.Write(padding);
         WriteLine(["Message" * Color.Yellow, ": ", e.Message], OutputPipe.Error);
-        if (e.Details.Count > 0) {
-            WriteLine("Details:", OutputPipe.Error);
-            foreach (var detail in e.Details) {
-                WriteLine(["  ", detail.Key * Color.Yellow, ": ", detail.Value], OutputPipe.Error);
-            }
+        if (e.Detail is not null) {
+            Error.Write(padding);
+            WriteLine(["Detail" * Color.Yellow, ": ", e.Detail], OutputPipe.Error);
         }
+        if (e.InnerException is null or { IsDefault: true }) {
+            return;
+        }
+        Error.Write(padding);
+        Error.WriteLine("Inner Exception:");
+        PrintException(e.InnerException, indent + 2);
+    }
+
+    /// <summary>
+    /// Returns an exception detail if any
+    /// </summary>
+    /// <param name="details"></param>
+    /// <param name="exception"></param>
+    public static string? AddExceptionDetail(Exception exception) {
+        switch (exception) {
+            case HttpRequestException: {
+                    var e = exception as HttpRequestException;
+                    return $"HttpRequestError: {e!.HttpRequestError}";
+                }
+            case WebException: {
+                    var e = exception as WebException;
+                    return $"WebExceptionStatus: {e!.Status}";
+                }
+        }
+        return null;
     }
 }
