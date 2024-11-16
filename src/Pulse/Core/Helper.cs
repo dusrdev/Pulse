@@ -73,7 +73,13 @@ public static class Helper {
     /// </summary>
     /// <param name="e"></param>
     public static void PrintException(this StrippedException e) {
-        WriteLine(["Exception Type: " * Color.Yellow, e.Type], OutputPipe.Error);
-        WriteLine(["Message: " * Color.Yellow, e.Message], OutputPipe.Error);
+        WriteLine(["Exception Type" * Color.Yellow, ": ", e.Type], OutputPipe.Error);
+        WriteLine(["Message" * Color.Yellow, ": ", e.Message], OutputPipe.Error);
+        if (e.Details.Count > 0) {
+            WriteLine("Details:", OutputPipe.Error);
+            foreach (var detail in e.Details) {
+                WriteLine(["  ", detail.Key * Color.Yellow, ": ", detail.Value], OutputPipe.Error);
+            }
+        }
     }
 }

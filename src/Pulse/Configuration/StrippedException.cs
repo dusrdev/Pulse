@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json.Serialization;
 
 namespace Pulse.Configuration;
@@ -17,6 +18,11 @@ public sealed record StrippedException {
 	/// Message of the exception
 	/// </summary>
 	public readonly string Message;
+
+	/// <summary>
+	/// Details of the exception (if any)
+	/// </summary>
+	public readonly Dictionary<string, string> Details = [];
 
 	/// <summary>
 	/// Indicating whether the exception is the default exception (i.e. no exception)
@@ -43,6 +49,18 @@ public sealed record StrippedException {
 	private StrippedException(Exception exception) {
 		Type = exception.GetType().Name;
 		Message = exception.Message;
+		switch (exception) {
+			case HttpRequestException: {
+					var e = exception as HttpRequestException;
+					Details.Add("HttpRequestError", e!.HttpRequestError.ToString());
+					break;
+				}
+			case WebException: {
+					var e = exception as WebException;
+					Details.Add("WebExceptionStatus", e!.Status.ToString());
+					break;
+				}
+		}
 		IsDefault = false;
 	}
 

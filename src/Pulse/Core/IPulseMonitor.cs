@@ -84,17 +84,11 @@ public interface IPulseMonitor {
 					throw;
 				}
 				var elapsed = Stopwatch.GetElapsedTime(start);
-				exception = new StrippedException(nameof(TimeoutException),
-				$"Request {id} timeout after {elapsed.TotalMilliseconds} ms");
-#if DEBUG
-			} catch (Exception e) {
-				throw e;
-			}
-#else
+				exception = new StrippedException
+				(nameof(TimeoutException), $"Request {id} timeout after {elapsed.TotalMilliseconds} ms");
 			} catch (Exception) {
 				throw;
 			}
-#endif
 			return new Response {
 				Id = id,
 				StatusCode = statusCode,
