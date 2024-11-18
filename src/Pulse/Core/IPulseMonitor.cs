@@ -38,7 +38,7 @@ public interface IPulseMonitor {
 	/// Request execution context
 	/// </summary>
 	internal sealed class RequestExecutionContext {
-		private volatile int _currentConcurrentConnections;
+		private PaddedULong _currentConcurrentConnections;
 
 		/// <summary>
 		/// Sends a request
@@ -59,10 +59,10 @@ public interface IPulseMonitor {
 			using var message = requestRecipe.CreateMessage();
 			long start = Stopwatch.GetTimestamp(), end = 0;
 			try {
-				currentConcurrencyLevel = Interlocked.Increment(ref _currentConcurrentConnections);
+				currentConcurrencyLevel = (int)Interlocked.Increment(ref _currentConcurrentConnections.Value);
 				using var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 				end = Stopwatch.GetTimestamp();
-				Interlocked.Decrement(ref _currentConcurrentConnections);
+				Interlocked.Decrement(ref _currentConcurrentConnections.Value);
 				statusCode = response.StatusCode;
 				headers = response.Headers;
 				var length = response.Content.Headers.ContentLength;

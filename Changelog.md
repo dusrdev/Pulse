@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.0.8.0
+
+- Optimized interlocking variables to match hardware cache line size and reduce thread contention
+
 ## Version 1.0.7.0
 
 - Added `get-schema` command to generate a json schema file
