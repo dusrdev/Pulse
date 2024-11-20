@@ -48,10 +48,10 @@ public sealed class SendCommand : Command {
 	  get-sample       : command - generates sample file
 	  get-schema       : command - generates a json schema file
 	  check-for-updates: command - checks for updates
+	  terms-of-use     : print the terms of use
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override the url of the request
 	  -h, --help       : print this help text
-	  --terms-of-use   : print the terms of use
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
@@ -112,21 +112,7 @@ public sealed class SendCommand : Command {
 	/// Executes the command
 	/// </summary>
 	/// <param name="args"></param>
-	/// <returns></returns>
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
-		if (args.HasFlag("terms-of-use")) {
-			Out.WriteLine(
-				"""
-				By using this tool you agree to take full responsibility for the consequences of its use.
-
-				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
-				responsibility to obey all applicable local, state and federal laws.
-				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
-				"""
-			);
-			return 0;
-		}
-
 		if (!args.TryGetValue(0, out string rf)) {
 			WriteLine("request file or command name must be provided!" * Color.Red, OutputPipe.Error);
 			return 1;
@@ -160,7 +146,6 @@ public sealed class SendCommand : Command {
 
 		WriteLine(Helper.CreateHeader(requestDetails.Request));
 		await Pulse.RunAsync(@params, requestDetails);
-
 		return 0;
 	}
 
@@ -209,6 +194,18 @@ public sealed class SendCommand : Command {
 			} else {
 				WriteLine("Failed to check for updates - server response was not success", OutputPipe.Error);
 			}
+		},
+		["terms-of-use"] = _ => {
+			Out.WriteLine(
+				"""
+				By using this tool you agree to take full responsibility for the consequences of its use.
+
+				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
+				responsibility to obey all applicable local, state and federal laws.
+				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
+				"""
+			);
+			return ValueTask.CompletedTask;
 		}
 	};
 
