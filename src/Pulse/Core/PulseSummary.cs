@@ -124,7 +124,12 @@ public sealed class PulseSummary {
 			double duration = result.Latency.TotalMilliseconds;
 			var statusCode = result.StatusCode;
 
-			ClearNextLines(3, OutputPipe.Out);
+			if (Parameters.Verbose) {
+				NewLine(OutputPipe.Error);
+			} else {
+				ClearNextLines(3, OutputPipe.Out);
+			}
+
 			WriteLine(["Request count: ", "1" * Color.Yellow]);
 			WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 			if ((int)statusCode is >= 200 and < 300) {
