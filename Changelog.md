@@ -2,6 +2,12 @@
 
 ## Version 1.1.0.0
 
+- TODO: add `-raw` option to exports (and check duplicate div with exception/json)
+- TODO: move `changelog` to `history` and create `changelog` for only the latest version
+- TODO: attach (latest)`changelog` as body of new releases
+- TODO: configure release action to use different place to attach version
+- TODO: change version checks to work with (change above)
+- TODO: deprecate previous versions
 - Export styling was reworked for much prettier ui
 - Enhanced styling of verbose progress reporting
 - Optimized interlocking variables to match hardware cache line size and reduce thread contention
