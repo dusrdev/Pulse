@@ -133,6 +133,8 @@ Special:
   --noop           : print selected configuration but don't run
   -u, --url        : override the url of the request
   -h, --help       : print this help text
+Notes:
+  * when "-n" is 1, verbose output is enabled
 ```
 
 - `-v` or `--verbose` - display verbose output, this changes the output format, instead of displaying a dashboard, it prints requests/responses as they are being processed.
