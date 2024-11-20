@@ -3,9 +3,11 @@
 ## Version 1.1.0.0
 
 - Export styling was reworked for much prettier ui
+- Enhanced styling of verbose progress reporting
 - Optimized interlocking variables to match hardware cache line size and reduce thread contention
 - Optimized tasks creation to increase maximum concurrency level
 - `terms-of-use` is now a command, not a flag
+- When `-n` (amount of requests) is set to 1, verbose output will be enforced for better readability
 
 ## Version 1.0.7.0
 
