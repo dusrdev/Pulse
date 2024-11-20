@@ -129,10 +129,10 @@ Special:
   get-sample       : command - generates sample file
   get-schema       : command - generates a json schema file
   check-for-updates: command - checks for updates
+  terms-of-use     : print the terms of use
   --noop           : print selected configuration but don't run
   -u, --url        : override the url of the request
   -h, --help       : print this help text
-  --terms-of-use   : print the terms of use
 ```
 
 - `-v` or `--verbose` - display verbose output, this changes the output format, instead of displaying a dashboard, it prints requests/responses as they are being processed.
