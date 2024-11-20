@@ -104,7 +104,7 @@ public sealed class PulseMonitor : IPulseMonitor {
 			Error.Write(sr);
 			ResetColors();
 			Error.Write("%, ETA: ");
-			Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow, Color.DefaultBackgroundColor);
+			Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow);
 			NewLine(OutputPipe.Error);
 
 			// Line 2

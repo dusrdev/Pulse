@@ -69,7 +69,8 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 
 	private void PrintPreRequest(int requestId) {
 		lock (_lock) {
-			Error.Write("Sending request id: ");
+			Write("--> ", OutputPipe.Error, Color.Yellow);
+			Error.Write("Sent request: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
 			Error.WriteLine(requestId);
 			ResetColors();
@@ -78,7 +79,8 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 
 	private void PrintPostRequest(int requestId, int statusCode) {
 		lock (_lock) {
-			Error.Write("Received response id: ");
+			Write("<-- ", OutputPipe.Error, Color.Cyan);
+			Error.Write("Received response: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
 			Error.Write(requestId);
 			ResetColors();
