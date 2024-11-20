@@ -3,6 +3,8 @@
 ## Version 1.0.8.0
 
 - Optimized interlocking variables to match hardware cache line size and reduce thread contention
+- Optimized tasks creation to increase maximum concurrency level
+- `terms-of-use` is now a command, not a flag
 
 ## Version 1.0.7.0
 
