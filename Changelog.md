@@ -6,6 +6,7 @@
 - Enhanced styling of verbose progress reporting
 - Optimized interlocking variables to match hardware cache line size and reduce thread contention
 - Optimized tasks creation to increase maximum concurrency level
+- Summary will now filter out latency and size IQR outliers
 - `terms-of-use` is now a command, not a flag
 - When `-n` (amount of requests) is set to 1, verbose output will be enforced for better readability
 
