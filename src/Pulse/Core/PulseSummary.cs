@@ -1,7 +1,6 @@
 using System.Net;
 using static PrettyConsole.Console;
 using PrettyConsole;
-using System.Runtime.CompilerServices;
 using Pulse.Configuration;
 using Sharpify;
 
@@ -94,7 +93,7 @@ public sealed class PulseSummary {
 			}
 
 			WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
-			WriteLine(["Peak concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
+			WriteLine(["Concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
 			WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 			WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Helper.GetPercentageBasedColor(Result.SuccessRate)]);
 			WriteLine(["Latency:       Min: ", $"{minLatency:0.##}ms" * Color.Cyan, ", Avg: ", $"{avgLatency:0.##}ms" * Color.Yellow, ", Max: ", $"{maxLatency:0.##}ms" * Color.Red]);
