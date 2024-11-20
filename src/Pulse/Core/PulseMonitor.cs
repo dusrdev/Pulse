@@ -93,7 +93,7 @@ public sealed class PulseMonitor : IPulseMonitor {
 			// Line 1
 			Error.Write("Completed: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-			Error.Write(_responses);
+			Error.Write(_responses.Value);
 			ResetColors();
 			Error.Write('/');
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
@@ -110,27 +110,27 @@ public sealed class PulseMonitor : IPulseMonitor {
 			// Line 2
 			Error.Write("1xx: ");
 			SetColors(Color.White, Color.DefaultBackgroundColor);
-			Error.Write(_stats[1]);
+			Error.Write(_stats[1].Value);
 			ResetColors();
 			Error.Write(", 2xx: ");
 			SetColors(Color.Green, Color.DefaultBackgroundColor);
-			Error.Write(_stats[2]);
+			Error.Write(_stats[2].Value);
 			ResetColors();
 			Error.Write(", 3xx: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-			Error.Write(_stats[3]);
+			Error.Write(_stats[3].Value);
 			ResetColors();
 			Error.Write(", 4xx: ");
 			SetColors(Color.Red, Color.DefaultBackgroundColor);
-			Error.Write(_stats[4]);
+			Error.Write(_stats[4].Value);
 			ResetColors();
 			Error.Write(", 5xx: ");
 			SetColors(Color.Red, Color.DefaultBackgroundColor);
-			Error.Write(_stats[5]);
+			Error.Write(_stats[5].Value);
 			ResetColors();
 			Error.Write(", others: ");
 			SetColors(Color.Magenta, Color.DefaultBackgroundColor);
-			Error.Write(_stats[0]);
+			Error.Write(_stats[0].Value);
 			ResetColors();
 			NewLine(OutputPipe.Error);
 			// Reset location
