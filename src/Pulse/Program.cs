@@ -24,7 +24,7 @@ internal class Program {
                             .UseConsoleAsOutputWriter()
                             .WithMetadata(metadata => metadata.Version = VERSION)
                             .WithCustomHeader(
-                                $"""
+                        """
 						Pulse - A hyper fast general purpose HTTP request tester
 
 						Repository: https://github.com/dusrdev/Pulse
