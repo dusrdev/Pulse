@@ -52,6 +52,8 @@ public sealed class SendCommand : Command {
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override the url of the request
 	  -h, --help       : print this help text
+	Notes:
+	  * when "-n" is 1, verbose output is enabled
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
@@ -76,7 +78,7 @@ public sealed class SendCommand : Command {
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
-		bool verbose = args.HasFlag("v") || args.HasFlag("verbose");
+		bool verbose = args.HasFlag("v") || args.HasFlag("verbose") || requests is 1;
 		return new ParametersBase {
 			Requests = requests,
 			TimeoutInMs = timeoutInMs,
