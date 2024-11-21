@@ -38,7 +38,7 @@ public interface IPulseMonitor {
 	/// Request execution context
 	/// </summary>
 	internal sealed class RequestExecutionContext {
-		private volatile int _currentConcurrentConnections;
+		private PaddedULong _currentConcurrentConnections;
 
 		/// <summary>
 		/// Sends a request
@@ -57,22 +57,49 @@ public interface IPulseMonitor {
 			StrippedException exception = StrippedException.Default;
 			var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
 			using var message = requestRecipe.CreateMessage();
-			long start = Stopwatch.GetTimestamp(), end = 0;
+			long start = Stopwatch.GetTimestamp();
+			TimeSpan elapsed = TimeSpan.Zero;
+			HttpResponseMessage? response = null;
 			try {
-				currentConcurrencyLevel = Interlocked.Increment(ref _currentConcurrentConnections);
-				using var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-				end = Stopwatch.GetTimestamp();
-				Interlocked.Decrement(ref _currentConcurrentConnections);
-				statusCode = response.StatusCode;
-				headers = response.Headers;
-				var length = response.Content.Headers.ContentLength;
+				currentConcurrencyLevel = (int)Interlocked.Increment(ref _currentConcurrentConnections.Value);
+				response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+			} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
+				if (cancellationToken.IsCancellationRequested) {
+					throw;
+				}
+				exception = new StrippedException
+				(nameof(TimeoutException), $"Request {id} interrupted by manual timeout");
+			} catch (Exception) {
+				throw;
+			} finally {
+				Interlocked.Decrement(ref _currentConcurrentConnections.Value);
+			}
+			elapsed = Stopwatch.GetElapsedTime(start);
+			if (!exception.IsDefault) {
+				return new Response {
+					Id = id,
+					StatusCode = statusCode,
+					Headers = headers,
+					Content = content,
+					ContentLength = contentLength,
+					Latency = elapsed,
+					Exception = exception,
+					CurrentConcurrentConnections = currentConcurrencyLevel
+				};
+			}
+
+			try {
+				var r = response!;
+				statusCode = r.StatusCode;
+				headers = r.Headers;
+				var length = r.Content.Headers.ContentLength;
 				if (length.HasValue) {
 					contentLength = length.Value;
 				}
 				if (saveContent) {
-					content = await response.Content.ReadAsStringAsync(cancellationToken);
+					content = await r.Content.ReadAsStringAsync(cancellationToken);
 					if (contentLength == 0) {
-						var charSet = response.Content.Headers.ContentType?.CharSet;
+						var charSet = r.Content.Headers.ContentType?.CharSet;
 						var encoding = charSet is null
 								? Encoding.UTF8 // doesn't exist - fallback to UTF8
 								: Encoding.GetEncoding(charSet); // exist - use server's
@@ -83,11 +110,12 @@ public interface IPulseMonitor {
 				if (cancellationToken.IsCancellationRequested) {
 					throw;
 				}
-				var elapsed = Stopwatch.GetElapsedTime(start);
 				exception = new StrippedException
-				(nameof(TimeoutException), $"Request {id} timeout after {elapsed.TotalMilliseconds} ms");
+				(nameof(TimeoutException), $"Reading request {id} content interrupted by manual timeout");
 			} catch (Exception) {
 				throw;
+			} finally {
+				response?.Dispose();
 			}
 			return new Response {
 				Id = id,
@@ -95,7 +123,7 @@ public interface IPulseMonitor {
 				Headers = headers,
 				Content = content,
 				ContentLength = contentLength,
-				Latency = Stopwatch.GetElapsedTime(start, end),
+				Latency = elapsed,
 				Exception = exception,
 				CurrentConcurrentConnections = currentConcurrencyLevel
 			};

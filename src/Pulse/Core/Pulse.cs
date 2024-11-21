@@ -65,18 +65,21 @@ public static class Pulse {
 
         using var semaphore = new SemaphoreSlim(parameters.MaxConnections);
 
-        var tasks = Enumerable.Range(1, parameters.Requests)
-            .AsParallel()
-            .Select(async requestId => {
-                try {
-                    await semaphore.WaitAsync(cancellationToken);
-                    await monitor.SendAsync(requestId);
-                } finally {
-                    semaphore.Release();
-                }
-            });
+        var tasks = new Task[parameters.Requests];
 
-        await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
+        for (int i = 0; i < parameters.Requests; i++) {
+            await semaphore.WaitAsync(cancellationToken);
+
+#pragma warning disable IDE0053 // Use expression body for lambda expression
+            // lambda expression will change return type
+            tasks[i] = monitor.SendAsync(i + 1).ContinueWith(_ => {
+                semaphore.Release();
+            });
+#pragma warning restore IDE0053 // Use expression body for lambda expression
+
+        }
+
+        await Task.WhenAll(tasks.AsSpan()).WaitAsync(cancellationToken).ConfigureAwait(false);
 
         var result = monitor.Consolidate();
 
@@ -105,11 +108,13 @@ public static class Pulse {
 
         var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
 
-        var tasks = Enumerable.Range(1, parameters.Requests)
-            .AsParallel()
-            .Select(monitor.SendAsync);
+        var tasks = new Task[parameters.Requests];
 
-        await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
+        for (int i = 0; i < parameters.Requests; i++) {
+            tasks[i] = monitor.SendAsync(i + 1);
+        }
+
+        await Task.WhenAll(tasks.AsSpan()).WaitAsync(cancellationToken).ConfigureAwait(false);
 
         var result = monitor.Consolidate();
 

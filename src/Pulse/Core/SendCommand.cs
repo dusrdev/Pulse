@@ -40,6 +40,7 @@ public sealed class SendCommand : Command {
 	      * parallel  = execute requests using maximum resources
 		    -c         : max concurrent connections (default: infinity)
 	  --json           : try to format response content as JSON
+	  --raw            : export raw results (without wrapping in custom html)
 	  -f               : use full equality (slower - default: false)
 	  --no-export      : don't export results (default: false)
 	  -v, --verbose    : display verbose output (default: false)
@@ -48,10 +49,12 @@ public sealed class SendCommand : Command {
 	  get-sample       : command - generates sample file
 	  get-schema       : command - generates a json schema file
 	  check-for-updates: command - checks for updates
+	  terms-of-use     : print the terms of use
 	  --noop           : print selected configuration but don't run
 	  -u, --url        : override the url of the request
 	  -h, --help       : print this help text
-	  --terms-of-use   : print the terms of use
+	Notes:
+	  * when "-n" is 1, verbose output is enabled
 	""";
 
 	internal static ParametersBase ParseParametersArgs(Arguments args) {
@@ -73,10 +76,11 @@ public sealed class SendCommand : Command {
 		args.TryGetValue(["o", "output"], "results", out string outputFolder);
 		maxConnections = Math.Max(maxConnections, ParametersBase.DefaultMaxConnections);
 		bool formatJson = args.HasFlag("json");
+		bool exportRaw = args.HasFlag("raw");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
-		bool verbose = args.HasFlag("v") || args.HasFlag("verbose");
+		bool verbose = args.HasFlag("v") || args.HasFlag("verbose") || requests is 1;
 		return new ParametersBase {
 			Requests = requests,
 			TimeoutInMs = timeoutInMs,
@@ -85,6 +89,7 @@ public sealed class SendCommand : Command {
 			MaxConnections = maxConnections,
 			MaxConnectionsModified = batchSizeModified,
 			FormatJson = formatJson,
+			ExportRaw = exportRaw,
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,
 			NoOp = noop,
@@ -112,21 +117,7 @@ public sealed class SendCommand : Command {
 	/// Executes the command
 	/// </summary>
 	/// <param name="args"></param>
-	/// <returns></returns>
 	public override async ValueTask<int> ExecuteAsync(Arguments args) {
-		if (args.HasFlag("terms-of-use")) {
-			Out.WriteLine(
-				"""
-				By using this tool you agree to take full responsibility for the consequences of its use.
-
-				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
-				responsibility to obey all applicable local, state and federal laws.
-				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
-				"""
-			);
-			return 0;
-		}
-
 		if (!args.TryGetValue(0, out string rf)) {
 			WriteLine("request file or command name must be provided!" * Color.Red, OutputPipe.Error);
 			return 1;
@@ -160,11 +151,10 @@ public sealed class SendCommand : Command {
 
 		WriteLine(Helper.CreateHeader(requestDetails.Request));
 		await Pulse.RunAsync(@params, requestDetails);
-
 		return 0;
 	}
 
-	internal static readonly Dictionary<string, Func<CancellationToken, ValueTask>> SubCommands = new(2, StringComparer.OrdinalIgnoreCase) {
+	internal static readonly Dictionary<string, Func<CancellationToken, ValueTask>> SubCommands = new(4, StringComparer.OrdinalIgnoreCase) {
 		["get-sample"] = async token => {
 			var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
 			var json = JsonSerializer.Serialize(new RequestDetails(), InputJsonContext.Default.RequestDetails);
@@ -190,12 +180,10 @@ public sealed class SendCommand : Command {
 				var json = await response.Content.ReadAsStringAsync(token);
 				var result = DefaultJsonContext.DeserializeVersion(json);
 				if (result.IsFail) {
+					WriteLine(result.Message, OutputPipe.Error);
 					return;
 				}
-				if (!Version.TryParse(result.Message, out Version? remoteVersion)) {
-					WriteLine("Failed to parse remote version.", OutputPipe.Error);
-					return;
-				}
+				var remoteVersion = result.Value;
 				var currentVersion = Version.Parse(Program.VERSION);
 				if (currentVersion < remoteVersion) {
 					WriteLine("A new version of Pulse is available!" * Color.Yellow);
@@ -209,6 +197,18 @@ public sealed class SendCommand : Command {
 			} else {
 				WriteLine("Failed to check for updates - server response was not success", OutputPipe.Error);
 			}
+		},
+		["terms-of-use"] = _ => {
+			Out.WriteLine(
+				"""
+				By using this tool you agree to take full responsibility for the consequences of its use.
+
+				Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
+				responsibility to obey all applicable local, state and federal laws.
+				Developers assume no liability and are not responsible for any misuse or damage caused by this program.
+				"""
+			);
+			return ValueTask.CompletedTask;
 		}
 	};
 

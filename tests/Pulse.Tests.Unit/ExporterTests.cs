@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 using Pulse.Configuration;
 
@@ -165,6 +166,140 @@ public class ExporterTests {
             file.Length.Should().Be(1, "because 1 file was created");
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
             fileContent.Should().Contain("Hello World", "because the content is present");
+        } finally {
+            dirInfo.Delete(true);
+        }
+    }
+
+    [Fact]
+    public async Task Exporter_ExportHtmlAsync_RawHtml() {
+        // Arrange
+        var dirInfo = Directory.CreateTempSubdirectory();
+        try {
+            const string content = "Hello World";
+
+            var response = new Response {
+                Id = 1337,
+                StatusCode = HttpStatusCode.OK,
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
+                Headers = [],
+                Exception = StrippedException.Default,
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
+            };
+
+            // Act
+            await Exporter.ExportRawAsync(response, dirInfo.FullName);
+
+            // Assert
+            var file = dirInfo.GetFiles();
+            file.Length.Should().Be(1, "because 1 file was created");
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            fileContent.Should().Be("Hello World", "because the content and only the content is present");
+        } finally {
+            dirInfo.Delete(true);
+        }
+    }
+
+    [Fact]
+    public async Task Exporter_ExportHtmlAsync_RawJson() {
+        // Arrange
+        var dirInfo = Directory.CreateTempSubdirectory();
+        try {
+            var options = new JsonSerializerOptions {
+                WriteIndented = false
+            };
+
+            var content = JsonSerializer.Serialize(new ParametersBase(), options);
+
+            var response = new Response {
+                Id = 1337,
+                StatusCode = HttpStatusCode.OK,
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
+                Headers = [],
+                Exception = StrippedException.Default,
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
+            };
+
+            // Act
+            await Exporter.ExportRawAsync(response, dirInfo.FullName);
+
+            // Assert
+            var file = dirInfo.GetFiles();
+            file.Length.Should().Be(1, "because 1 file was created");
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            fileContent.Should().Be(content, "because the content and only the content is present");
+            fileContent.Should().NotContain(Environment.NewLine, "because the content is not formatted");
+        } finally {
+            dirInfo.Delete(true);
+        }
+    }
+
+    [Fact]
+    public async Task Exporter_ExportHtmlAsync_RawJson_Formatted() {
+        // Arrange
+        var dirInfo = Directory.CreateTempSubdirectory();
+        try {
+            var options = new JsonSerializerOptions {
+                WriteIndented = false
+            };
+
+            var content = JsonSerializer.Serialize(new ParametersBase(), options);
+
+            var response = new Response {
+                Id = 1337,
+                StatusCode = HttpStatusCode.OK,
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
+                Headers = [],
+                Exception = StrippedException.Default,
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
+            };
+
+            // Act
+            await Exporter.ExportRawAsync(response, dirInfo.FullName, true);
+
+            // Assert
+            var file = dirInfo.GetFiles();
+            file.Length.Should().Be(1, "because 1 file was created");
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            fileContent.Should().Contain(Environment.NewLine, "because the content is formatted");
+        } finally {
+            dirInfo.Delete(true);
+        }
+    }
+
+    [Fact]
+    public async Task Exporter_ExportHtmlAsync_RawJson_Exception() {
+        // Arrange
+        var dirInfo = Directory.CreateTempSubdirectory();
+        try {
+            var content = string.Empty;
+
+            var response = new Response {
+                Id = 1337,
+                StatusCode = HttpStatusCode.OK,
+                Content = content,
+                ContentLength = Encoding.Default.GetByteCount(content),
+                Headers = [],
+                Exception = new StrippedException("test", "test"),
+                Latency = TimeSpan.FromSeconds(1),
+                CurrentConcurrentConnections = 1
+            };
+
+            // Act
+            await Exporter.ExportRawAsync(response, dirInfo.FullName, true);
+
+            // Assert
+            var file = dirInfo.GetFiles();
+            file.Length.Should().Be(1, "because 1 file was created");
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            fileContent.Should().Contain("test", "because the exception is present");
+            fileContent.Should().Contain(Environment.NewLine, "because the content is formatted");
         } finally {
             dirInfo.Delete(true);
         }

@@ -25,12 +25,12 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 	/// <summary>
 	/// Current number of responses received
 	/// </summary>
-	private volatile int _responses;
+	private PaddedULong _responses;
 
 	/// <summary>
 	/// Current number of successful responses received
 	/// </summary>
-	private volatile int _successes;
+	private PaddedULong _successes;
 
 	private readonly bool _saveContent;
 	private readonly CancellationToken _cancellationToken;
@@ -57,10 +57,10 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
     public async Task SendAsync(int requestId) {
         PrintPreRequest(requestId);
 		var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken);
-		Interlocked.Increment(ref _responses);
+		Interlocked.Increment(ref _responses.Value);
 		// Increment stats
 		if (result.StatusCode is HttpStatusCode.OK) {
-			Interlocked.Increment(ref _successes);
+			Interlocked.Increment(ref _successes.Value);
 		}
 		int status = (int)result.StatusCode;
         PrintPostRequest(requestId, status);
@@ -69,7 +69,8 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 
 	private void PrintPreRequest(int requestId) {
 		lock (_lock) {
-			Error.Write("Sending request id: ");
+			Write("--> ", OutputPipe.Error, Color.Yellow);
+			Error.Write("Sent request: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
 			Error.WriteLine(requestId);
 			ResetColors();
@@ -78,7 +79,8 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
 
 	private void PrintPostRequest(int requestId, int statusCode) {
 		lock (_lock) {
-			Error.Write("Received response id: ");
+			Write("<-- ", OutputPipe.Error, Color.Cyan);
+			Error.Write("Received response: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
 			Error.Write(requestId);
 			ResetColors();
@@ -92,7 +94,7 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
     /// <inheritdoc />
 	public PulseResult Consolidate() => new() {
 		Results = _results,
-		SuccessRate = Math.Round((double)_successes / _responses * 100, 2),
+		SuccessRate = Math.Round((double)_successes.Value / _responses.Value * 100, 2),
 		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
 }

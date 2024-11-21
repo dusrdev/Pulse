@@ -29,7 +29,7 @@ public sealed class PulseMonitor : IPulseMonitor {
 	/// <summary>
 	/// Current number of responses received
 	/// </summary>
-	private volatile int _responses;
+	private PaddedULong _responses;
 
 	// response status code counter
 	// 0: exception
@@ -38,7 +38,7 @@ public sealed class PulseMonitor : IPulseMonitor {
 	// 3: 3xx
 	// 4: 4xx
 	// 5: 5xx
-	private readonly int[] _stats = new int[6];
+	private readonly PaddedULong[] _stats = new PaddedULong[6];
 	private readonly RequestExecutionContext _requestExecutionContext;
 
 	private readonly int _requestCount;
@@ -67,10 +67,10 @@ public sealed class PulseMonitor : IPulseMonitor {
     /// <inheritdoc />
     public async Task SendAsync(int requestId) {
 		var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken);
-		Interlocked.Increment(ref _responses);
+		Interlocked.Increment(ref _responses.Value);
 		// Increment stats
 		int index = (int)result.StatusCode / 100;
-		Interlocked.Increment(ref _stats[index]);
+		Interlocked.Increment(ref _stats[index].Value);
 		// Print metrics
 		PrintMetrics();
 		_results.Push(result);
@@ -83,9 +83,9 @@ public sealed class PulseMonitor : IPulseMonitor {
 		lock (_lock) {
 			var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 
-			var eta = TimeSpan.FromMilliseconds(elapsed / _responses * (_requestCount - _responses));
+			var eta = TimeSpan.FromMilliseconds(elapsed / _responses.Value * (_requestCount - (int)_responses.Value));
 
-			double sr = Math.Round((double)_stats[2] / _responses * 100, 2);
+			double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2);
 
 			var currentLine = GetCurrentLine();
 			// Clear
@@ -93,7 +93,7 @@ public sealed class PulseMonitor : IPulseMonitor {
 			// Line 1
 			Error.Write("Completed: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-			Error.Write(_responses);
+			Error.Write(_responses.Value);
 			ResetColors();
 			Error.Write('/');
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
@@ -104,33 +104,33 @@ public sealed class PulseMonitor : IPulseMonitor {
 			Error.Write(sr);
 			ResetColors();
 			Error.Write("%, ETA: ");
-			Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow, Color.DefaultBackgroundColor);
+			Write(Utils.DateAndTime.FormatTimeSpan(eta, _etaBuffer), OutputPipe.Error, Color.Yellow);
 			NewLine(OutputPipe.Error);
 
 			// Line 2
 			Error.Write("1xx: ");
 			SetColors(Color.White, Color.DefaultBackgroundColor);
-			Error.Write(_stats[1]);
+			Error.Write(_stats[1].Value);
 			ResetColors();
 			Error.Write(", 2xx: ");
 			SetColors(Color.Green, Color.DefaultBackgroundColor);
-			Error.Write(_stats[2]);
+			Error.Write(_stats[2].Value);
 			ResetColors();
 			Error.Write(", 3xx: ");
 			SetColors(Color.Yellow, Color.DefaultBackgroundColor);
-			Error.Write(_stats[3]);
+			Error.Write(_stats[3].Value);
 			ResetColors();
 			Error.Write(", 4xx: ");
 			SetColors(Color.Red, Color.DefaultBackgroundColor);
-			Error.Write(_stats[4]);
+			Error.Write(_stats[4].Value);
 			ResetColors();
 			Error.Write(", 5xx: ");
 			SetColors(Color.Red, Color.DefaultBackgroundColor);
-			Error.Write(_stats[5]);
+			Error.Write(_stats[5].Value);
 			ResetColors();
 			Error.Write(", others: ");
 			SetColors(Color.Magenta, Color.DefaultBackgroundColor);
-			Error.Write(_stats[0]);
+			Error.Write(_stats[0].Value);
 			ResetColors();
 			NewLine(OutputPipe.Error);
 			// Reset location
@@ -159,7 +159,7 @@ public sealed class PulseMonitor : IPulseMonitor {
     /// <inheritdoc />
 	public PulseResult Consolidate() => new() {
 		Results = _results,
-		SuccessRate = Math.Round((double)_stats[2] / _responses * 100, 2),
+		SuccessRate = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2),
 		TotalDuration = Stopwatch.GetElapsedTime(_start)
 	};
 }

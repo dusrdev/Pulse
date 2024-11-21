@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Pulse.Core;
 
 /// <summary>
@@ -5,7 +7,8 @@ namespace Pulse.Core;
 /// </summary>
 public sealed class ReleaseInfo {
 	/// <summary>
-	/// Body is the version of the release in the case of this repo
+	/// Version is taken from the release tag
 	/// </summary>
-	public string? Body { get; set; }
+	[JsonPropertyName("tag_name")]
+	public string? Version { get; set; }
 }

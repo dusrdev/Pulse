@@ -60,6 +60,11 @@ public record ParametersBase {
 	public bool FormatJson { get; init; }
 
 	/// <summary>
+	/// Indicating whether to export raw results (without wrapping in custom html)
+	/// </summary>
+	public bool ExportRaw { get; init; }
+
+	/// <summary>
 	/// Indicating whether to export results
 	/// </summary>
 	public bool Export { get; init; } = true;
