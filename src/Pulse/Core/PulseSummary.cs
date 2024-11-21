@@ -106,12 +106,12 @@ public sealed class PulseSummary {
 			}
 			WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
 			Out.WriteLine("Status codes:");
-			foreach (var kvp in statusCounter) {
+			foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
 				var key = (int)kvp.Key;
 				if (key is 0) {
-					WriteLine([$" {key}" * Color.Magenta, $" --> {kvp.Value}	[StatusCode 0 = Exception]"]);
+					WriteLine([$"   {key}" * Color.Magenta, $" --> {kvp.Value}  [StatusCode 0 = Exception]"]);
 				} else {
-					WriteLine([$"	{key}" * Helper.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
+					WriteLine([$"   {key}" * Helper.GetStatusCodeBasedColor(key), $" --> {kvp.Value}"]);
 				}
 			}
 			NewLine();
