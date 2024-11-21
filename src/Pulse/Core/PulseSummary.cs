@@ -54,8 +54,15 @@ public sealed class PulseSummary {
 #endif
 			foreach (var result in Result.Results) {
 				uniqueRequests.Add(result);
-				peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
+				var statusCode = result.StatusCode;
+				statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 				totalSize += RequestSizeInBytes;
+				peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
+
+				if (!result.Exception.IsDefault) {
+					continue;
+				}
+
 				// duration
 				var latency = result.Latency.TotalMilliseconds;
 				latencies.Add(latency);
@@ -67,9 +74,6 @@ public sealed class PulseSummary {
 						totalSize += size;
 					}
 				}
-
-				var statusCode = result.StatusCode;
-				statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
 			}
 			var latencySummary = GetSummary(latencies.AsSpan());
 			var sizeSummary = GetSummary(sizes.AsSpan());
