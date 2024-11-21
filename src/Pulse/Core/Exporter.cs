@@ -22,7 +22,7 @@ public static class Exporter {
   }
 
   public static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
-    if (string.IsNullOrEmpty(result.Content)) {
+    if (string.IsNullOrEmpty(result.Content) && result.Exception.IsDefault) {
       return;
     }
 
@@ -31,7 +31,7 @@ public static class Exporter {
     string content;
 
     if (!result.Exception.IsDefault) {
-      content = FormatJson(result.Content).Message;
+      content = DefaultJsonContext.SerializeException(result.Exception);
       extension = "json";
     } else {
       if (formatJson) {
