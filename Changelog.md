@@ -2,10 +2,10 @@
 
 - TEST: add `-raw` option to exports (and check duplicate div with exception/json)
 - [X]: move `changelog` to `history` and create `changelog` for only the latest version
-- [ ]: attach (latest)`changelog` as body of new releases
+- [X]: attach (latest)`changelog` as body of new releases
 - [X]: configure release action to use different place to attach version
-- [ ]: change version checks to work with (change above)
-- [ ]: deprecate previous versions
+- [X]: change version checks to work with (change above)
+- [X]: deprecate previous versions
 - TEST: fix concurrent connections not decrement when exception is thrown
 - Export styling was reworked for much prettier ui
 - Enhanced styling of verbose progress reporting
