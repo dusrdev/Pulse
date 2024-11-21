@@ -8,6 +8,7 @@
 - TODO: configure release action to use different place to attach version
 - TODO: change version checks to work with (change above)
 - TODO: deprecate previous versions
+- TODO: fix concurrent connections not decrement when exception is thrown
 - Export styling was reworked for much prettier ui
 - Enhanced styling of verbose progress reporting
 - Optimized interlocking variables to match hardware cache line size and reduce thread contention
