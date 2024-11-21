@@ -123,7 +123,7 @@ jobs:
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
-          body: ${{ steps.get_version.outputs.version }}
+          body: ./Changelog.md
           files: artifacts/**/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
