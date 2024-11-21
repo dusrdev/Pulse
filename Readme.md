@@ -121,6 +121,7 @@ Options:
       * parallel  = execute requests using maximum resources
         -c         : max concurrent connections (default: infinity)
   --json           : try to format response content as JSON
+  --raw            : export raw results (without wrapping in custom html)
   -f               : use full equality (slower - default: false)
   --no-export      : don't export results (default: false)
   -v, --verbose    : display verbose output (default: false)
@@ -137,6 +138,8 @@ Notes:
   * when "-n" is 1, verbose output is enabled
 ```
 
+- `--json` - try to format response content as JSON
+- `--raw` - export raw results (without wrapping in custom html)
 - `-v` or `--verbose` - display verbose output, this changes the output format, instead of displaying a dashboard, it prints requests/responses as they are being processed.
 - `f` - use fully equality: by default because response content can be entire webpages, it can be a time consuming and resource heavy operation to make sure all responses are unique, so by default a simpler check is used which only compares the content length - for most cases this is sufficient since you usually expect the same content for the requests, but you can opt in for full equality.
 - `u` or `url` - can be used to override the url of the request, this can be useful if you want to keep all other settings the same, and quickly change the url of the request.
