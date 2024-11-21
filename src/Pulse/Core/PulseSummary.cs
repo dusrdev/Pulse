@@ -249,7 +249,7 @@ public sealed class PulseSummary {
 			CancellationToken = token
 		};
 
-		await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportHtmlAsync(request, directory, Parameters.FormatJson, tkn));
+		await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, Parameters, tkn));
 
 		WriteLine([$"{count}" * Color.Cyan, " unique responses exported to ", Parameters.OutputFolder * Color.Yellow, " folder"]);
 	}

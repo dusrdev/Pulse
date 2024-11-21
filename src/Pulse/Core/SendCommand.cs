@@ -40,6 +40,7 @@ public sealed class SendCommand : Command {
 	      * parallel  = execute requests using maximum resources
 		    -c         : max concurrent connections (default: infinity)
 	  --json           : try to format response content as JSON
+	  --raw            : export raw results (without wrapping in custom html)
 	  -f               : use full equality (slower - default: false)
 	  --no-export      : don't export results (default: false)
 	  -v, --verbose    : display verbose output (default: false)
@@ -75,6 +76,7 @@ public sealed class SendCommand : Command {
 		args.TryGetValue(["o", "output"], "results", out string outputFolder);
 		maxConnections = Math.Max(maxConnections, ParametersBase.DefaultMaxConnections);
 		bool formatJson = args.HasFlag("json");
+		bool exportRaw = args.HasFlag("raw");
 		bool exportFullEquality = args.HasFlag("f");
 		bool disableExport = args.HasFlag("no-export");
 		bool noop = args.HasFlag("noop");
@@ -87,6 +89,7 @@ public sealed class SendCommand : Command {
 			MaxConnections = maxConnections,
 			MaxConnectionsModified = batchSizeModified,
 			FormatJson = formatJson,
+			ExportRaw = exportRaw,
 			UseFullEquality = exportFullEquality,
 			Export = !disableExport,
 			NoOp = noop,

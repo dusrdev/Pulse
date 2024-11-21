@@ -4,16 +4,62 @@ using System.Text.Json;
 
 using Pulse.Configuration;
 
+using Sharpify;
+
 namespace Pulse.Core;
 
 public static class Exporter {
-  public static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+  public static Task ExportResponseAsync(Response result, string path, Parameters parameters, CancellationToken token = default) {
     if (token.IsCancellationRequested) {
+      return Task.CompletedTask;
+    }
+
+    if (parameters.ExportRaw) {
+      return ExportRawAsync(result, path, parameters.FormatJson, token);
+    } else {
+      return ExportHtmlAsync(result, path, parameters.FormatJson, token);
+    }
+  }
+
+  public static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+    if (string.IsNullOrEmpty(result.Content)) {
       return;
     }
 
     HttpStatusCode statusCode = result.StatusCode;
-    string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
+    string extension;
+    string content;
+
+    if (!result.Exception.IsDefault) {
+      content = FormatJson(result.Content).Message;
+      extension = "json";
+    } else {
+      if (formatJson) {
+        content = FormatJson(result.Content).Message;
+        extension = "json";
+      } else {
+        content = result.Content;
+        extension = "html";
+      }
+    }
+
+    string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.{extension}");
+
+    await File.WriteAllTextAsync(filename, content, token);
+
+    static Result FormatJson(string content) {
+      try {
+        using var doc = JsonDocument.Parse(content);
+        var root = doc.RootElement;
+        var json = JsonSerializer.Serialize(root, InputJsonContext.Default.JsonElement);
+        return Result.Ok(json);
+      } catch (JsonException) {
+        return Result.Fail("Failed to format content as JSON");
+      }
+    }
+  }
+  public static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+    HttpStatusCode statusCode = result.StatusCode;
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? string.Empty : result.Content;
     string status;
@@ -35,6 +81,8 @@ public static class Exporter {
       frameTitle = "Exception:";
       content = $"<pre>{DefaultJsonContext.SerializeException(result.Exception)}</pre>";
     }
+
+    string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
     string contentFrame = content == string.Empty ?
 """
 <div>

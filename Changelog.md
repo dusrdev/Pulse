@@ -2,7 +2,7 @@
 
 ## Version 1.1.0.0
 
-- TODO: add `-raw` option to exports (and check duplicate div with exception/json)
+- TEST: add `-raw` option to exports (and check duplicate div with exception/json)
 - TODO: move `changelog` to `history` and create `changelog` for only the latest version
 - TODO: attach (latest)`changelog` as body of new releases
 - TODO: configure release action to use different place to attach version
