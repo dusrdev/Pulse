@@ -154,7 +154,7 @@ public sealed class SendCommand : Command {
 		return 0;
 	}
 
-	internal static readonly Dictionary<string, Func<CancellationToken, ValueTask>> SubCommands = new(2, StringComparer.OrdinalIgnoreCase) {
+	internal static readonly Dictionary<string, Func<CancellationToken, ValueTask>> SubCommands = new(4, StringComparer.OrdinalIgnoreCase) {
 		["get-sample"] = async token => {
 			var path = Path.Join(Directory.GetCurrentDirectory(), "sample.json");
 			var json = JsonSerializer.Serialize(new RequestDetails(), InputJsonContext.Default.RequestDetails);
@@ -180,12 +180,10 @@ public sealed class SendCommand : Command {
 				var json = await response.Content.ReadAsStringAsync(token);
 				var result = DefaultJsonContext.DeserializeVersion(json);
 				if (result.IsFail) {
+					WriteLine(result.Message, OutputPipe.Error);
 					return;
 				}
-				if (!Version.TryParse(result.Message, out Version? remoteVersion)) {
-					WriteLine("Failed to parse remote version.", OutputPipe.Error);
-					return;
-				}
+				var remoteVersion = result.Value;
 				var currentVersion = Version.Parse(Program.VERSION);
 				if (currentVersion < remoteVersion) {
 					WriteLine("A new version of Pulse is available!" * Color.Yellow);

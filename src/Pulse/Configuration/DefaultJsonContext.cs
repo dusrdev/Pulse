@@ -24,12 +24,12 @@ public partial class DefaultJsonContext : JsonSerializerContext {
 	/// </summary>
 	/// <param name="releaseInfoJson"></param>
 	/// <returns></returns>
-	public static Result DeserializeVersion(ReadOnlySpan<char> releaseInfoJson) {
+	public static Result<Version> DeserializeVersion(ReadOnlySpan<char> releaseInfoJson) {
 		var releaseInfo = JsonSerializer.Deserialize(releaseInfoJson, Default.ReleaseInfo);
-		if (releaseInfo is null or { Body: null }) {
-			return Result.Fail("Invalid JSON");
+		if (releaseInfo is null or { Version: null } || !Version.TryParse(releaseInfo.Version, out Version? remoteVersion)) {
+			return Result.Fail("Failed to retrieve version for remote");
 		}
-		return Result.Ok(releaseInfo.Body);
+		return Result.Ok(remoteVersion);
 	}
 
 	/// <summary>

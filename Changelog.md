@@ -3,7 +3,7 @@
 - TEST: add `-raw` option to exports (and check duplicate div with exception/json)
 - [X]: move `changelog` to `history` and create `changelog` for only the latest version
 - [ ]: attach (latest)`changelog` as body of new releases
-- [ ]: configure release action to use different place to attach version
+- [X]: configure release action to use different place to attach version
 - [ ]: change version checks to work with (change above)
 - [ ]: deprecate previous versions
 - TEST: fix concurrent connections not decrement when exception is thrown
