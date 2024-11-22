@@ -3,6 +3,7 @@ using static PrettyConsole.Console;
 using PrettyConsole;
 using Pulse.Configuration;
 using Sharpify;
+using System.Numerics;
 
 namespace Pulse.Core;
 
@@ -90,9 +91,9 @@ public sealed class PulseSummary {
 				ClearNextLines(3, OutputPipe.Out);
 			}
 
-            static string Outliers(int n) => n is 1 ? "outlier" : "outliers";
+			static string Outliers(int n) => n is 1 ? "outlier" : "outliers";
 
-            WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
+			WriteLine(["Request count: ", $"{completed}" * Color.Yellow]);
 			WriteLine(["Concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
 			WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 			WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Helper.GetPercentageBasedColor(Result.SuccessRate)]);
@@ -222,6 +223,26 @@ public sealed class PulseSummary {
 		public double Max;
 		public double Avg;
 		public int Removed;
+	}
+
+	internal static double Sum(ReadOnlySpan<double> span) {
+		double sum = 0;
+		int vectorSize = Vector<double>.Count;
+		int i = 0;
+
+		// Process data in chunks of vectorSize
+		while (i <= span.Length - vectorSize) {
+			var vector = new Vector<double>(span.Slice(i, vectorSize));
+			sum += Vector.Dot(vector, Vector<double>.One);
+			i += vectorSize;
+		}
+
+		// Process remaining elements
+		for (; i < span.Length; i++) {
+			sum += span[i];
+		}
+
+		return sum;
 	}
 
 	/// <summary>
