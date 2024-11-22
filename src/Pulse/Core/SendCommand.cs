@@ -230,6 +230,7 @@ public sealed class SendCommand : Command {
 		if (parameters.ExecutionMode is ExecutionMode.Parallel && parameters.MaxConnectionsModified) {
 			WriteLine(["  Maximum concurrent connections: " * property, $"{parameters.MaxConnections}" * value]);
 		}
+		WriteLine(["  Export Raw: " * property, $"{parameters.ExportRaw}" * value]);
 		WriteLine(["  Format JSON: " * property, $"{parameters.FormatJson}" * value]);
 		WriteLine(["  Export Full Equality: " * property, $"{parameters.UseFullEquality}" * value]);
 		WriteLine(["  Export: " * property, $"{parameters.Export}" * value]);

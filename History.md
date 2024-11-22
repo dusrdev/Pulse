@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.1.1.0
+
+- Fixed a bug where `--raw` was not respected in 1 request workflows
+
 ## Version 1.1.0.0
 
 - Export styling was reworked for much prettier ui

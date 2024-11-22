@@ -243,7 +243,7 @@ public sealed class PulseSummary {
 		Exporter.ClearFiles(directory);
 
 		if (count is 1) {
-			await Exporter.ExportHtmlAsync(uniqueRequests.First(), directory, Parameters.FormatJson, token);
+			await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, Parameters, token);
 			WriteLine(["1" * Color.Cyan, $" unique response exported to ", Parameters.OutputFolder * Color.Yellow, " folder"]);
 			return;
 		}

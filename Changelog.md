@@ -1,4 +1,4 @@
-# Version 1.1.0.0
+# Versions 1.1.0.0 - 1.1.1.0
 
 - Export styling was reworked for much prettier ui
 - Optimized interlocking variables to match hardware cache line size and reduce thread contention
