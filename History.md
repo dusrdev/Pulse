@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.1.1.0
+
+- Fixed a bug where `--raw` was not respected in 1 request workflows
+- Content size metrics are no longer IQR filtered, outliers in content size could require manual inspection so alerting for them is a good idea.
+- Implemented much more efficient SIMD optimized implementation for summary calculations
+
 ## Version 1.1.0.0
 
 - Export styling was reworked for much prettier ui
