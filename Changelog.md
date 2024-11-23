@@ -1,4 +1,4 @@
-# Version 1.1.1.0
+# Changelog
 
 - Fixed a bug where `--raw` was not respected in 1 request workflows
 - Content size metrics are no longer IQR filtered, outliers in content size could require manual inspection so alerting for them is a good idea.
