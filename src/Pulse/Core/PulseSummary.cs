@@ -4,6 +4,7 @@ using PrettyConsole;
 using Pulse.Configuration;
 using Sharpify;
 using System.Numerics;
+using Sharpify.Collections;
 
 namespace Pulse.Core;
 
@@ -43,8 +44,11 @@ public sealed class PulseSummary {
 													? new HashSet<Response>(new ResponseComparer(Parameters))
 													: [];
 			Dictionary<HttpStatusCode, int> statusCounter = [];
-			var latencies = new List<double>(completed);
-			var sizes = new List<double>(completed);
+			var latencies = new double[completed];
+			var latencyManager = BufferWrapper<double>.Create(latencies);
+			var sizes = new double[completed];
+			var sizeManager = BufferWrapper<double>.Create(sizes);
+
 			long totalSize = 0;
 			int peakConcurrentConnections = 0;
 
@@ -66,18 +70,18 @@ public sealed class PulseSummary {
 
 				// duration
 				var latency = result.Latency.TotalMilliseconds;
-				latencies.Add(latency);
+				latencyManager.Append(latency);
 				// size
 				var size = result.ContentLength;
 				if (size > 0) {
-					sizes.Add(size);
+					sizeManager.Append(size);
 					if (Parameters.Export) {
 						totalSize += size;
 					}
 				}
 			}
-			var latencySummary = GetSummary(latencies.AsSpan());
-			var sizeSummary = GetSummary(sizes.AsSpan());
+			Summary latencySummary = GetSummary(latencies.AsSpan(0, latencyManager.Position));
+			Summary sizeSummary = GetSummary(sizes.AsSpan(0, sizeManager.Position), false);
 			Func<double, string> getSize = Utils.Strings.FormatBytes;
 			double throughput = totalSize / Result.TotalDuration.TotalSeconds;
 #if !DEBUG
@@ -103,12 +107,7 @@ public sealed class PulseSummary {
 			} else {
 				Out.WriteLine($" (Removed {latencySummary.Removed} {Outliers(latencySummary.Removed)})");
 			}
-			Write(["Content Size:  Min: ", getSize(sizeSummary.Min) * Color.Cyan, ", Avg: ", getSize(sizeSummary.Avg) * Color.Yellow, ", Max: ", getSize(sizeSummary.Max) * Color.Red]);
-			if (sizeSummary.Removed is 0) {
-				NewLine();
-			} else {
-				Out.WriteLine($" (Removed {sizeSummary.Removed} {Outliers(sizeSummary.Removed)})");
-			}
+			WriteLine(["Content Size:  Min: ", getSize(sizeSummary.Min) * Color.Cyan, ", Avg: ", getSize(sizeSummary.Avg) * Color.Yellow, ", Max: ", getSize(sizeSummary.Max) * Color.Red]);
 			WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
 			Out.WriteLine("Status codes:");
 			foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
@@ -168,39 +167,27 @@ public sealed class PulseSummary {
 	/// </summary>
 	/// <param name="values"></param>
 	/// <returns><see cref="Summary"/></returns>
-	internal static Summary GetSummary(Span<double> values) {
+	internal static Summary GetSummary(Span<double> values, bool removeOutliers = true) {
 		// if conditions ordered to promote default paths
 		if (values.Length > 2) {
 			values.Sort();
 
-			double q1 = values[values.Length / 4]; // First quartile
-			double q3 = values[3 * values.Length / 4]; // Third quartile
-			double iqr = q3 - q1;
+			if (!removeOutliers) {
+				return SummarizeOrderedSpan(values, 0);
+			}
 
+			int i25 = values.Length / 4, i75 = 3 * values.Length / 4;
+			double q1 = values[i25]; // First quartile
+			double q3 = values[i75]; // Third quartile
+			double iqr = q3 - q1;
 			double lowerBound = q1 - 1.5 * iqr;
 			double upperBound = q3 + 1.5 * iqr;
 
-			var summary = new Summary {
-				Min = double.MaxValue,
-				Max = double.MinValue,
-				Avg = 0
-			};
+			int start = FindBoundIndex(values, lowerBound, 0, i25);
+			int end = FindBoundIndex(values, upperBound, i75, values.Length);
+			ReadOnlySpan<double> filtered = values.Slice(start, end - start);
 
-			var filtered = 0;
-			foreach (var value in values) {
-				if (value < lowerBound || value > upperBound) {
-					// Outside of IQR
-					summary.Removed++;
-					continue;
-				}
-				filtered++;
-				summary.Min = Math.Min(summary.Min, value);
-				summary.Max = Math.Max(summary.Max, value);
-				summary.Avg += value;
-			}
-			summary.Avg /= filtered;
-
-			return summary;
+			return SummarizeOrderedSpan(filtered, values.Length - filtered.Length);
 		} else if (values.Length is 2) {
 			return new Summary {
 				Min = Math.Min(values[0], values[1]),
@@ -216,6 +203,23 @@ public sealed class PulseSummary {
 		} else {
 			return new();
 		}
+	}
+
+	internal static int FindBoundIndex(ReadOnlySpan<double> orderedValues, double bound, int clampMin, int clampMax) {
+		int index = orderedValues.BinarySearch(bound);
+		if (index < 0) {
+			index = ~index; // Get the insertion point
+		}
+		return Math.Clamp(index, clampMin, clampMax);
+	}
+
+	internal static Summary SummarizeOrderedSpan(ReadOnlySpan<double> values, int removed) {
+		return new Summary {
+			Min = values[0],
+			Max = values[values.Length - 1],
+			Avg = Sum(values) / values.Length,
+			Removed = removed
+		};
 	}
 
 	internal struct Summary {
