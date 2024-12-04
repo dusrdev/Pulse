@@ -4,13 +4,13 @@ namespace Pulse.Tests.Unit;
 
 public class SummaryTests {
     [Fact]
-    public void Summary_Sum_ReturnsCorrectValue() {
+    public void Summary_Mean_ReturnsCorrectValue() {
         // Arrange
         var arr = Enumerable.Range(0, 100).Select(_ => Random.Shared.NextDouble()).ToArray();
-        var expected = arr.Sum();
+        var expected = arr.Average();
 
         // Act
-        var actual = PulseSummary.Sum(arr);
+        var actual = PulseSummary.Mean(arr);
 
         // Assert
         actual.Should().BeApproximately(expected, 0.01, "because the sum is correct");
@@ -25,7 +25,7 @@ public class SummaryTests {
         // Assert
         summary.Min.Should().BeApproximately(expectedMin, 0.01, "because the min is correct");
         summary.Max.Should().BeApproximately(expectedMax, 0.01, "because the max is correct");
-        summary.Avg.Should().BeApproximately(expectedAvg, 0.01, "because the avg is correct");
+        summary.Mean.Should().BeApproximately(expectedAvg, 0.01, "because the avg is correct");
         summary.Removed.Should().Be(expectedRemoved, "because the removed count is correct");
     }
 

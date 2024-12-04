@@ -5,6 +5,7 @@ using Pulse.Configuration;
 using Sharpify;
 using System.Numerics;
 using Sharpify.Collections;
+using System.Runtime.Intrinsics;
 
 namespace Pulse.Core;
 
@@ -101,13 +102,13 @@ public sealed class PulseSummary {
 			WriteLine(["Concurrent connections: ", $"{peakConcurrentConnections}" * Color.Yellow]);
 			WriteLine(["Total duration: ", Utils.DateAndTime.FormatTimeSpan(Result.TotalDuration) * Color.Yellow]);
 			WriteLine(["Success Rate: ", $"{Result.SuccessRate}%" * Helper.GetPercentageBasedColor(Result.SuccessRate)]);
-			Write(["Latency:       Min: ", $"{latencySummary.Min:0.##}ms" * Color.Cyan, ", Avg: ", $"{latencySummary.Avg:0.##}ms" * Color.Yellow, ", Max: ", $"{latencySummary.Max:0.##}ms" * Color.Red]);
+			Write(["Latency:       Min: ", $"{latencySummary.Min:0.##}ms" * Color.Cyan, ", Mean: ", $"{latencySummary.Mean:0.##}ms" * Color.Yellow, ", Max: ", $"{latencySummary.Max:0.##}ms" * Color.Red]);
 			if (latencySummary.Removed is 0) {
 				NewLine();
 			} else {
 				Out.WriteLine($" (Removed {latencySummary.Removed} {Outliers(latencySummary.Removed)})");
 			}
-			WriteLine(["Content Size:  Min: ", getSize(sizeSummary.Min) * Color.Cyan, ", Avg: ", getSize(sizeSummary.Avg) * Color.Yellow, ", Max: ", getSize(sizeSummary.Max) * Color.Red]);
+			WriteLine(["Content Size:  Min: ", getSize(sizeSummary.Min) * Color.Cyan, ", Mean: ", getSize(sizeSummary.Mean) * Color.Yellow, ", Max: ", getSize(sizeSummary.Max) * Color.Red]);
 			WriteLine(["Total throughput: ", $"{getSize(throughput)}/s" * Color.Yellow]);
 			Out.WriteLine("Status codes:");
 			foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
@@ -192,13 +193,13 @@ public sealed class PulseSummary {
 			return new Summary {
 				Min = Math.Min(values[0], values[1]),
 				Max = Math.Max(values[0], values[1]),
-				Avg = (values[0] + values[1]) / 2
+				Mean = (values[0] + values[1]) / 2
 			};
 		} else if (values.Length is 1) {
 			return new Summary {
 				Min = values[0],
 				Max = values[0],
-				Avg = values[0]
+				Mean = values[0]
 			};
 		} else {
 			return new();
@@ -217,7 +218,7 @@ public sealed class PulseSummary {
 		return new Summary {
 			Min = values[0],
 			Max = values[values.Length - 1],
-			Avg = Sum(values) / values.Length,
+			Mean = Mean(values),
 			Removed = removed
 		};
 	}
@@ -225,28 +226,44 @@ public sealed class PulseSummary {
 	internal struct Summary {
 		public double Min;
 		public double Max;
-		public double Avg;
+		public double Mean;
 		public int Removed;
 	}
 
-	internal static double Sum(ReadOnlySpan<double> span) {
-		double sum = 0;
-		int vectorSize = Vector<double>.Count;
+	internal static double Mean(ReadOnlySpan<double> span) {
+		double mean = 0;
+		double reciprocal = 1.0 / span.Length;
 		int i = 0;
 
 		// Process data in chunks of vectorSize
-		while (i <= span.Length - vectorSize) {
-			var vector = new Vector<double>(span.Slice(i, vectorSize));
-			sum += Vector.Dot(vector, Vector<double>.One);
-			i += vectorSize;
+		if (Vector512.IsHardwareAccelerated) {
+			int vectorSize = Vector512<double>.Count;
+            var r = Vector512.Create(reciprocal);
+			while (i <= span.Length - vectorSize) {
+				var vector = Vector512.Create(span.Slice(i, vectorSize));
+                var product = Vector512.Multiply(vector, r);
+                mean += Vector512.Sum(product);
+				i += vectorSize;
+			}
+		} else {
+			int vectorSize = Vector<double>.Count;
+            var r = Vector.Create(reciprocal);
+			while (i <= span.Length - vectorSize) {
+				var vector = Vector.Create(span.Slice(i, vectorSize));
+				var product = Vector.Multiply(vector, r);
+                mean += Vector.Sum(product);
+				i += vectorSize;
+			}
 		}
 
 		// Process remaining elements
+		double scalerSum = 0;
 		for (; i < span.Length; i++) {
-			sum += span[i];
+			scalerSum += span[i];
 		}
+		mean += scalerSum * reciprocal;
 
-		return sum;
+		return mean;
 	}
 
 	/// <summary>
