@@ -1,5 +1,4 @@
 # Changelog
 
-- Fixed a bug where `--raw` was not respected in 1 request workflows
-- Content size metrics are no longer IQR filtered, outliers in content size could require manual inspection so alerting for them is a good idea.
-- Implemented much more efficient SIMD optimized implementation for summary calculations
+- Fixed parsing exception in cases where response charset contained redundant quotes like `\"utf-8\"`
+- Added support for AVX512
