@@ -102,7 +102,7 @@ public interface IPulseMonitor {
 						var charSet = r.Content.Headers.ContentType?.CharSet;
 						var encoding = charSet is null
 								? Encoding.UTF8 // doesn't exist - fallback to UTF8
-								: Encoding.GetEncoding(charSet); // exist - use server's
+								: Encoding.GetEncoding(charSet.Trim('"')); // exist - use server's
 						contentLength = encoding.GetByteCount(content.AsSpan());
 					}
 				}
