@@ -34,7 +34,15 @@ public static class Exporter {
       content = DefaultJsonContext.SerializeException(result.Exception);
       extension = "json";
     } else {
-      if (formatJson) {
+      if (result.StatusCode is not HttpStatusCode.OK) {
+        var failure = new RawFailure {
+          StatusCode = (int)result.StatusCode,
+          Headers = result.Headers,
+          Content = result.Content
+        };
+        content = DefaultJsonContext.Serialize(failure);
+        extension = "json";
+      } else if (formatJson) {
         content = FormatJson(result.Content).Message;
         extension = "json";
       } else {
