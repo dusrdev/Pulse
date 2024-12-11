@@ -22,9 +22,7 @@ public static class Exporter {
   }
 
   public static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
-    if (string.IsNullOrEmpty(result.Content) && result.Exception.IsDefault) {
-      return;
-    }
+    bool hasContent = result.Content.Length != 0;
 
     HttpStatusCode statusCode = result.StatusCode;
     string extension;
@@ -34,10 +32,10 @@ public static class Exporter {
       content = DefaultJsonContext.SerializeException(result.Exception);
       extension = "json";
     } else {
-      if (result.StatusCode is not HttpStatusCode.OK) {
+      if (result.StatusCode is not HttpStatusCode.OK && !hasContent) {
         var failure = new RawFailure {
           StatusCode = (int)result.StatusCode,
-          Headers = result.Headers,
+          Headers = result.Headers.ToDictionary(),
           Content = result.Content
         };
         content = DefaultJsonContext.Serialize(failure);
