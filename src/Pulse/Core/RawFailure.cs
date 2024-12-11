@@ -7,7 +7,7 @@ namespace Pulse.Core;
 /// </summary>
 public readonly struct RawFailure {
     public RawFailure() {
-		Headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
+		Headers = [];
 		StatusCode = 0;
 		Content = string.Empty;
     }
@@ -20,7 +20,7 @@ public readonly struct RawFailure {
 	/// <summary>
 	/// Response headers
 	/// </summary>
-	public IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
+	public Dictionary<string, IEnumerable<string>> Headers { get; init; }
 
 	/// <summary>
 	/// Response content (if any)
