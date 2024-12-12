@@ -69,6 +69,105 @@ public class ExporterTests {
     }
 
     [Fact]
+    public async Task Exporter_Raw_NotSuccess_ContainsAllHeadersInJson() {
+        // Arrange
+        List<KeyValuePair<string, IEnumerable<string>>> headers = [
+            new("Content-Type", ["application/json"]),
+            new("X-Custom-Header", ["value1", "value2"])
+        ];
+
+        var response = new Response {
+            Id = 1337,
+            StatusCode = HttpStatusCode.BadGateway,
+            Content = string.Empty,
+            ContentLength = 0,
+            Headers = headers,
+            Exception = StrippedException.Default,
+            Latency = TimeSpan.FromSeconds(1),
+            CurrentConcurrentConnections = 1
+        };
+
+        // Act
+        var expectedFileName = $"response-1337-status-code-502.json";
+        await Exporter.ExportRawAsync(response, string.Empty, false);
+
+        File.Exists(expectedFileName).Should().BeTrue("because the file was created");
+
+        var fileContent = await File.ReadAllTextAsync(expectedFileName);
+
+        // Assert
+        fileContent.Should().Contain("502", "because the status code is present");
+        foreach (var header in headers) {
+            fileContent.Should().Contain(header.Key);
+            foreach (var value in header.Value) {
+                fileContent.Should().Contain(value);
+            }
+        }
+
+        File.Delete(expectedFileName);
+    }
+
+    [Fact]
+    public async Task Exporter_Raw_Success_ContainsOnlyContent() {
+        // Arrange
+        const string content = "Hello World";
+
+        var response = new Response {
+            Id = 1337,
+            StatusCode = HttpStatusCode.OK,
+            Content = content,
+            ContentLength = content.Length,
+            Headers = [],
+            Exception = StrippedException.Default,
+            Latency = TimeSpan.FromSeconds(1),
+            CurrentConcurrentConnections = 1
+        };
+
+        // Act
+        var expectedFileName = $"response-1337-status-code-200.html";
+        await Exporter.ExportRawAsync(response, string.Empty, false);
+
+        File.Exists(expectedFileName).Should().BeTrue("because the file was created");
+
+        var fileContent = await File.ReadAllTextAsync(expectedFileName);
+
+        // Assert
+        fileContent.Should().Be(content, "because the status code is present");
+
+        File.Delete(expectedFileName);
+    }
+
+    [Fact]
+    public async Task Exporter_Raw_NotSuccess_ButHasContent_ContainsOnlyContent() {
+        // Arrange
+        const string content = "Hello World";
+
+        var response = new Response {
+            Id = 1337,
+            StatusCode = HttpStatusCode.BadGateway,
+            Content = content,
+            ContentLength = content.Length,
+            Headers = [],
+            Exception = StrippedException.Default,
+            Latency = TimeSpan.FromSeconds(1),
+            CurrentConcurrentConnections = 1
+        };
+
+        // Act
+        var expectedFileName = $"response-1337-status-code-502.html";
+        await Exporter.ExportRawAsync(response, string.Empty, false);
+
+        File.Exists(expectedFileName).Should().BeTrue("because the file was created");
+
+        var fileContent = await File.ReadAllTextAsync(expectedFileName);
+
+        // Assert
+        fileContent.Should().Be(content, "because the status code is present");
+
+        File.Delete(expectedFileName);
+    }
+
+    [Fact]
     public async Task Exporter_ExportHtmlAsync_CorrectFileName() {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();

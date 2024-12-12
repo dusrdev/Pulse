@@ -16,6 +16,8 @@ namespace Pulse.Configuration;
 							 NumberHandling = JsonNumberHandling.AllowReadingFromString,
 							 WriteIndented = true,
 							 UseStringEnumConverter = true)]
+[JsonSerializable(typeof(Dictionary<string, IEnumerable<string>>))]
+[JsonSerializable(typeof(RawFailure))]
 [JsonSerializable(typeof(StrippedException))]
 [JsonSerializable(typeof(ReleaseInfo))]
 public partial class DefaultJsonContext : JsonSerializerContext {
@@ -45,4 +47,10 @@ public partial class DefaultJsonContext : JsonSerializerContext {
 	/// <param name="e"></param>
 	/// <returns></returns>
 	public static string SerializeException(StrippedException e) => JsonSerializer.Serialize(e, Default.StrippedException);
+
+	/// <summary>
+	/// Serialize <see cref="RawFailure"/> to a string.
+	/// </summary>
+	/// <param name="failure"></param>
+	public static string Serialize(RawFailure failure) => JsonSerializer.Serialize(failure, Default.RawFailure);
 }

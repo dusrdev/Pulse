@@ -1,4 +1,6 @@
 # Changelog
 
-- Fixed parsing exception in cases where response charset contained redundant quotes like `\"utf-8\"`
-- Added support for AVX512
+- `--raw` export mode now outputs a special json with debug information for non-successful responses with no content, it contains:
+  - Response status code as integer
+  - Response headers
+  - Response content (if any)

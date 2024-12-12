@@ -21,10 +21,8 @@ public static class Exporter {
     }
   }
 
-  public static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
-    if (string.IsNullOrEmpty(result.Content) && result.Exception.IsDefault) {
-      return;
-    }
+  internal static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+    bool hasContent = result.Content.Length != 0;
 
     HttpStatusCode statusCode = result.StatusCode;
     string extension;
@@ -34,7 +32,15 @@ public static class Exporter {
       content = DefaultJsonContext.SerializeException(result.Exception);
       extension = "json";
     } else {
-      if (formatJson) {
+      if (result.StatusCode is not HttpStatusCode.OK && !hasContent) {
+        var failure = new RawFailure {
+          StatusCode = (int)result.StatusCode,
+          Headers = result.Headers.ToDictionary(),
+          Content = result.Content
+        };
+        content = DefaultJsonContext.Serialize(failure);
+        extension = "json";
+      } else if (formatJson) {
         content = FormatJson(result.Content).Message;
         extension = "json";
       } else {
@@ -58,7 +64,8 @@ public static class Exporter {
       }
     }
   }
-  public static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+
+  internal static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
     HttpStatusCode statusCode = result.StatusCode;
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? string.Empty : result.Content;

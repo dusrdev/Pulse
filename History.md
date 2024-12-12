@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.2.0.0
+
+- `--raw` export mode now outputs a special json with debug information for non-successful responses with no content, it contains:
+  - Response status code as integer
+  - Response headers
+  - Response content (if any)
+
 ## Version 1.1.2.0
 
 - Fixed parsing exception in cases where response charset contained redundant quotes like `\"utf-8\"`
