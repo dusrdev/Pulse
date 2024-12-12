@@ -21,7 +21,7 @@ public static class Exporter {
     }
   }
 
-  public static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+  internal static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
     bool hasContent = result.Content.Length != 0;
 
     HttpStatusCode statusCode = result.StatusCode;
@@ -64,7 +64,8 @@ public static class Exporter {
       }
     }
   }
-  public static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+
+  internal static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
     HttpStatusCode statusCode = result.StatusCode;
     string frameTitle;
     string content = string.IsNullOrWhiteSpace(result.Content) ? string.Empty : result.Content;
