@@ -23,13 +23,13 @@ public class ExporterTests {
             }
 
             // Assert
-            dirInfo.GetFiles().Length.Should().Be(10, "because 10 files were created");
+            Assert.Equal(10, dirInfo.GetFiles().Length);
 
             // Act
             Exporter.ClearFiles(dirInfo.FullName);
 
             // Assert
-            dirInfo.GetFiles().Length.Should().Be(0, "because all files were deleted");
+            Assert.Empty(dirInfo.GetFiles());
         } finally {
             dirInfo.Delete(true);
         }
@@ -61,9 +61,9 @@ public class ExporterTests {
 
         // Assert
         foreach (var header in headers) {
-            fileContent.Should().Contain(header.Key);
+            Assert.Contains(header.Key, fileContent);
             foreach (var value in header.Value) {
-                fileContent.Should().Contain(value);
+                Assert.Contains(value, fileContent);
             }
         }
     }
@@ -91,16 +91,16 @@ public class ExporterTests {
         var expectedFileName = $"response-1337-status-code-502.json";
         await Exporter.ExportRawAsync(response, string.Empty, false);
 
-        File.Exists(expectedFileName).Should().BeTrue("because the file was created");
+        Assert.True(File.Exists(expectedFileName));
 
         var fileContent = await File.ReadAllTextAsync(expectedFileName);
 
         // Assert
-        fileContent.Should().Contain("502", "because the status code is present");
+        Assert.Contains("502", fileContent);
         foreach (var header in headers) {
-            fileContent.Should().Contain(header.Key);
+            Assert.Contains(header.Key, fileContent);
             foreach (var value in header.Value) {
-                fileContent.Should().Contain(value);
+                Assert.Contains(value, fileContent);
             }
         }
 
@@ -110,13 +110,13 @@ public class ExporterTests {
     [Fact]
     public async Task Exporter_Raw_Success_ContainsOnlyContent() {
         // Arrange
-        const string content = "Hello World";
+        const string expectedContent = "Hello World";
 
         var response = new Response {
             Id = 1337,
             StatusCode = HttpStatusCode.OK,
-            Content = content,
-            ContentLength = content.Length,
+            Content = expectedContent,
+            ContentLength = expectedContent.Length,
             Headers = [],
             Exception = StrippedException.Default,
             Latency = TimeSpan.FromSeconds(1),
@@ -127,12 +127,12 @@ public class ExporterTests {
         var expectedFileName = $"response-1337-status-code-200.html";
         await Exporter.ExportRawAsync(response, string.Empty, false);
 
-        File.Exists(expectedFileName).Should().BeTrue("because the file was created");
+        Assert.True(File.Exists(expectedFileName));
 
         var fileContent = await File.ReadAllTextAsync(expectedFileName);
 
         // Assert
-        fileContent.Should().Be(content, "because the status code is present");
+        Assert.Equal(expectedContent, fileContent);
 
         File.Delete(expectedFileName);
     }
@@ -140,13 +140,13 @@ public class ExporterTests {
     [Fact]
     public async Task Exporter_Raw_NotSuccess_ButHasContent_ContainsOnlyContent() {
         // Arrange
-        const string content = "Hello World";
+        const string expectedContent = "Hello World";
 
         var response = new Response {
             Id = 1337,
             StatusCode = HttpStatusCode.BadGateway,
-            Content = content,
-            ContentLength = content.Length,
+            Content = expectedContent,
+            ContentLength = expectedContent.Length,
             Headers = [],
             Exception = StrippedException.Default,
             Latency = TimeSpan.FromSeconds(1),
@@ -157,12 +157,12 @@ public class ExporterTests {
         var expectedFileName = $"response-1337-status-code-502.html";
         await Exporter.ExportRawAsync(response, string.Empty, false);
 
-        File.Exists(expectedFileName).Should().BeTrue("because the file was created");
+        Assert.True(File.Exists(expectedFileName));
 
         var fileContent = await File.ReadAllTextAsync(expectedFileName);
 
         // Assert
-        fileContent.Should().Be(content, "because the status code is present");
+        Assert.Equal(expectedContent, fileContent);
 
         File.Delete(expectedFileName);
     }
@@ -190,8 +190,8 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
-            file[0].Name.Should().Be("response-1337-status-code-200.html", "because the file name is correct");
+            Assert.Single(file);
+            Assert.Equal("response-1337-status-code-200.html", file[0].Name);
         } finally {
             dirInfo.Delete(true);
         }
@@ -207,13 +207,13 @@ public class ExporterTests {
                 new("X-Custom-Header", ["value1", "value2"])
             ];
 
-            const string content = "Hello World";
+            const string expectedContent = "Hello World";
 
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = content,
-                ContentLength = Encoding.Default.GetByteCount(content),
+                Content = expectedContent,
+                ContentLength = Encoding.Default.GetByteCount(expectedContent),
                 Headers = headers,
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
@@ -225,13 +225,13 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
 
             foreach (var header in headers) {
-                fileContent.Should().Contain(header.Key);
+                Assert.Contains(header.Key, fileContent);
                 foreach (var value in header.Value) {
-                    fileContent.Should().Contain(value);
+                    Assert.Contains(value, fileContent);
                 }
             }
         } finally {
@@ -244,13 +244,13 @@ public class ExporterTests {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
-            const string content = "Hello World";
+            const string expectedContent = "Hello World";
 
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = content,
-                ContentLength = Encoding.Default.GetByteCount(content),
+                Content = expectedContent,
+                ContentLength = Encoding.Default.GetByteCount(expectedContent),
                 Headers = [],
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
@@ -262,9 +262,9 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
-            fileContent.Should().Contain("Hello World", "because the content is present");
+            Assert.Contains(expectedContent, fileContent);
         } finally {
             dirInfo.Delete(true);
         }
@@ -275,13 +275,13 @@ public class ExporterTests {
         // Arrange
         var dirInfo = Directory.CreateTempSubdirectory();
         try {
-            const string content = "Hello World";
+            const string expectedContent = "Hello World";
 
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = content,
-                ContentLength = Encoding.Default.GetByteCount(content),
+                Content = expectedContent,
+                ContentLength = Encoding.Default.GetByteCount(expectedContent),
                 Headers = [],
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
@@ -293,9 +293,9 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
-            fileContent.Should().Be("Hello World", "because the content and only the content is present");
+            Assert.Equal(expectedContent, fileContent);
         } finally {
             dirInfo.Delete(true);
         }
@@ -310,13 +310,13 @@ public class ExporterTests {
                 WriteIndented = false
             };
 
-            var content = JsonSerializer.Serialize(new ParametersBase(), options);
+            var expectedContent = JsonSerializer.Serialize(new ParametersBase(), options);
 
             var response = new Response {
                 Id = 1337,
                 StatusCode = HttpStatusCode.OK,
-                Content = content,
-                ContentLength = Encoding.Default.GetByteCount(content),
+                Content = expectedContent,
+                ContentLength = Encoding.Default.GetByteCount(expectedContent),
                 Headers = [],
                 Exception = StrippedException.Default,
                 Latency = TimeSpan.FromSeconds(1),
@@ -328,10 +328,10 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
-            fileContent.Should().Be(content, "because the content and only the content is present");
-            fileContent.Should().NotContain(Environment.NewLine, "because the content is not formatted");
+            Assert.Equal(expectedContent, fileContent);
+            Assert.DoesNotContain(Environment.NewLine, fileContent);
         } finally {
             dirInfo.Delete(true);
         }
@@ -364,9 +364,9 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
-            fileContent.Should().Contain(Environment.NewLine, "because the content is formatted");
+            Assert.Contains(Environment.NewLine, fileContent);
         } finally {
             dirInfo.Delete(true);
         }
@@ -395,10 +395,10 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
-            fileContent.Should().Contain("test", "because the exception is present");
-            fileContent.Should().Contain(Environment.NewLine, "because the content is formatted");
+            Assert.Contains("test", fileContent);
+            Assert.Contains(Environment.NewLine, fileContent);
         } finally {
             dirInfo.Delete(true);
         }
@@ -428,10 +428,10 @@ public class ExporterTests {
 
             // Assert
             var file = dirInfo.GetFiles();
-            file.Length.Should().Be(1, "because 1 file was created");
+            Assert.Single(file);
             var fileContent = await File.ReadAllTextAsync(file[0].FullName);
-            fileContent.Should().NotContain("Hello World", "because the content is not present");
-            fileContent.Should().Contain(exception.Message, "because the exception is present");
+            Assert.DoesNotContain("Hello World", fileContent);
+            Assert.Contains(exception.Message, fileContent);
         } finally {
             dirInfo.Delete(true);
         }

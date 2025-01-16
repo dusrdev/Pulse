@@ -9,15 +9,15 @@ public class ParametersTests {
         var @params = new ParametersBase();
 
         // Assert
-        @params.Requests.Should().Be(1, "because the default is 1");
-        @params.ExecutionMode.Should().Be(ExecutionMode.Parallel, "because the default is parallel");
-        @params.MaxConnections.Should().Be(1, "because the default is 1");
-        @params.MaxConnectionsModified.Should().BeFalse("because the default is false");
-        @params.FormatJson.Should().BeFalse("because the default is false");
-        @params.UseFullEquality.Should().BeFalse("because the default is false");
-        @params.Export.Should().BeTrue("because the default is true");
-        @params.NoOp.Should().BeFalse("because the default is false");
-        @params.Verbose.Should().BeFalse("because the default is false");
+        Assert.Equal(1, @params.Requests);
+        Assert.Equal(ExecutionMode.Parallel, @params.ExecutionMode);
+        Assert.Equal(1, @params.MaxConnections);
+        Assert.False(@params.MaxConnectionsModified);
+        Assert.False(@params.FormatJson);
+        Assert.False(@params.UseFullEquality);
+        Assert.True(@params.Export);
+        Assert.False(@params.NoOp);
+        Assert.False(@params.Verbose);
     }
 
     [Fact]
@@ -26,14 +26,14 @@ public class ParametersTests {
         var @params = new Parameters(new ParametersBase(), CancellationToken.None);
 
         // Assert
-        @params.Requests.Should().Be(1, "because the default is 1");
-        @params.ExecutionMode.Should().Be(ExecutionMode.Parallel, "because the default is parallel");
-        @params.MaxConnections.Should().Be(1, "because the default is 1");
-        @params.MaxConnectionsModified.Should().BeFalse("because the default is false");
-        @params.FormatJson.Should().BeFalse("because the default is false");
-        @params.UseFullEquality.Should().BeFalse("because the default is false");
-        @params.Export.Should().BeTrue("because the default is true");
-        @params.NoOp.Should().BeFalse("because the default is false");
-        @params.Verbose.Should().BeFalse("because the default is false");
+        Assert.Equal(1, @params.Requests);
+        Assert.Equal(ExecutionMode.Parallel, @params.ExecutionMode);
+        Assert.Equal(1, @params.MaxConnections);
+        Assert.False(@params.MaxConnectionsModified);
+        Assert.False(@params.FormatJson);
+        Assert.False(@params.UseFullEquality);
+        Assert.True(@params.Export);
+        Assert.False(@params.NoOp);
+        Assert.False(@params.Verbose);
     }
 }

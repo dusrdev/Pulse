@@ -16,7 +16,7 @@ public class HttpClientFactoryTests {
         using var httpClient = PulseHttpClientFactory.Create(proxy, ParametersBase.DefaultTimeoutInMs);
 
         // Assert
-        httpClient.Timeout.Should().Be(Timeout.InfiniteTimeSpan, "because the default timeout is infinite");
+        Assert.Equal(Timeout.InfiniteTimeSpan, httpClient.Timeout);
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class HttpClientFactoryTests {
         using var httpClient = PulseHttpClientFactory.Create(proxy, ParametersBase.DefaultTimeoutInMs);
 
         // Assert
-        httpClient.Should().NotBeNull("because a HttpClient is returned");
+        Assert.NotNull(httpClient);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class HttpClientFactoryTests {
         using var handler = PulseHttpClientFactory.CreateHandler(proxy);
 
         // Assert
-        handler.Should().NotBeNull("because a handler is returned");
+        Assert.NotNull(handler);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class HttpClientFactoryTests {
         using var handler = PulseHttpClientFactory.CreateHandler(proxy);
 
         // Assert
-        handler.Proxy.Should().BeNull("because no proxy is configured");
+        Assert.Null(handler.Proxy);
     }
 
     [Theory]
@@ -68,8 +68,8 @@ public class HttpClientFactoryTests {
         using var handler = PulseHttpClientFactory.CreateHandler(proxy);
 
         // Assert
-        handler.UseProxy.Should().BeTrue("because a proxy is configured to be used");
-        handler.Proxy.Should().NotBeNull("because a valid proxy should be set when UseProxy is true");
+        Assert.True(handler.UseProxy);
+        Assert.NotNull(handler.Proxy);
 
         // Create a valid destination Uri
         var destination = new Uri("http://example.com");
@@ -78,7 +78,7 @@ public class HttpClientFactoryTests {
         var proxyUri = handler.Proxy!.GetProxy(destination);
 
         // Assert that the Authority (host:port) matches the expected value
-        proxyUri!.Authority.Should().Be(expected, "because the proxy should point to the expected host and port");
+        Assert.Equal(expected, proxyUri!.Authority);
     }
 
     [Fact]
@@ -94,9 +94,9 @@ public class HttpClientFactoryTests {
         using var handler = PulseHttpClientFactory.CreateHandler(proxy);
 
         // Assert
-        handler.UseProxy.Should().BeTrue("because a proxy is configured to be used");
-        handler.Proxy.Should().NotBeNull("because a valid proxy should be set when UseProxy is true");
-        handler.Proxy!.Credentials.Should().BeNull("because no credentials are configured");
+        Assert.True(handler.UseProxy);
+        Assert.NotNull(handler.Proxy);
+        Assert.Null(handler.Proxy!.Credentials);
     }
 
     [Fact]
@@ -113,11 +113,12 @@ public class HttpClientFactoryTests {
         using var handler = PulseHttpClientFactory.CreateHandler(proxy);
 
         // Assert
-        handler.UseProxy.Should().BeTrue("because a proxy is configured to be used");
-        handler.Proxy.Should().NotBeNull("because a valid proxy should be set when UseProxy is true");
+        Assert.True(handler.UseProxy);
+        Assert.NotNull(handler.Proxy);
+        Assert.NotNull(handler.Proxy!.Credentials);
         var credentials = handler.Proxy!.Credentials! as NetworkCredential;
-        credentials.Should().NotBeNull("because credentials are configured");
-        credentials!.UserName.Should().Be(proxy.Username, "because the username matches the configured username");
-        credentials!.Password.Should().Be(proxy.Password, "because the password matches the configured password");
+        Assert.NotNull(credentials);
+        Assert.Equal(proxy.Username, credentials.UserName);
+        Assert.Equal(proxy.Password, credentials.Password);
     }
 }
