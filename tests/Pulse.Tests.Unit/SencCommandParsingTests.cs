@@ -14,7 +14,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.NoOp.Should().BeTrue("because the flag is present");
+        Assert.True(@params.NoOp);
     }
 
     [Theory]
@@ -30,7 +30,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.TimeoutInMs.Should().Be(expected, "because parsed or default");
+        Assert.Equal(expected, @params.TimeoutInMs);
     }
 
     [Theory]
@@ -47,7 +47,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.DelayInMs.Should().Be(expected, "because parsed or default");
+        Assert.Equal(expected, @params.DelayInMs);
     }
 
     [Theory]
@@ -61,7 +61,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.Verbose.Should().BeTrue("because the flag is present");
+        Assert.True(@params.Verbose);
     }
 
     [Theory]
@@ -75,8 +75,8 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.MaxConnectionsModified.Should().BeFalse("because the option is not present");
-        @params.MaxConnections.Should().Be(1, "because the default is 1");
+        Assert.False(@params.MaxConnectionsModified);
+        Assert.Equal(1, @params.MaxConnections);
     }
 
     [Fact]
@@ -88,8 +88,8 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.MaxConnectionsModified.Should().BeTrue("because the option is present");
-        @params.MaxConnections.Should().Be(5, "because the 5 is requested");
+        Assert.True(@params.MaxConnectionsModified);
+        Assert.Equal(5, @params.MaxConnections);
     }
 
     [Theory]
@@ -103,7 +103,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.ExecutionMode.Should().Be(Configuration.ExecutionMode.Sequential, "because the option is requested");
+        Assert.Equal(Configuration.ExecutionMode.Sequential, @params.ExecutionMode);
     }
 
     [Theory]
@@ -118,7 +118,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.ExecutionMode.Should().Be(Configuration.ExecutionMode.Parallel, "because the option is requested or default");
+        Assert.Equal(Configuration.ExecutionMode.Parallel, @params.ExecutionMode);
     }
 
     [Theory]
@@ -137,7 +137,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.Requests.Should().Be(expected, "because the option is requested or default");
+        Assert.Equal(expected, @params.Requests);
     }
 
     [Theory]
@@ -151,7 +151,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.Export.Should().Be(expected, "because the option is requested or default");
+        Assert.Equal(expected, @params.Export);
     }
 
     [Theory]
@@ -165,7 +165,7 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.FormatJson.Should().Be(expected, "because the option is requested or default");
+        Assert.Equal(expected, @params.FormatJson);
     }
 
     [Theory]
@@ -179,6 +179,6 @@ public class SendCommandParsingTests {
         var @params = SendCommand.ParseParametersArgs(args);
 
         // Assert
-        @params.UseFullEquality.Should().Be(expected, "because the option is requested or default");
+        Assert.Equal(expected, @params.UseFullEquality);
     }
 }

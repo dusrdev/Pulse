@@ -8,6 +8,6 @@ public class VersionTests {
         var assemblyVersion = typeof(Program).Assembly.GetName().Version!;
 
         // Assert
-        constantVersion.Should().Be(assemblyVersion);
+        Assert.Equal(assemblyVersion, constantVersion);
     }
 }

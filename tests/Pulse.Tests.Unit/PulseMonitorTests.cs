@@ -19,6 +19,6 @@ public class PulseMonitorTests {
         // Act + Assert
         var context = new IPulseMonitor.RequestExecutionContext();
         var result = await context.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
-        result.Exception.Type.Should().Be(nameof(TimeoutException));
+        Assert.Equal(nameof(TimeoutException), result.Exception.Type);
     }
 }

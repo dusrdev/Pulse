@@ -13,7 +13,7 @@ public class SummaryTests {
         var actual = PulseSummary.Mean(arr);
 
         // Assert
-        actual.Should().BeApproximately(expected, 0.01, "because the sum is correct");
+        Assert.Equal(expected, actual, 0.01);
     }
 
     [Theory]
@@ -23,10 +23,10 @@ public class SummaryTests {
         var summary = PulseSummary.GetSummary(values, removeOutliers);
 
         // Assert
-        summary.Min.Should().BeApproximately(expectedMin, 0.01, "because the min is correct");
-        summary.Max.Should().BeApproximately(expectedMax, 0.01, "because the max is correct");
-        summary.Mean.Should().BeApproximately(expectedAvg, 0.01, "because the avg is correct");
-        summary.Removed.Should().Be(expectedRemoved, "because the removed count is correct");
+        Assert.Equal(expectedMin, summary.Min, 0.01);
+        Assert.Equal(expectedMax, summary.Max, 0.01);
+        Assert.Equal(expectedAvg, summary.Mean, 0.01);
+        Assert.Equal(expectedRemoved, summary.Removed, 0.01);
     }
 
     private class SummaryTestData : TheoryData<double[], bool, double, double, double, int> {
