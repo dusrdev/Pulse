@@ -6,9 +6,9 @@ namespace Pulse.Core;
 /// Release information
 /// </summary>
 public sealed class ReleaseInfo {
-	/// <summary>
-	/// Version is taken from the release tag
-	/// </summary>
-	[JsonPropertyName("tag_name")]
-	public string? Version { get; set; }
+    /// <summary>
+    /// Version is taken from the release tag
+    /// </summary>
+    [JsonPropertyName("tag_name")]
+    public string? Version { get; set; }
 }

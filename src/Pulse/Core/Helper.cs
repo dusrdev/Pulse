@@ -1,9 +1,7 @@
-using static PrettyConsole.Console;
-using PrettyConsole;
+using System.Net;
+using System.Runtime.CompilerServices;
 
 using Pulse.Configuration;
-using System.Net;
-
 
 namespace Pulse.Core;
 
@@ -21,9 +19,9 @@ public static class Helper {
         ArgumentOutOfRangeException.ThrowIfGreaterThan<uint>((uint)percentage, 100);
 
         return percentage switch {
-            >= 75 => Color.Green,
-            >= 50 => Color.Yellow,
-            _ => Color.Red
+            >= 75 => Green,
+            >= 50 => Yellow,
+            _ => Red
         };
     }
 
@@ -34,38 +32,38 @@ public static class Helper {
     /// <returns></returns>
     public static Color GetStatusCodeBasedColor(int statusCode) {
         return statusCode switch {
-            < 100 => Color.Magenta,
-            < 200 => Color.White,
-            < 300 => Color.Green,
-            < 400 => Color.Yellow,
-            < 600 => Color.Red,
-            _ => Color.Magenta
+            < 100 => Magenta,
+            < 200 => White,
+            < 300 => Green,
+            < 400 => Yellow,
+            < 600 => Red,
+            _ => Magenta
         };
     }
 
     /// <summary>
-    /// Returns a colored header for the request
-    /// </summary>
-    /// <param name="request"></param>
-    public static ColoredOutput[] CreateHeader(Request request) {
-        Color color = request.Method.Method switch {
-            "GET" => Color.Green,
-            "DELETE" => Color.Red,
-            "POST" => Color.Magenta,
-            _ => Color.Yellow
+	/// Returns a color based on HttpMethod
+	/// </summary>
+	/// <param name="method"></param>
+	/// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetMethodBasedColor(string method)
+        => method switch {
+            "GET" => Green,
+            "DELETE" => Red,
+            "POST" => Magenta,
+            _ => Yellow
         };
-
-        return [request.Method.Method * color, " => ", request.Url];
-    }
 
     /// <summary>
     /// Configures SSL handling
     /// </summary>
     /// <param name="handler"></param>
     /// <param name="proxy"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ConfigureSslHandling(this SocketsHttpHandler handler, Proxy proxy) {
         if (proxy.IgnoreSSL) {
-            handler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+            handler.SslOptions.RemoteCertificateValidationCallback = static (_, _, _, _) => true;
         }
     }
 
@@ -73,23 +71,22 @@ public static class Helper {
     /// Prints the exception
     /// </summary>
     /// <param name="e"></param>
-    public static void PrintException(this StrippedException e, int indent = 0) {
-        Span<char> padding = stackalloc char[indent];
-        padding.Fill(' ');
-        Error.Write(padding);
-        WriteLine(["Exception Type" * Color.Yellow, ": ", e.Type], OutputPipe.Error);
-        Error.Write(padding);
-        WriteLine(["Message" * Color.Yellow, ": ", e.Message], OutputPipe.Error);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void PrintException(this StrippedException e) {
+        WriteLine(OutputPipe.Error, $"{Yellow}Exception type: {Default}{e.Type}");
+        WriteLine(OutputPipe.Error, $"{Yellow}Message: {Default}{e.Message}");
+
         if (e.Detail is not null) {
-            Error.Write(padding);
-            WriteLine(["Detail" * Color.Yellow, ": ", e.Detail], OutputPipe.Error);
+            WriteLine(OutputPipe.Error, $"{Yellow}Detail: {Default}{e.Detail}");
         }
+
         if (e.InnerException is null or { IsDefault: true }) {
             return;
         }
-        Error.Write(padding);
-        Error.WriteLine("Inner Exception:");
-        PrintException(e.InnerException, indent + 2);
+
+        NewLine(OutputPipe.Error);
+        WriteLine($"{Magenta}Inner exception:");
+        PrintException(e.InnerException);
     }
 
     /// <summary>
@@ -97,6 +94,7 @@ public static class Helper {
     /// </summary>
     /// <param name="details"></param>
     /// <param name="exception"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? AddExceptionDetail(Exception exception) {
         switch (exception) {
             case HttpRequestException: {

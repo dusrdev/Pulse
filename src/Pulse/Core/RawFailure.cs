@@ -7,9 +7,9 @@ namespace Pulse.Core;
 /// </summary>
 public readonly struct RawFailure {
     public RawFailure() {
-		Headers = [];
-		StatusCode = 0;
-		Content = string.Empty;
+        Headers = [];
+        StatusCode = 0;
+        Content = string.Empty;
     }
 
     /// <summary>
@@ -17,13 +17,13 @@ public readonly struct RawFailure {
     /// </summary>
     public int StatusCode { get; init; }
 
-	/// <summary>
-	/// Response headers
-	/// </summary>
-	public Dictionary<string, IEnumerable<string>> Headers { get; init; }
+    /// <summary>
+    /// Response headers
+    /// </summary>
+    public Dictionary<string, IEnumerable<string>> Headers { get; init; }
 
-	/// <summary>
-	/// Response content (if any)
-	/// </summary>
-	public string Content { get; init; } = string.Empty;
+    /// <summary>
+    /// Response content (if any)
+    /// </summary>
+    public string Content { get; init; } = string.Empty;
 }

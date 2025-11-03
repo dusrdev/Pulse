@@ -7,24 +7,29 @@
     <Nullable>enable</Nullable>
     <TrimMode>full</TrimMode>
     <OptimizationPreference>Speed</OptimizationPreference>
-    <ServerGarbageCollection>true</ServerGarbageCollection>
-    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-    <GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
     <PublishAot>true</PublishAot>
     <IsAotCompatible>true</IsAotCompatible>
     <AotCompatible>true</AotCompatible>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
     <InvariantGlobalization>true</InvariantGlobalization>
     <StackTraceSupport>false</StackTraceSupport>
-    <Version>1.2.0.0</Version>
+    <Version>2.0.0.0</Version>
     <StripSymbols>true</StripSymbols>
     <RepositoryUrl>https://github.com/dusrdev/Pulse</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ConsoleAppFramework" Version="5.6.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Sharpify" Version="2.5.0" />
-    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.5.0" />
-    <PackageReference Include="PrettyConsole" Version="3.1.0" />
+    <PackageReference Include="PrettyConsole" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>

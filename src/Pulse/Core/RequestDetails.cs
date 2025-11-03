@@ -9,156 +9,154 @@ namespace Pulse.Core;
 /// Request details
 /// </summary>
 public class RequestDetails {
-	/// <summary>
-	/// Proxy configuration
-	/// </summary>
-	public Proxy Proxy { get; set; } = new();
+    /// <summary>
+    /// Proxy configuration
+    /// </summary>
+    public Proxy Proxy { get; set; } = new();
 
-	/// <summary>
-	/// Request configuration
-	/// </summary>
-	public Request Request { get; set; } = new();
+    /// <summary>
+    /// Request configuration
+    /// </summary>
+    public Request Request { get; set; } = new();
 }
 
 /// <summary>
 /// Proxy configuration
 /// </summary>
 public class Proxy {
-	/// <summary>
-	/// Don't use proxy
-	/// </summary>
-	public bool Bypass { get; set; } = true;
+    /// <summary>
+    /// Don't use proxy
+    /// </summary>
+    public bool Bypass { get; set; } = true;
 
-	/// <summary>
-	/// Ignore SSL errors
-	/// </summary>
-	public bool IgnoreSSL { get; set; }
+    /// <summary>
+    /// Ignore SSL errors
+    /// </summary>
+    public bool IgnoreSSL { get; set; }
 
-	/// <summary>
-	/// Host
-	/// </summary>
-	public string Host { get; set; } = string.Empty;
+    /// <summary>
+    /// Host
+    /// </summary>
+    public string Host { get; set; } = string.Empty;
 
-	/// <summary>
-	/// Proxy authentication username
-	/// </summary>
-	public string Username { get; set; } = string.Empty;
+    /// <summary>
+    /// Proxy authentication username
+    /// </summary>
+    public string Username { get; set; } = string.Empty;
 
-	/// <summary>
-	/// Proxy authentication password
-	/// </summary>
-	public string Password { get; set; } = string.Empty;
+    /// <summary>
+    /// Proxy authentication password
+    /// </summary>
+    public string Password { get; set; } = string.Empty;
 }
 
 /// <summary>
 /// Request configuration
 /// </summary>
 public class Request {
-	public const string DefaultUrl = "https://ipinfo.io/geo";
+    public const string DefaultUrl = "https://ipinfo.io/geo";
 
-	/// <summary>
-	/// Request URL - defaults to https://ipinfo.io/geo
-	/// </summary>
-	public string Url { get; set; } = DefaultUrl;
+    /// <summary>
+    /// Request URL - defaults to https://ipinfo.io/geo
+    /// </summary>
+    public string Url { get; set; } = DefaultUrl;
 
-	/// <summary>
-	/// Request method - defaults to GET
-	/// </summary>
-	public HttpMethod Method { get; set; } = HttpMethod.Get;
+    /// <summary>
+    /// Request method - defaults to GET
+    /// </summary>
+    public HttpMethod Method { get; set; } = HttpMethod.Get;
 
-	/// <summary>
-	/// Request headers
-	/// </summary>
-	public Dictionary<string, JsonElement?> Headers { get; set; } = [];
+    /// <summary>
+    /// Request headers
+    /// </summary>
+    public Dictionary<string, JsonElement?> Headers { get; set; } = [];
 
-	/// <summary>
-	/// The request content
-	/// </summary>
-	public Content Content { get; set; } = new();
+    /// <summary>
+    /// The request content
+    /// </summary>
+    public Content Content { get; set; } = new();
 
-	/// <summary>
-	/// Create an http request message from the configuration
-	/// </summary>
-	/// <returns><see cref="HttpRequestMessage"/></returns>
-	public HttpRequestMessage CreateMessage() {
-		var message = new HttpRequestMessage(Method, Url);
+    /// <summary>
+    /// Create an http request message from the configuration
+    /// </summary>
+    /// <returns><see cref="HttpRequestMessage"/></returns>
+    public HttpRequestMessage CreateMessage() {
+        var message = new HttpRequestMessage(Method, Url);
 
-		foreach (var header in Headers) {
-			if (header.Value is null) {
-				continue;
-			}
-			var value = header.Value.ToString();
-			message.Headers.TryAddWithoutValidation(header.Key, value);
-		}
+        foreach (var header in Headers) {
+            if (header.Value is null) {
+                continue;
+            }
+            var value = header.Value.ToString();
+            message.Headers.TryAddWithoutValidation(header.Key, value);
+        }
 
-		if (Content.Body.HasValue) {
-			var media = Content.GetContentType();
-			var messageContent = Content.Body.ToString()!;
-			Debug.Assert(messageContent is not null);
+        if (Content.Body.HasValue) {
+            var media = Content.GetContentType();
+            var messageContent = Content.Body.ToString()!;
+            Debug.Assert(messageContent is not null);
 
-			message.Content = new StringContent(messageContent, Encoding.UTF8, media);
-		}
+            message.Content = new StringContent(messageContent, Encoding.UTF8, media);
+        }
 
-		return message;
-	}
+        return message;
+    }
 
-	/// <summary>
-	/// Returns the request size in bytes
-	/// </summary>
-	public long GetRequestLength() {
-		long length = 0;
-		const long contentTypeHeaderLength = 14; // "Content-Type: "
+    /// <summary>
+    /// Returns the request size in bytes
+    /// </summary>
+    public long GetRequestLength() {
+        long length = 0;
+        const long contentTypeHeaderLength = 14; // "Content-Type: "
+        Encoding encoding = Encoding.Default;
 
-		foreach (var header in Headers) {
-			if (header.Value is null) {
-				continue;
-			}
-			var value = header.Value.ToString();
-			length += GetLength(header.Key);
-			length += 2 + GetLength(value);
-		}
 
-		if (Content.Body.HasValue) {
-			var media = Content.GetContentType();
-			var messageContent = Content.Body.ToString()!;
-			Debug.Assert(messageContent is not null);
-			length += contentTypeHeaderLength + GetLength(media);
-			length += GetLength(messageContent);
-		}
+        foreach (var header in Headers) {
+            if (header.Value is null) {
+                continue;
+            }
+            var value = header.Value.ToString();
+            length += encoding.GetByteCount(header.Key);
+            length += 2 + encoding.GetByteCount(value.AsSpan());
+        }
 
-		return length;
+        if (Content.Body.HasValue) {
+            var media = Content.GetContentType();
+            var messageContent = Content.Body.ToString()!;
+            Debug.Assert(messageContent is not null);
+            length += contentTypeHeaderLength + encoding.GetByteCount(media);
+            length += encoding.GetByteCount(messageContent);
+        }
 
-		static long GetLength(ReadOnlySpan<char> span) {
-			return Encoding.Default.GetByteCount(span);
-		}
-	}
+        return length;
+    }
 }
 
 /// <summary>
 /// Request content
 /// </summary>
 public readonly struct Content {
-	[JsonConstructor]
-	public Content() {
-		ContentType = string.Empty;
-		Body = null;
-	}
+    [JsonConstructor]
+    public Content() {
+        ContentType = string.Empty;
+        Body = null;
+    }
 
-	/// <summary>
-	/// Declares the content type
-	/// </summary>
-	public string ContentType { get; init; }
+    /// <summary>
+    /// Declares the content type
+    /// </summary>
+    public string ContentType { get; init; }
 
-	/// <summary>
-	/// Content
-	/// </summary>
-	public JsonElement? Body { get; init; }
+    /// <summary>
+    /// Content
+    /// </summary>
+    public JsonElement? Body { get; init; }
 
-	/// <summary>
-	/// Returns the content type after defaulting if empty
-	/// </summary>
-	/// <returns></returns>
-	public string GetContentType() => ContentType.Length is 0
-									? "application/json"
-									: ContentType;
+    /// <summary>
+    /// Returns the content type after defaulting if empty
+    /// </summary>
+    /// <returns></returns>
+    public string GetContentType() => ContentType.Length is 0
+                                    ? "application/json"
+                                    : ContentType;
 }
