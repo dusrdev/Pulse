@@ -6,7 +6,7 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 
 - JSON based request configuration
 - Support for using proxies
-- True multi-threading with configurable modes (max concurrency, batches, sequential)
+- Configurable concurrency via max connection limits and optional per-request delays
 - Supports all HTTP methods
 - Supports Headers
 - Support Content-Type and Body for POST, PUT, PATCH, and DELETE
@@ -44,7 +44,7 @@ After the execution (different configuration in this example), `Pulse` produces 
 
 The configuration file is a JSON file that contains proxy information and the request details.
 
-It is recommended to use the build in `get-sample` command to generate a sample configuration file.
+It is recommended to use the built-in `get-sample` command to generate a sample configuration file.
 
 ```bash
 Pulse get-sample
@@ -107,44 +107,44 @@ Content contains the configuration for the request content. Which is only used f
 Pulse has a wide range of options that can be configured in the command line, and can be viewed with `help` or `--help` which shows this:
 
 ```plaintext
-Pulse [RequestFile] [Options]
+Usage: [command] [arguments...] [options...] [-h|--help] [--version]
 
-RequestFile:
-  path to .json request details file
-  - If you don't have one use the "get-sample" command
+Pulse - A hyper fast general purpose HTTP request tester
+
+Arguments:
+  [0] <string>    Path to .json request details file [use "get-sample" if you don't have one]
+
 Options:
-  -n, --number     : number of total requests (default: 1)
-  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
-  -m, --mode       : execution mode (default: parallel)
-      * sequential = execute requests sequentially
-        --delay    : delay between requests in milliseconds (default: 0)
-      * parallel  = execute requests using maximum resources
-        -c         : max concurrent connections (default: infinity)
-  --json           : try to format response content as JSON
-  --raw            : export raw results (without wrapping in custom html)
-  -f               : use full equality (slower - default: false)
-  --no-export      : don't export results (default: false)
-  -v, --verbose    : display verbose output (default: false)
-  -o, --output     : output folder (default: results)
-Special:
-  get-sample       : command - generates sample file
-  get-schema       : command - generates a json schema file
-  check-for-updates: command - checks for updates
-  terms-of-use     : print the terms of use
-  --noop           : print selected configuration but don't run
-  -u, --url        : override the url of the request
-  -h, --help       : print this help text
-Notes:
-  * when "-n" is 1, verbose output is enabled
+  --json                     Try to format response content as JSON (Optional)
+  --raw                      Export raw results [without wrapping in custom HTML] (Optional)
+  -f|--full-equality         Use full equality [slower] (Optional)
+  --no-export                Don't export results (Optional)
+  -v|--verbose               Display verbose output (Optional)
+  --no-op                    Print selected configuration but don't run (Optional)
+  -o|--output <string>       Output folder (Default: @"results")
+  -d|--delay <int>           Delay in milliseconds between requests (Default: -1)
+  -c|--connections <int?>    Maximum number of parallel requests (Default: null)
+  -u|--url <string?>         Override the url of the request (Default: null)
+  -n|--number <int>          Number of total requests (Default: 1)
+  -t|--timeout <int>         Timeout in milliseconds (Default: -1)
+
+Commands:
+  check-for-updates    Checks whether there is a new version out on GitHub releases.
+  get-sample           Generate sample request file
+  get-schema           Generate a json schema file
+  terms-of-use         Print the terms of use.
 ```
 
-- `--json` - try to format response content as JSON
-- `--raw` - export raw results (without wrapping in custom html)
-- `-v` or `--verbose` - display verbose output, this changes the output format, instead of displaying a dashboard, it prints requests/responses as they are being processed.
-- `f` - use fully equality: by default because response content can be entire webpages, it can be a time consuming and resource heavy operation to make sure all responses are unique, so by default a simpler check is used which only compares the content length - for most cases this is sufficient since you usually expect the same content for the requests, but you can opt in for full equality.
-- `u` or `url` - can be used to override the url of the request, this can be useful if you want to keep all other settings the same, and quickly change the url of the request.
-- `noop` - is a very useful command which will print the selected configuration but not perform the pulse, this can be used to inspect the request settings after they are parsed by the program, to ensure everything is exactly as you intended.
-- `o` or `output` - can be used to specify the output folder, by default it is "results", but you can specify a different folder if you want to.
+- `--json` - try to format response content as JSON.
+- `--raw` - export raw results without custom HTML; can be combined with `--json`.
+- `-f|--full-equality` - enforce full response equality checks instead of length-based comparisons.
+- `-v|--verbose` - display per-request logging instead of the dashboard UI.
+- `--no-op` - print the parsed configuration without running any requests.
+- `-c|--connections` - cap parallel requests; set to `1` for sequential execution or leave unset to match the total request count.
+- `-d|--delay` - add a delay (ms) after each request completes; useful when `--connections` is `1`.
+- `-u|--url` - override the request URL while keeping the rest of the configuration unchanged.
+- `-o|--output` - choose a custom output directory (defaults to `results`).
+- `-n|--number` and `-t|--timeout` - control how many requests run and the per-request timeout (ms).
 
 ## Disclaimer
 
