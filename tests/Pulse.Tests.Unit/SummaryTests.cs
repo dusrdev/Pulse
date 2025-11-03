@@ -1,3 +1,7 @@
+using System.Collections.Concurrent;
+using System.Net;
+
+using Pulse.Configuration;
 using Pulse.Core;
 
 namespace Pulse.Tests.Unit;
@@ -50,5 +54,42 @@ public class SummaryTests {
             // Test case 9: large dataset with outliers
             Add(Enumerable.Range(1, 1000).Select(x => (double)x).Union([-1000.0, 2000.0]).ToArray(), true, 1.0, 1000.0, 500.5, 2);
         }
+    }
+
+    [Fact]
+    public void Summarize_DeduplicatesResponses_WhenExportEnabled() {
+        // Arrange
+        var parameters = new Parameters(new ParametersBase { Export = true }, CancellationToken.None);
+        var responses = new[] {
+            CreateResponse(1, HttpStatusCode.OK, "alpha"),
+            CreateResponse(2, HttpStatusCode.OK, "beta"),
+            CreateResponse(3, HttpStatusCode.OK, "beta") // Same length as response 2 -> should deduplicate
+        };
+        var stack = new ConcurrentStack<Response>(responses);
+        var pulseResult = new PulseResult {
+            Results = stack,
+            TotalDuration = TimeSpan.FromSeconds(1),
+            SuccessRate = 100
+        };
+
+        // Act
+        var (exportRequired, uniqueRequests) = PulseSummary.Summarize(parameters, pulseResult, requestSizeInBytes: 16);
+
+        // Assert
+        Assert.True(exportRequired);
+        Assert.Equal(2, uniqueRequests.Count);
+    }
+
+    private static Response CreateResponse(int id, HttpStatusCode statusCode, string content) {
+        return new Response {
+            Id = id,
+            StatusCode = statusCode,
+            Headers = Array.Empty<KeyValuePair<string, IEnumerable<string>>>(),
+            Content = content,
+            ContentLength = content.Length,
+            Latency = TimeSpan.FromMilliseconds(10),
+            Exception = StrippedException.Default,
+            CurrentConcurrentConnections = 1
+        };
     }
 }

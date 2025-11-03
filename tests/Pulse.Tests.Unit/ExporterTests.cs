@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 
 using Pulse.Configuration;
-
 using Pulse.Core;
 
 namespace Pulse.Tests.Unit;
@@ -89,11 +88,11 @@ public class ExporterTests {
 
         // Act
         var expectedFileName = $"response-1337-status-code-502.json";
-        await Exporter.ExportRawAsync(response, string.Empty, false);
+        await Exporter.ExportRawAsync(response, string.Empty, false, TestContext.Current.CancellationToken);
 
         Assert.True(File.Exists(expectedFileName));
 
-        var fileContent = await File.ReadAllTextAsync(expectedFileName);
+        var fileContent = await File.ReadAllTextAsync(expectedFileName, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Contains("502", fileContent);
@@ -125,11 +124,11 @@ public class ExporterTests {
 
         // Act
         var expectedFileName = $"response-1337-status-code-200.html";
-        await Exporter.ExportRawAsync(response, string.Empty, false);
+        await Exporter.ExportRawAsync(response, string.Empty, false, TestContext.Current.CancellationToken);
 
         Assert.True(File.Exists(expectedFileName));
 
-        var fileContent = await File.ReadAllTextAsync(expectedFileName);
+        var fileContent = await File.ReadAllTextAsync(expectedFileName, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(expectedContent, fileContent);
@@ -155,11 +154,11 @@ public class ExporterTests {
 
         // Act
         var expectedFileName = $"response-1337-status-code-502.html";
-        await Exporter.ExportRawAsync(response, string.Empty, false);
+        await Exporter.ExportRawAsync(response, string.Empty, false, TestContext.Current.CancellationToken);
 
         Assert.True(File.Exists(expectedFileName));
 
-        var fileContent = await File.ReadAllTextAsync(expectedFileName);
+        var fileContent = await File.ReadAllTextAsync(expectedFileName, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(expectedContent, fileContent);
@@ -186,7 +185,7 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportHtmlAsync(response, dirInfo.FullName);
+            await Exporter.ExportHtmlAsync(response, dirInfo.FullName, token: TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
@@ -221,12 +220,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportHtmlAsync(response, dirInfo.FullName);
+            await Exporter.ExportHtmlAsync(response, dirInfo.FullName, token: TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
 
             foreach (var header in headers) {
                 Assert.Contains(header.Key, fileContent);
@@ -258,12 +257,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportHtmlAsync(response, dirInfo.FullName);
+            await Exporter.ExportHtmlAsync(response, dirInfo.FullName, token: TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
             Assert.Contains(expectedContent, fileContent);
         } finally {
             dirInfo.Delete(true);
@@ -289,12 +288,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportRawAsync(response, dirInfo.FullName);
+            await Exporter.ExportRawAsync(response, dirInfo.FullName, token: TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
             Assert.Equal(expectedContent, fileContent);
         } finally {
             dirInfo.Delete(true);
@@ -324,12 +323,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportRawAsync(response, dirInfo.FullName);
+            await Exporter.ExportRawAsync(response, dirInfo.FullName, token: TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
             Assert.Equal(expectedContent, fileContent);
             Assert.DoesNotContain(Environment.NewLine, fileContent);
         } finally {
@@ -360,12 +359,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportRawAsync(response, dirInfo.FullName, true);
+            await Exporter.ExportRawAsync(response, dirInfo.FullName, true, TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
             Assert.Contains(Environment.NewLine, fileContent);
         } finally {
             dirInfo.Delete(true);
@@ -391,12 +390,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportRawAsync(response, dirInfo.FullName, true);
+            await Exporter.ExportRawAsync(response, dirInfo.FullName, true, TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
             Assert.Contains("test", fileContent);
             Assert.Contains(Environment.NewLine, fileContent);
         } finally {
@@ -424,12 +423,12 @@ public class ExporterTests {
             };
 
             // Act
-            await Exporter.ExportHtmlAsync(response, dirInfo.FullName);
+            await Exporter.ExportHtmlAsync(response, dirInfo.FullName, token: TestContext.Current.CancellationToken);
 
             // Assert
             var file = dirInfo.GetFiles();
             Assert.Single(file);
-            var fileContent = await File.ReadAllTextAsync(file[0].FullName);
+            var fileContent = await File.ReadAllTextAsync(file[0].FullName, TestContext.Current.CancellationToken);
             Assert.DoesNotContain("Hello World", fileContent);
             Assert.Contains(exception.Message, fileContent);
         } finally {

@@ -13,7 +13,7 @@ public class HttpClientFactoryTests {
         var proxy = new Proxy();
 
         // Act
-        using var httpClient = PulseHttpClientFactory.Create(proxy, ParametersBase.DefaultTimeoutInMs);
+        using var httpClient = PulseHttpClientFactory.Create(proxy, -1);
 
         // Assert
         Assert.Equal(Timeout.InfiniteTimeSpan, httpClient.Timeout);
@@ -25,7 +25,7 @@ public class HttpClientFactoryTests {
         var proxy = new Proxy();
 
         // Act
-        using var httpClient = PulseHttpClientFactory.Create(proxy, ParametersBase.DefaultTimeoutInMs);
+        using var httpClient = PulseHttpClientFactory.Create(proxy, -1);
 
         // Assert
         Assert.NotNull(httpClient);
