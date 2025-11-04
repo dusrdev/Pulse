@@ -18,7 +18,11 @@ public static class Pulse {
 
         var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
 
-        using var semaphore = new SemaphoreSlim(Math.Max(1, parameters.Connections));
+        // If connections is not modified it will be set to the number of requests
+        // so that all requests are sent in parallel by default.
+        int concurrencyLevel = Math.Max(1, parameters.Connections);
+
+        using var semaphore = new SemaphoreSlim(concurrencyLevel, concurrencyLevel);
 
         var tasks = new Task[parameters.Requests];
 
