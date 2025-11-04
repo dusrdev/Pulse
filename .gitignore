@@ -484,3 +484,17 @@ $RECYCLE.BIN/
 *.swp
 .vscode/launch.json
 .vscode/tasks.json
+
+# Cargo artifacts
+target/
+
+# Generated documentation
+doc/
+
+# Dependencies and build caches (if not managed by Cargo directly)
+# For example, if you're using a build system that places dependencies outside target/
+# vendor/
+
+# Editor swap files
+*~
+*.swp
