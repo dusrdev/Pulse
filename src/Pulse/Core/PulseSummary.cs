@@ -65,20 +65,18 @@ public static class PulseSummary {
         Func<double, string> getSize = Utils.Strings.FormatBytes;
         double throughput = totalSize / pulseResult.TotalDuration.TotalSeconds;
 
-        Overwrite(() => {
-            WriteLine($"Cross referencing results... {Green}done!");
-        }, 1, OutputPipe.Error);
+        // Clear "cross referencing results..."
         ClearNextLines(1, OutputPipe.Error);
 
         WriteLine($"Request count: {Yellow}{completed}");
         WriteLine($"Concurrent connections: {Yellow}{peakConcurrentConnections}");
         WriteLine($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
         WriteLine($"Success Rate: {Helper.GetPercentageBasedColor(pulseResult.SuccessRate)}{pulseResult.SuccessRate}%");
-        WriteLine($"Latency:       Min: {Cyan}{latencySummary.Min:0.##}ms{Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{Default}, Max: {Red}{latencySummary.Max:0.##}ms");
+        WriteLine($"Latency:       Min: {Green}{latencySummary.Min:0.##}ms{Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{Default}, Max: {Red}{latencySummary.Max:0.##}ms");
         if (latencySummary.Removed != 0) {
             WriteLine($"               (Removed {latencySummary.Removed} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
         }
-        WriteLine($"Content Size:  Min: {Cyan}{getSize(sizeSummary.Min)}{Default}, Mean: {Yellow}{getSize(sizeSummary.Mean)}{Default}, Max: {Red}{getSize(sizeSummary.Max)}");
+        WriteLine($"Content Size:  Min: {Green}{getSize(sizeSummary.Min)}{Default}, Mean: {Yellow}{getSize(sizeSummary.Mean)}{Default}, Max: {Red}{getSize(sizeSummary.Max)}");
         WriteLine($"Total throughput: {Yellow}{getSize(throughput)}/s");
         WriteLine($"Status codes:");
         foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
@@ -111,8 +109,8 @@ public static class PulseSummary {
         } else {
             WriteLine($"Success: {Red}false");
         }
-        WriteLine($"Latency:      {Cyan}{duration:0.##}ms");
-        WriteLine($"Content Size: {Cyan}{Utils.Strings.FormatBytes(result.ContentLength)}");
+        WriteLine($"Latency:      {Green}{duration:0.##}ms");
+        WriteLine($"Content Size: {Green}{Utils.Strings.FormatBytes(result.ContentLength)}");
         if (statusCode is 0) {
             WriteLine($"Status code: {Red}0 [Exception]");
         } else {
@@ -254,7 +252,7 @@ public static class PulseSummary {
 
         if (count is 1) {
             await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, token);
-            WriteLine($"{Cyan}1{Default} unique response exported to {Yellow}{directory}");
+            WriteLine($"{Green}1{Default} unique response exported to {Yellow}{directory}");
             return;
         }
 
@@ -265,6 +263,6 @@ public static class PulseSummary {
 
         await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn));
 
-        WriteLine($"{Cyan}{count}{Default} unique responses exported to {Yellow}{directory}{Default}");
+        WriteLine($"{Green}{count}{Default} unique responses exported to {Yellow}{directory}{Default}");
     }
 }
