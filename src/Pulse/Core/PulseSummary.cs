@@ -74,7 +74,7 @@ public static class PulseSummary {
         WriteLine($"Success Rate: {Helper.GetPercentageBasedColor(pulseResult.SuccessRate)}{pulseResult.SuccessRate}%");
         WriteLine($"Latency:       Min: {Green}{latencySummary.Min:0.##}ms{Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{Default}, Max: {Red}{latencySummary.Max:0.##}ms");
         if (latencySummary.Removed != 0) {
-            WriteLine($"               (Removed {latencySummary.Removed} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
+            WriteLine($"               (Removed {DarkYellow}{latencySummary.Removed}{Default} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
         }
         WriteLine($"Content Size:  Min: {Green}{getSize(sizeSummary.Min)}{Default}, Mean: {Yellow}{getSize(sizeSummary.Mean)}{Default}, Max: {Red}{getSize(sizeSummary.Max)}");
         WriteLine($"Total throughput: {Yellow}{getSize(throughput)}/s");
