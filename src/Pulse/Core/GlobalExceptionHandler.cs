@@ -15,7 +15,8 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
             Environment.ExitCode = 1;
         } catch (Exception e) {
             ClearFrom(startLine);
-            WriteLine(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at dusrdev@gmail.com and provide the following:");
+            WriteLine(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: https://dusrdev.github.io");
+            WriteLine(OutputPipe.Error, $"{Red}and provide the following details:");
             NewLine(OutputPipe.Error);
             Helper.PrintException(StrippedException.FromException(e));
             Environment.ExitCode = 1;
