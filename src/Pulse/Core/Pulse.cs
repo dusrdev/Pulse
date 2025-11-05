@@ -41,7 +41,10 @@ public static class Pulse {
             }, cancellationToken);
         }
 
-        await Task.WhenAll(tasks).WaitAsync(cancellationToken).ConfigureAwait(false);
+        // Task.WhenAll here should not use the cancellation token
+        // If it would, left over tasks could try to access an already disposed semaphore
+        // Causing an exception
+        await Task.WhenAll(tasks).ConfigureAwait(false);
 
         var result = monitor.ClearAndReturn();
 
