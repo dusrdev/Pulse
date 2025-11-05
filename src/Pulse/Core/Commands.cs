@@ -62,8 +62,10 @@ public static class Commands {
             OutputFolder = output
         };
 
-        if (!InputJsonContext.TryGetRequestDetailsFromFile(Path.GetFullPath(requestFile), out var requestDetails)) {
-            WriteLine(OutputPipe.Error, $"Failed to retrieve and parse request file from {Yellow}{requestFile}");
+        var requestFilePath = Path.GetFullPath(requestFile);
+
+        if (!InputJsonContext.TryGetRequestDetailsFromFile(requestFilePath, out var requestDetails)) {
+            WriteLine(OutputPipe.Error, $"Failed to retrieve and parse request file from {Yellow}{requestFilePath}");
             return 1;
         }
         ArgumentNullException.ThrowIfNull(requestDetails);

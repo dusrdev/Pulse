@@ -254,7 +254,7 @@ public static class PulseSummary {
 
         if (count is 1) {
             await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, token);
-            WriteLine($"{Cyan}1{Default} unique response exported to {Yellow}{parameters.OutputFolder}{Default}.");
+            WriteLine($"{Cyan}1{Default} unique response exported to {Yellow}{directory}");
             return;
         }
 
@@ -265,6 +265,6 @@ public static class PulseSummary {
 
         await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn));
 
-        WriteLine($"{Cyan}{count}{Default} unique responses exported to {Yellow}{parameters.OutputFolder}{Default}.");
+        WriteLine($"{Cyan}{count}{Default} unique responses exported to {Yellow}{directory}{Default}");
     }
 }
