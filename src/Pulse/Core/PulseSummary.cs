@@ -34,7 +34,7 @@ public static class PulseSummary {
         int peakConcurrentConnections = 0;
 
         Overwrite(() => {
-            WriteLine($"Cross referencing results...");
+            Write(OutputPipe.Error, $"Cross referencing results...");
         }, 1, OutputPipe.Error);
 
         foreach (var result in pulseResult.Results) {
