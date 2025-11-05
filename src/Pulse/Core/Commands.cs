@@ -183,6 +183,8 @@ public static class Commands {
         // Options
         WriteLine($"{headerColor}Options:");
         WriteLine($"{property}  Request count: {value}{parameters.Requests}");
+        WriteLine($"{property}  Concurrent connections: {value}{parameters.Connections}");
+        WriteLine($"{property}  Delay: {value}{parameters.DelayInMs}ms");
         WriteLine($"{property}  Timeout: {value}{parameters.TimeoutInMs}");
         WriteLine($"{property}  Export Raw: {value}{parameters.ExportRaw}");
         WriteLine($"{property}  Format JSON: {value}{parameters.FormatJson}");
