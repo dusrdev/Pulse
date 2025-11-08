@@ -1,5 +1,5 @@
 using System.Net;
-using System.Runtime.CompilerServices;
+using System.Numerics;
 
 using Pulse.Configuration;
 
@@ -9,6 +9,20 @@ namespace Pulse.Core;
 /// Helper class
 /// </summary>
 public static class Helper {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double Percentage<T>(T current, T total) where T : INumberBase<T> {
+        return double.CreateChecked(current / total);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TimeSpan GetETA(double percentage, TimeSpan elapsed) {
+        if (percentage <= 0) return TimeSpan.MaxValue;
+        if (percentage >= 1) return TimeSpan.Zero;
+        var rem = (1 - percentage) / percentage;
+        return rem * elapsed;
+    }
+
+
     /// <summary>
     /// Returns a text color based on percentage
     /// </summary>

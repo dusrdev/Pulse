@@ -36,7 +36,7 @@ public sealed class PulseMonitor : IPulseMonitor {
     // 5: 5xx
     private readonly PaddedULong[] _stats = new PaddedULong[6];
     private readonly RequestExecutionContext _requestExecutionContext;
-    private readonly int _requestCount;
+    private readonly ulong _requestCount;
     private readonly bool _saveContent;
     private readonly CancellationToken _cancellationToken;
     private readonly HttpClient _httpClient;
@@ -49,7 +49,7 @@ public sealed class PulseMonitor : IPulseMonitor {
     /// </summary>
     public PulseMonitor(HttpClient client, Request requestRecipe, Parameters parameters) {
         _results = new ConcurrentStack<Response>();
-        _requestCount = parameters.Requests;
+        _requestCount = (ulong)parameters.Requests;
         _saveContent = parameters.Export;
         _cancellationToken = parameters.CancellationToken;
         _httpClient = client;
@@ -79,8 +79,8 @@ public sealed class PulseMonitor : IPulseMonitor {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void PrintMetrics() {
         lock (_lock) {
-            var elapsed = Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
-            var eta = TimeSpan.FromMilliseconds(elapsed / _responses.Value * (_requestCount - (int)_responses.Value));
+            var percentage = Helper.Percentage(_responses.Value, _requestCount);
+            var eta = Helper.GetETA(percentage, Stopwatch.GetElapsedTime(_start));
             double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2);
 
             var stats = new Stats {
@@ -103,7 +103,7 @@ public sealed class PulseMonitor : IPulseMonitor {
         public required PaddedULong[] StatusCodes { get; init; }
         public required TimeSpan ETA { get; init; }
         public required double SuccessRate { get; init; }
-        public required int RequestCount { get; init; }
+        public required ulong RequestCount { get; init; }
     }
 
     /// <summary>
