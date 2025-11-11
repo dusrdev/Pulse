@@ -72,6 +72,7 @@ internal sealed class PulseMonitor : IPulseMonitor {
             StatusCodes = _stats
         });
 
+        System.Console.CursorVisible = false;
         ConsoleState.ReportLinesFromCurrent(3);
 
         _printer = Task.Run(async () => {
@@ -141,6 +142,7 @@ internal sealed class PulseMonitor : IPulseMonitor {
         _channel.Writer.Complete();
         await _printer.ConfigureAwait(false);
         ClearNextLines(3, OutputPipe.Error);
+        System.Console.CursorVisible = true;
 
         return new() {
             Results = _results,
