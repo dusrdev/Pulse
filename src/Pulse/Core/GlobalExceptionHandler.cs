@@ -12,11 +12,11 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
         try {
             await Next.InvokeAsync(context, cancellationToken).ConfigureAwait(false);
         } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
-            ClearFrom(startLine, ConsoleState.LinesWritten);
+            ClearFrom(startLine);
             WriteLine(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
             Environment.ExitCode = 1;
         } catch (Exception e) {
-            ClearFrom(startLine, ConsoleState.LinesWritten);
+            ClearFrom(startLine);
             WriteLine(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: https://dusrdev.github.io");
             WriteLine(OutputPipe.Error, $"{Red}and provide the following details:");
             NewLine(OutputPipe.Error);
@@ -24,8 +24,8 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
             Environment.ExitCode = 1;
         }
 
-        static void ClearFrom(int start, int end) {
-            int lines = end + 1;
+        static void ClearFrom(int start) {
+            int lines = Math.Max(GetCurrentLine(), ConsoleState.LinesWritten) + 1;
             GoToLine(start);
             ClearNextLines(lines, OutputPipe.Error);
             GoToLine(start);
