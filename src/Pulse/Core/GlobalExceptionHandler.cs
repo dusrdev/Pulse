@@ -9,7 +9,7 @@ namespace Pulse.Core;
 internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleAppFilter(next) {
     public override async Task InvokeAsync(ConsoleAppContext context, CancellationToken cancellationToken) {
         int startLine = GetCurrentLine();
-        ConsoleState.LinesWritten = startLine;
+        ConsoleState.Reset(startLine);
         try {
             await Next.InvokeAsync(context, cancellationToken).ConfigureAwait(false);
         } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {

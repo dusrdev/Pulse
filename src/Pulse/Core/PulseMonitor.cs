@@ -72,7 +72,7 @@ internal sealed class PulseMonitor : IPulseMonitor {
             StatusCodes = _stats
         });
 
-        ConsoleState.LinesWritten += 3;
+        ConsoleState.ReportLinesFromCurrent(3);
 
         _printer = Task.Run(async () => {
             await foreach (var stats in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false)) {

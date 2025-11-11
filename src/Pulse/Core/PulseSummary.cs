@@ -33,7 +33,7 @@ internal static class PulseSummary {
         long totalSize = 0;
         int peakConcurrentConnections = 0;
 
-        ConsoleState.LinesWritten += 1;
+        ConsoleState.ReportLinesFromCurrent(1);
         Overwrite(() => {
             Write(OutputPipe.Error, $"Cross referencing results...");
         }, 1, OutputPipe.Error);
