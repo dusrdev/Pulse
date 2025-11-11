@@ -17,7 +17,7 @@ namespace Pulse.Configuration;
                              UseStringEnumConverter = true)]
 [JsonSerializable(typeof(RequestDetails))]
 [JsonSerializable(typeof(JsonElement))]
-public partial class InputJsonContext : JsonSerializerContext {
+internal partial class InputJsonContext : JsonSerializerContext {
     /// <summary>
     /// Try to get request details from file
     /// </summary>

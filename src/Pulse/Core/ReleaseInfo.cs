@@ -5,7 +5,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Release information
 /// </summary>
-public sealed class ReleaseInfo {
+internal sealed class ReleaseInfo {
     /// <summary>
     /// Version is taken from the release tag
     /// </summary>

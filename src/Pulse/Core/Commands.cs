@@ -11,7 +11,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Commands
 /// </summary>
-public static class Commands {
+internal static class Commands {
     public const string VERSION = "2.0.0.0";
 
     /// <summary>
@@ -81,7 +81,7 @@ public static class Commands {
         }
 
         WriteLine($"{Helper.GetMethodBasedColor(requestDetails.Request.Method.Method)}{requestDetails.Request.Method.Method}{Default} => {requestDetails.Request.Url}");
-        await Pulse.RunAsync(@params, requestDetails);
+        await Pulse.RunAsync(@params, requestDetails).ConfigureAwait(false);
         return 0;
     }
 
@@ -95,9 +95,9 @@ public static class Commands {
         client.DefaultRequestHeaders.Add("User-Agent", "C# App");
         client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
         using var message = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/dusrdev/Pulse/releases/latest");
-        using var response = await client.SendAsync(message, ct);
+        using var response = await client.SendAsync(message, ct).ConfigureAwait(false);
         if (response.IsSuccessStatusCode) {
-            var json = await response.Content.ReadAsStringAsync(ct);
+            var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             if (!DefaultJsonContext.TryDeserializeVersion(json, out var remoteVersion)) {
                 WriteLine(OutputPipe.Error, $"Failed to retrieve version from remote.");
                 return 1;
@@ -150,7 +150,7 @@ public static class Commands {
             TreatNullObliviousAsNonNullable = true,
         };
         var schema = InputJsonContext.Default.RequestDetails.GetJsonSchemaAsNode(options).ToString();
-        await File.WriteAllTextAsync(path, schema, ct);
+        await File.WriteAllTextAsync(path, schema, ct).ConfigureAwait(false);
         WriteLine($"Schema generated at {Yellow}{path}");
         return 0;
     }
@@ -165,7 +165,7 @@ public static class Commands {
         directory ??= Directory.GetCurrentDirectory();
         var path = Path.Join(directory, "sample.json");
         var json = JsonSerializer.Serialize(new RequestDetails(), InputJsonContext.Default.RequestDetails);
-        await File.WriteAllTextAsync(path, json, ct);
+        await File.WriteAllTextAsync(path, json, ct).ConfigureAwait(false);
         WriteLine($"Sample request generated at {Yellow}{path}");
         return 0;
     }

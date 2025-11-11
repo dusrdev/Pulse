@@ -8,7 +8,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Request details
 /// </summary>
-public class RequestDetails {
+internal class RequestDetails {
     /// <summary>
     /// Proxy configuration
     /// </summary>
@@ -23,7 +23,7 @@ public class RequestDetails {
 /// <summary>
 /// Proxy configuration
 /// </summary>
-public class Proxy {
+internal class Proxy {
     /// <summary>
     /// Don't use proxy
     /// </summary>
@@ -53,7 +53,7 @@ public class Proxy {
 /// <summary>
 /// Request configuration
 /// </summary>
-public class Request {
+internal class Request {
     public const string DefaultUrl = "https://ipinfo.io/geo";
 
     /// <summary>
@@ -135,7 +135,7 @@ public class Request {
 /// <summary>
 /// Request content
 /// </summary>
-public readonly struct Content {
+internal readonly struct Content {
     [JsonConstructor]
     public Content() {
         ContentType = string.Empty;

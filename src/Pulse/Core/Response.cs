@@ -7,7 +7,7 @@ namespace Pulse.Core;
 /// <summary>
 /// The model used for response
 /// </summary>
-public readonly record struct Response {
+internal readonly record struct Response {
     /// <summary>
     /// The id of the request
     /// </summary>
@@ -52,7 +52,7 @@ public readonly record struct Response {
 /// <summary>
 /// Request comparer to be used in HashSets
 /// </summary>
-public sealed class ResponseComparer : IEqualityComparer<Response> {
+internal sealed class ResponseComparer : IEqualityComparer<Response> {
     private readonly Parameters _parameters;
 
     public ResponseComparer(Parameters parameters) {

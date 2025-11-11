@@ -3,7 +3,7 @@ namespace Pulse.Configuration;
 /// <summary>
 /// Execution parameters
 /// </summary>
-public record ParametersBase {
+internal record ParametersBase {
     /// <summary>
     /// Sets the number of requests (default = 100)
     /// </summary>
@@ -17,7 +17,7 @@ public record ParametersBase {
     /// <summary>
     /// The delay between requests in milliseconds
     /// </summary>
-    public int DelayInMs { get; set; } = 0;
+    public int DelayInMs { get; set; }
 
     /// <summary>
     /// Sets the maximum connections
@@ -63,7 +63,7 @@ public record ParametersBase {
 /// <summary>
 /// Execution parameters
 /// </summary>
-public sealed record Parameters : ParametersBase {
+internal sealed record Parameters : ParametersBase {
     /// <summary>
     /// Application-wide cancellation token
     /// </summary>

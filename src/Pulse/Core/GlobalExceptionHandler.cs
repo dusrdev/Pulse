@@ -4,11 +4,13 @@ using Pulse.Configuration;
 
 namespace Pulse.Core;
 
+#pragma warning disable CA1031 // Do not catch general exception types
+
 internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleAppFilter(next) {
     public override async Task InvokeAsync(ConsoleAppContext context, CancellationToken cancellationToken) {
         int startLine = GetCurrentLine();
         try {
-            await Next.InvokeAsync(context, cancellationToken);
+            await Next.InvokeAsync(context, cancellationToken).ConfigureAwait(false);
         } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
             ClearFrom(startLine);
             WriteLine(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
@@ -32,3 +34,5 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
         }
     }
 }
+
+#pragma warning restore CA1031 // Do not catch general exception types

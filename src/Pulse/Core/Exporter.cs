@@ -6,7 +6,7 @@ using Pulse.Configuration;
 
 namespace Pulse.Core;
 
-public static class Exporter {
+internal static class Exporter {
     private const string JsonExtension = "json";
     private const string HtmlExtension = "html";
 
@@ -42,6 +42,7 @@ public static class Exporter {
                 content = DefaultJsonContext.Serialize(failure);
                 extension = JsonExtension;
             } else if (formatJson) {
+#pragma warning disable CA1031 // Do not catch general exception types
                 try {
                     using var doc = JsonDocument.Parse(result.Content);
                     var root = doc.RootElement;
@@ -50,6 +51,7 @@ public static class Exporter {
                 } catch {
                     content = result.Content;
                 }
+#pragma warning restore CA1031 // Do not catch general exception types
                 extension = JsonExtension;
             } else {
                 content = result.Content;
@@ -59,7 +61,7 @@ public static class Exporter {
 
         string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.{extension}");
 
-        await File.WriteAllTextAsync(filename, content, token);
+        await File.WriteAllTextAsync(filename, content, token).ConfigureAwait(false);
     }
 
     internal static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
@@ -87,7 +89,7 @@ public static class Exporter {
         }
 
         string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
-        string contentFrame = content == string.Empty ?
+        string contentFrame = content.Length == 0 ?
     """
 <div>
 <h2>Content: Empty...</h2>
@@ -296,7 +298,7 @@ iframe {
 </div>
 </body>
 """;
-        await File.WriteAllTextAsync(filename, body, token);
+        await File.WriteAllTextAsync(filename, body, token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -344,11 +346,13 @@ iframe {
     internal static void ClearFiles(string directoryPath) {
         string[] files = Directory.GetFiles(directoryPath);
         foreach (var file in files) {
+#pragma warning disable CA1031 // Do not catch general exception types
             try {
                 File.Delete(file);
             } catch {
                 // ignored
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }

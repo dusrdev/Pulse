@@ -7,7 +7,7 @@ namespace Pulse.Configuration;
 /// <summary>
 /// An exception only containing the type, message and stack trace
 /// </summary>
-public sealed record StrippedException {
+internal sealed record StrippedException {
     public static readonly StrippedException Default = new();
 
     /// <summary>

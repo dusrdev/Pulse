@@ -12,7 +12,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Pulse summary handles outputs and experts post-pulse
 /// </summary>
-public static class PulseSummary {
+internal static class PulseSummary {
     /// <summary>
     /// Produces a summary, and saves unique requests if export is enabled.
     /// </summary>
@@ -251,7 +251,7 @@ public static class PulseSummary {
         Exporter.ClearFiles(directory);
 
         if (count is 1) {
-            await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, token);
+            await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, token).ConfigureAwait(false);
             WriteLine($"{Green}1{Default} unique response exported to {Yellow}{directory}");
             return;
         }
@@ -261,7 +261,7 @@ public static class PulseSummary {
             CancellationToken = token
         };
 
-        await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn));
+        await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn).ConfigureAwait(false)).ConfigureAwait(false);
 
         WriteLine($"{Green}{count}{Default} unique responses exported to {Yellow}{directory}{Default}");
     }

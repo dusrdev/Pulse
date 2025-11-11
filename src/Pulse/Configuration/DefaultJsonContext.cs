@@ -18,11 +18,12 @@ namespace Pulse.Configuration;
 [JsonSerializable(typeof(RawFailure))]
 [JsonSerializable(typeof(StrippedException))]
 [JsonSerializable(typeof(ReleaseInfo))]
-public partial class DefaultJsonContext : JsonSerializerContext {
+internal partial class DefaultJsonContext : JsonSerializerContext {
     /// <summary>
     /// Deserializes the version from the release info JSON
     /// </summary>
     /// <param name="releaseInfoJson"></param>
+    /// <param name="version"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryDeserializeVersion(ReadOnlySpan<char> releaseInfoJson, out Version? version) {

@@ -14,4 +14,4 @@ app.Add("get-schema", Commands.GetSchema);
 app.Add("check-for-updates", Commands.CheckForUpdates);
 app.Add("terms-of-use", Commands.TermsOfUse);
 
-await app.RunAsync(args);
+await app.RunAsync(args).ConfigureAwait(false);

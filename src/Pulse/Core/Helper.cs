@@ -8,7 +8,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Helper class
 /// </summary>
-public static class Helper {
+internal static class Helper {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Percentage<T>(T current, T total) where T : INumberBase<T> {
         return double.CreateChecked(current / total);
@@ -77,7 +77,9 @@ public static class Helper {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ConfigureSslHandling(this SocketsHttpHandler handler, Proxy proxy) {
         if (proxy.IgnoreSSL) {
+#pragma warning disable CA5359 // Do Not Disable Certificate Validation
             handler.SslOptions.RemoteCertificateValidationCallback = static (_, _, _, _) => true;
+#pragma warning restore CA5359 // Do Not Disable Certificate Validation
         }
     }
 

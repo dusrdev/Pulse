@@ -5,7 +5,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Pulse runner
 /// </summary>
-public static class Pulse {
+internal static class Pulse {
     /// <summary>
     /// Runs the pulse according the specification requested in <paramref name="parameters"/>
     /// </summary>
@@ -51,7 +51,7 @@ public static class Pulse {
         var (exportRequired, uniqueRequests) = PulseSummary.Summarize(parameters, result, requestDetails.Request.GetRequestLength());
 
         if (exportRequired) {
-            await PulseSummary.ExportUniqueRequestsAsync(parameters, uniqueRequests, cancellationToken);
+            await PulseSummary.ExportUniqueRequestsAsync(parameters, uniqueRequests, cancellationToken).ConfigureAwait(false);
         }
     }
 }

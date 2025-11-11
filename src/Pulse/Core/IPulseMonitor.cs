@@ -9,7 +9,7 @@ namespace Pulse.Core;
 /// <summary>
 /// IPulseMonitor defines the traits for the wrappers that handles display of metrics and cross-thread data collection
 /// </summary>
-public interface IPulseMonitor {
+internal interface IPulseMonitor {
     /// <summary>
     /// Creates a new pulse monitor according the verbosity setting
     /// </summary>
@@ -62,7 +62,7 @@ public interface IPulseMonitor {
             HttpResponseMessage? response = null;
             try {
                 currentConcurrencyLevel = (int)Interlocked.Increment(ref _currentConcurrentConnections.Value);
-                response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             } catch (TimeoutException ex) {
                 exception = StrippedException.FromException(ex);
             } catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested && ex.InnerException is TimeoutException timeoutEx) {
@@ -93,7 +93,7 @@ public interface IPulseMonitor {
                     contentLength = length.Value;
                 }
                 if (saveContent) {
-                    content = await r.Content.ReadAsStringAsync(cancellationToken);
+                    content = await r.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                     if (contentLength == 0) {
                         var charSet = r.Content.Headers.ContentType?.CharSet;
                         var encoding = charSet is null

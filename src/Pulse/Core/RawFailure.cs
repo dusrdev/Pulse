@@ -5,7 +5,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Represents a serializable way to display non successful response information when using <see cref="ParametersBase.ExportRaw"/>
 /// </summary>
-public readonly struct RawFailure {
+internal readonly struct RawFailure {
     public RawFailure() {
         Headers = [];
         StatusCode = 0;

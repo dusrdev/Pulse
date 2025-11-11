@@ -11,7 +11,7 @@ namespace Pulse.Core;
 /// <summary>
 /// PulseMonitor wraps the execution delegate and handles display of metrics and cross-thread data collection
 /// </summary>
-public sealed class VerbosePulseMonitor : IPulseMonitor {
+internal sealed class VerbosePulseMonitor : IPulseMonitor {
     /// <summary>
     /// Holds the results of all the requests
     /// </summary>
@@ -58,7 +58,7 @@ public sealed class VerbosePulseMonitor : IPulseMonitor {
         lock (_lock) {
             WriteLine(OutputPipe.Error, $"{Yellow}--> {Default}Sent request: {Yellow}{requestId}");
         }
-        var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken);
+        var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken).ConfigureAwait(false);
         Interlocked.Increment(ref _responses.Value);
         // Increment stats
         if (result.StatusCode is HttpStatusCode.OK) {

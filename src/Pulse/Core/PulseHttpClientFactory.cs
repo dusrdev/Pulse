@@ -7,7 +7,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Http client factory
 /// </summary>
-public static class PulseHttpClientFactory {
+internal static class PulseHttpClientFactory {
     /// <summary>
     /// Creates an HttpClient with the specified <paramref name="proxyDetails"/>
 	/// </summary>
@@ -15,9 +15,11 @@ public static class PulseHttpClientFactory {
 	/// <param name="timeoutInMs"></param>
 	/// <returns>An HttpClient</returns>
 	public static HttpClient Create(Proxy proxyDetails, int timeoutInMs) {
+#pragma warning disable CA2000 // Dispose objects before losing scope
         SocketsHttpHandler handler = CreateHandler(proxyDetails);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
-        var client = new HttpClient(handler) {
+        var client = new HttpClient(handler, true) {
             Timeout = timeoutInMs < 0
                 ? Timeout.InfiniteTimeSpan
                 : TimeSpan.FromMilliseconds(timeoutInMs)
