@@ -5,7 +5,7 @@ namespace Pulse.Core;
 /// <summary>
 /// Result of pulse (complete test)
 /// </summary>
-internal readonly ref struct PulseResult {
+internal readonly struct PulseResult {
     /// <summary>
     /// Results of the individual requests
     /// </summary>

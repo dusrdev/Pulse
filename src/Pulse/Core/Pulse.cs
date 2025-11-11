@@ -46,7 +46,7 @@ internal static class Pulse {
         // Causing an exception
         await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        var result = monitor.ClearAndReturn();
+        var result = await monitor.ClearAndReturnAsync().ConfigureAwait(false);
 
         var (exportRequired, uniqueRequests) = PulseSummary.Summarize(parameters, result, requestDetails.Request.GetRequestLength());
 

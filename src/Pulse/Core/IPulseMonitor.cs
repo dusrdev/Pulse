@@ -32,7 +32,7 @@ internal interface IPulseMonitor {
     /// <summary>
     /// Run cleanup and return results
     /// </summary>
-    PulseResult ClearAndReturn();
+    Task<PulseResult> ClearAndReturnAsync();
 
     /// <summary>
     /// Request execution context

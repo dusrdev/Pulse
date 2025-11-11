@@ -42,6 +42,7 @@ internal sealed class PulseMonitor : IPulseMonitor {
     private readonly CancellationToken _cancellationToken;
     private readonly HttpClient _httpClient;
     private readonly Request _requestRecipe;
+    private readonly Task _printer;
 
     private readonly Channel<Stats> _channel = Channel.CreateBounded<Stats>(new BoundedChannelOptions(1) {
         SingleWriter = false,
@@ -71,7 +72,7 @@ internal sealed class PulseMonitor : IPulseMonitor {
             StatusCodes = _stats
         });
 
-        _ = Task.Run(async () => {
+        _printer = Task.Run(async () => {
             await foreach (var stats in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false)) {
                 PrintMetrics(stats);
             }
@@ -133,9 +134,10 @@ internal sealed class PulseMonitor : IPulseMonitor {
     }
 
     /// <inheritdoc />
-    public PulseResult ClearAndReturn() {
+    public async Task<PulseResult> ClearAndReturnAsync() {
         // Clear after metrics
         _channel.Writer.Complete();
+        await _printer.ConfigureAwait(false);
         ClearNextLines(3, OutputPipe.Error);
 
         return new() {

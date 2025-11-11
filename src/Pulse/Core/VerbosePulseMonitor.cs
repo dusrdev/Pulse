@@ -72,13 +72,13 @@ internal sealed class VerbosePulseMonitor : IPulseMonitor {
     }
 
     /// <inheritdoc />
-    public PulseResult ClearAndReturn() {
+    public Task<PulseResult> ClearAndReturnAsync() {
         NewLine(OutputPipe.Error);
 
-        return new() {
+        return Task.FromResult(new PulseResult {
             Results = _results,
             SuccessRate = Math.Round((double)_successes.Value / _responses.Value * 100, 2),
             TotalDuration = Stopwatch.GetElapsedTime(_start)
-        };
+        });
     }
 }
