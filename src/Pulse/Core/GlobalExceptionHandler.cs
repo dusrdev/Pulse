@@ -9,6 +9,7 @@ namespace Pulse.Core;
 internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleAppFilter(next) {
     public override async Task InvokeAsync(ConsoleAppContext context, CancellationToken cancellationToken) {
         int startLine = GetCurrentLine();
+        ConsoleState.LinesWritten = startLine;
         try {
             await Next.InvokeAsync(context, cancellationToken).ConfigureAwait(false);
         } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
@@ -25,7 +26,8 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
         }
 
         static void ClearFrom(int start) {
-            int lines = Math.Max(GetCurrentLine(), ConsoleState.LinesWritten) + 1;
+            int last = Math.Max(GetCurrentLine(), ConsoleState.LinesWritten);
+            int lines = Math.Max(1, last - start + 1);
             GoToLine(start);
             ClearNextLines(lines, OutputPipe.Error);
             GoToLine(start);

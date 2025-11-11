@@ -6,7 +6,7 @@ internal static class ConsoleState {
 			return field;
 		}
 		set {
-			Interlocked.Exchange(ref field, value);
+			Interlocked.Exchange(ref field, Math.Max(field, value));
 		}
 	}
 }
