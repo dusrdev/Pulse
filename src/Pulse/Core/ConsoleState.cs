@@ -1,13 +1,13 @@
 namespace Pulse.Core;
 
 internal static class ConsoleState {
-    public static int LinesWritten {
-        get => field;
-        set => Interlocked.Exchange(ref field, value);
-    }
+	private static readonly Lock Lock = new();
+    public static int LinesWritten { get; set; }
 
     public static void Reset(int startLine) {
-		LinesWritten = startLine;
+		lock (Lock) {
+			LinesWritten = startLine;
+		}
     }
 
     public static void ReportLinesFromCurrent(int lineCount) {
@@ -21,7 +21,9 @@ internal static class ConsoleState {
     }
 
     private static void UpdateMax(int candidate) {
-		if (LinesWritten >= candidate) return;
-		LinesWritten = candidate;
+		lock (Lock) {
+			if (LinesWritten >= candidate) return;
+			LinesWritten = candidate;
+		}
     }
 }
