@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Channels;
 
 using Pulse.Configuration;
 
@@ -11,7 +12,7 @@ namespace Pulse.Core;
 /// <summary>
 /// PulseMonitor wraps the execution delegate and handles display of metrics and cross-thread data collection
 /// </summary>
-public sealed class PulseMonitor : IPulseMonitor {
+internal sealed class PulseMonitor : IPulseMonitor {
     /// <summary>
     /// Holds the results of all the requests
     /// </summary>
@@ -42,7 +43,11 @@ public sealed class PulseMonitor : IPulseMonitor {
     private readonly HttpClient _httpClient;
     private readonly Request _requestRecipe;
 
-    private readonly Lock _lock = new();
+    private readonly Channel<Stats> _channel = Channel.CreateBounded<Stats>(new BoundedChannelOptions(1) {
+        SingleWriter = false,
+        SingleReader = true,
+        FullMode = BoundedChannelFullMode.DropWrite
+    });
 
     /// <summary>
     /// Creates a new pulse monitor
@@ -55,13 +60,27 @@ public sealed class PulseMonitor : IPulseMonitor {
         _httpClient = client;
         _requestRecipe = requestRecipe;
         _requestExecutionContext = new RequestExecutionContext();
-        PrintInitialMetrics();
         _start = Stopwatch.GetTimestamp();
+
+        _ = _channel.Writer.TryWrite(new Stats {
+            Percentage = 0,
+            CurrentCount = _responses,
+            SuccessRate = 0,
+            ETA = TimeSpan.MaxValue,
+            RequestCount = _requestCount,
+            StatusCodes = _stats
+        });
+
+        _ = Task.Run(async () => {
+            await foreach (var stats in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false)) {
+                PrintMetrics(stats);
+            }
+        });
     }
 
     /// <inheritdoc />
     public async Task SendAsync(int requestId) {
-        var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken);
+        var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken).ConfigureAwait(false);
         Interlocked.Increment(ref _responses.Value);
         // Increment stats
 
@@ -69,7 +88,7 @@ public sealed class PulseMonitor : IPulseMonitor {
         Interlocked.Increment(ref _stats[index].Value);
         // Print metrics
 
-        PrintMetrics();
+        await PushMetricsAsync().ConfigureAwait(false);
         _results.Push(result);
     }
 
@@ -77,50 +96,47 @@ public sealed class PulseMonitor : IPulseMonitor {
     /// Handles printing the current metrics, has to be synchronized to prevent cross writing to the console, which produces corrupted output.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void PrintMetrics() {
-        lock (_lock) {
-            var percentage = Helper.Percentage(_responses.Value, _requestCount);
-            var eta = Helper.GetETA(percentage, Stopwatch.GetElapsedTime(_start));
-            double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2);
+    private async ValueTask PushMetricsAsync() {
+        var percentage = (double)_responses.Value / _requestCount;
+        var eta = Helper.GetETA(percentage, Stopwatch.GetElapsedTime(_start));
+        double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2);
 
-            var stats = new Stats {
-                CurrentCount = _responses,
-                RequestCount = _requestCount,
-                StatusCodes = _stats,
-                ETA = eta,
-                SuccessRate = sr
-            };
+        var stats = new Stats {
+            Percentage = percentage,
+            CurrentCount = _responses,
+            RequestCount = _requestCount,
+            StatusCodes = _stats,
+            ETA = eta,
+            SuccessRate = sr
+        };
 
-            Overwrite(stats, static s => {
-                WriteLine(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{Default}/{Yellow}{s.RequestCount}{Default}, SR: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{Default}%, ETA: {Yellow}{s.ETA:hr}");
-                WriteLine(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{Default}, 2xx: {Green}{s.StatusCodes[2].Value}{Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{Default}, 4xx: {Red}{s.StatusCodes[4].Value}{Default}, 5xx: {Red}{s.StatusCodes[5].Value}{Default}, others: {Magenta}{s.StatusCodes[0].Value}");
-            }, 2, OutputPipe.Error);
-        }
+        await _channel.Writer.WriteAsync(stats, _cancellationToken).ConfigureAwait(false);
     }
 
-    private readonly ref struct Stats {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void PrintMetrics(Stats stats) {
+        Overwrite(stats, static s => {
+            Write(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{Default}/{Yellow}{s.RequestCount}{Default} ");
+            ProgressBar.WriteProgressBar(OutputPipe.Error, s.Percentage * 100, Green);
+            WriteLine(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{Default}%, Estimated time remaining: {Yellow}{s.ETA:hr}");
+            WriteLine(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{Default}, 2xx: {Green}{s.StatusCodes[2].Value}{Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{Default}, 4xx: {Red}{s.StatusCodes[4].Value}{Default}, 5xx: {Red}{s.StatusCodes[5].Value}{Default}, others: {Magenta}{s.StatusCodes[0].Value}");
+        }, 3, OutputPipe.Error);
+    }
+
+    private readonly struct Stats {
         public required PaddedULong CurrentCount { get; init; }
         public required PaddedULong[] StatusCodes { get; init; }
+        public required double Percentage { get; init; }
         public required TimeSpan ETA { get; init; }
         public required double SuccessRate { get; init; }
         public required ulong RequestCount { get; init; }
     }
 
-    /// <summary>
-    /// Prints the initial metrics to establish ui
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void PrintInitialMetrics() {
-        Overwrite(_requestCount, static requests => {
-            WriteLine(OutputPipe.Error, $"Completed: {Yellow}0{Default}/{Yellow}{requests}{Default}, SR: {Red}0{Default}%, ETA: {Yellow}NaN");
-            WriteLine(OutputPipe.Error, $"1xx: {White}0{Default}, 2xx: {Green}0{Default}, 3xx: {Yellow}0{Default}, 4xx: {Red}0{Default}, 5xx: {Red}0{Default}, others: {Magenta}0");
-        }, 2, OutputPipe.Error);
-    }
-
     /// <inheritdoc />
     public PulseResult ClearAndReturn() {
         // Clear after metrics
-        ClearNextLines(2, OutputPipe.Error);
+        _channel.Writer.Complete();
+        ClearNextLines(3, OutputPipe.Error);
 
         return new() {
             Results = _results,
