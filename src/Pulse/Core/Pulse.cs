@@ -21,30 +21,29 @@ internal static class Pulse {
         // If connections is not modified it will be set to the number of requests
         // so that all requests are sent in parallel by default.
         int concurrencyLevel = Math.Max(1, parameters.Connections);
+        int totalRequests = parameters.Requests;
+        int workerCount = totalRequests == 0 ? 0 : Math.Min(concurrencyLevel, totalRequests);
 
-        using var semaphore = new SemaphoreSlim(concurrencyLevel, concurrencyLevel);
+        var workers = new Task[workerCount];
+        int nextRequestId = 0;
 
-        var tasks = new Task[parameters.Requests];
+        for (int i = 0; i < workers.Length; i++) {
+            workers[i] = Task.Run(async () => {
+                while (!cancellationToken.IsCancellationRequested) {
+                    int requestId = Interlocked.Increment(ref nextRequestId);
+                    if (requestId > totalRequests) {
+                        break;
+                    }
 
-        for (int i = 0; i < tasks.Length; i++) {
-            var requestId = i + 1;
-            tasks[i] = Task.Run(async () => {
-                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try {
                     await monitor.SendAsync(requestId).ConfigureAwait(false);
                     if (parameters.DelayInMs > 0) {
                         await Task.Delay(parameters.DelayInMs, cancellationToken).ConfigureAwait(false);
                     }
-                } finally {
-                    semaphore.Release();
                 }
             }, cancellationToken);
         }
 
-        // Task.WhenAll here should not use the cancellation token
-        // If it would, left over tasks could try to access an already disposed semaphore
-        // Causing an exception
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        await Task.WhenAll(workers).ConfigureAwait(false);
 
         var result = await monitor.ClearAndReturnAsync().ConfigureAwait(false);
 
