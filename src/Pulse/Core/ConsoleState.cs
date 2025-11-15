@@ -15,7 +15,7 @@ internal static class ConsoleState {
 			return;
 		}
 
-		int current = GetCurrentLine();
+		int current = Console.GetCurrentLine();
 		int lastLine = current + lineCount - 1;
 		UpdateMax(lastLine);
 	}

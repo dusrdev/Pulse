@@ -56,7 +56,7 @@ internal sealed class VerbosePulseMonitor : IPulseMonitor {
     /// <inheritdoc />
     public async Task SendAsync(int requestId) {
         lock (_lock) {
-            WriteLine(OutputPipe.Error, $"{Yellow}--> {Default}Sent request: {Yellow}{requestId}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}--> {ConsoleColor.Default}Sent request: {Yellow}{requestId}");
         }
         var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken).ConfigureAwait(false);
         Interlocked.Increment(ref _responses.Value);
@@ -66,14 +66,14 @@ internal sealed class VerbosePulseMonitor : IPulseMonitor {
         }
         int status = (int)result.StatusCode;
         lock (_lock) {
-            WriteLine(OutputPipe.Error, $"{Yellow}<-- {Default}Received response: {Yellow}{requestId}{Default}, status code: {Helper.GetStatusCodeBasedColor(status)}{status}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}<-- {ConsoleColor.Default}Received response: {Yellow}{requestId}{ConsoleColor.Default}, status code: {Helper.GetStatusCodeBasedColor(status)}{status}");
         }
         _results.Push(result);
     }
 
     /// <inheritdoc />
     public Task<PulseResult> ClearAndReturnAsync() {
-        NewLine(OutputPipe.Error);
+        Console.NewLine(OutputPipe.Error);
 
         return Task.FromResult(new PulseResult {
             Results = _results,

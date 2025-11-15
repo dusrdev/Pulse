@@ -119,11 +119,11 @@ internal sealed class PulseMonitor : IPulseMonitor {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void PrintMetrics(Stats stats) {
-        Overwrite(stats, static s => {
-            Write(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{Default}/{Yellow}{s.RequestCount}{Default} ");
+        Console.Overwrite(stats, static s => {
+            Console.WriteInterpolated(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{ConsoleColor.Default}/{Yellow}{s.RequestCount}{ConsoleColor.Default} ");
             ProgressBar.WriteProgressBar(OutputPipe.Error, s.Percentage * 100, Green);
-            WriteLine(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{Default}%, Estimated time remaining: {Yellow}{s.ETA:hr}");
-            WriteLine(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{Default}, 2xx: {Green}{s.StatusCodes[2].Value}{Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{Default}, 4xx: {Red}{s.StatusCodes[4].Value}{Default}, 5xx: {Red}{s.StatusCodes[5].Value}{Default}, others: {Magenta}{s.StatusCodes[0].Value}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.Default}%, Estimated time remaining: {Yellow}{s.ETA:hr}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.Default}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.Default}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.Default}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.Default}, others: {Magenta}{s.StatusCodes[0].Value}");
         }, 3, OutputPipe.Error);
     }
 
@@ -141,8 +141,8 @@ internal sealed class PulseMonitor : IPulseMonitor {
         // Clear after metrics
         _channel.Writer.Complete();
         await _printer.ConfigureAwait(false);
-        ClearNextLines(3, OutputPipe.Error);
-        System.Console.CursorVisible = true;
+        Console.ClearNextLines(3, OutputPipe.Error);
+        Console.CursorVisible = true;
 
         return new() {
             Results = _results,

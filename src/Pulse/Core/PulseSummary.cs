@@ -34,8 +34,8 @@ internal static class PulseSummary {
         int peakConcurrentConnections = 0;
 
         ConsoleState.ReportLinesFromCurrent(1);
-        Overwrite(() => {
-            Write(OutputPipe.Error, $"Cross referencing results...");
+        Console.Overwrite(() => {
+            Console.WriteInterpolated(OutputPipe.Error, $"Cross referencing results...");
         }, 1, OutputPipe.Error);
 
         foreach (var result in pulseResult.Results) {
@@ -67,28 +67,28 @@ internal static class PulseSummary {
         double throughput = totalSize / pulseResult.TotalDuration.TotalSeconds;
 
         // Clear "cross referencing results..."
-        ClearNextLines(1, OutputPipe.Error);
+        Console.ClearNextLines(1, OutputPipe.Error);
 
-        WriteLine($"Request count: {Yellow}{completed}");
-        WriteLine($"Concurrent connections: {Yellow}{peakConcurrentConnections}");
-        WriteLine($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
-        WriteLine($"Success Rate: {Helper.GetPercentageBasedColor(pulseResult.SuccessRate)}{pulseResult.SuccessRate}%");
-        WriteLine($"Latency:       Min: {Green}{latencySummary.Min:0.##}ms{Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{Default}, Max: {Red}{latencySummary.Max:0.##}ms");
+        Console.WriteLineInterpolated($"Request count: {Yellow}{completed}");
+        Console.WriteLineInterpolated($"Concurrent connections: {Yellow}{peakConcurrentConnections}");
+        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
+        Console.WriteLineInterpolated($"Success Rate: {Helper.GetPercentageBasedColor(pulseResult.SuccessRate)}{pulseResult.SuccessRate}%");
+        Console.WriteLineInterpolated($"Latency:       Min: {Green}{latencySummary.Min:0.##}ms{ConsoleColor.Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{ConsoleColor.Default}, Max: {Red}{latencySummary.Max:0.##}ms");
         if (latencySummary.Removed != 0) {
-            WriteLine($"               (Removed {DarkYellow}{latencySummary.Removed}{Default} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
+            Console.WriteLineInterpolated($"               (Removed {DarkYellow}{latencySummary.Removed}{ConsoleColor.Default} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
         }
-        WriteLine($"Content Size:  Min: {Green}{getSize(sizeSummary.Min)}{Default}, Mean: {Yellow}{getSize(sizeSummary.Mean)}{Default}, Max: {Red}{getSize(sizeSummary.Max)}");
-        WriteLine($"Total throughput: {Yellow}{getSize(throughput)}/s");
-        WriteLine($"Status codes:");
+        Console.WriteLineInterpolated($"Content Size:  Min: {Green}{getSize(sizeSummary.Min)}{ConsoleColor.Default}, Mean: {Yellow}{getSize(sizeSummary.Mean)}{ConsoleColor.Default}, Max: {Red}{getSize(sizeSummary.Max)}");
+        Console.WriteLineInterpolated($"Total throughput: {Yellow}{getSize(throughput)}/s");
+        Console.WriteLineInterpolated($"Status codes:");
         foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
             var key = (int)kvp.Key;
             if (key is 0) {
-                WriteLine($"   {Magenta}{key}{Default} --> {kvp.Value}  [StatusCode 0 = Exception]");
+                Console.WriteLineInterpolated($"   {Magenta}{key}{ConsoleColor.Default} --> {kvp.Value}  [StatusCode 0 = Exception]");
             } else {
-                WriteLine($"   {Helper.GetStatusCodeBasedColor(key)}{key}{Default} --> {kvp.Value}");
+                Console.WriteLineInterpolated($"   {Helper.GetStatusCodeBasedColor(key)}{key}{ConsoleColor.Default} --> {kvp.Value}");
             }
         }
-        NewLine();
+        Console.NewLine();
 
         return (parameters.Export, uniqueRequests);
     }
@@ -103,21 +103,21 @@ internal static class PulseSummary {
         double duration = result.Latency.TotalMilliseconds;
         var statusCode = result.StatusCode;
 
-        WriteLine($"Request count: {Yellow}1");
-        WriteLine($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
+        Console.WriteLineInterpolated($"Request count: {Yellow}1");
+        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
         if ((int)statusCode is >= 200 and < 300) {
-            WriteLine($"Success: {Green}true");
+            Console.WriteLineInterpolated($"Success: {Green}true");
         } else {
-            WriteLine($"Success: {Red}false");
+            Console.WriteLineInterpolated($"Success: {Red}false");
         }
-        WriteLine($"Latency:      {Green}{duration:0.##}ms");
-        WriteLine($"Content Size: {Green}{Utils.Strings.FormatBytes(result.ContentLength)}");
+        Console.WriteLineInterpolated($"Latency:      {Green}{duration:0.##}ms");
+        Console.WriteLineInterpolated($"Content Size: {Green}{Utils.Strings.FormatBytes(result.ContentLength)}");
         if (statusCode is 0) {
-            WriteLine($"Status code: {Red}0 [Exception]");
+            Console.WriteLineInterpolated($"Status code: {Red}0 [Exception]");
         } else {
-            WriteLine($"Status code: {Helper.GetStatusCodeBasedColor((int)statusCode)}{statusCode}");
+            Console.WriteLineInterpolated($"Status code: {Helper.GetStatusCodeBasedColor((int)statusCode)}{statusCode}");
         }
-        NewLine();
+        Console.NewLine();
 
         var uniqueRequests = new HashSet<Response>(1) { result };
 
@@ -243,7 +243,7 @@ internal static class PulseSummary {
         var count = uniqueRequests.Count;
 
         if (count is 0) {
-            WriteLine($"{Yellow}No unique results found to export...");
+            Console.WriteLineInterpolated($"{Yellow}No unique results found to export...");
             return;
         }
 
@@ -253,7 +253,7 @@ internal static class PulseSummary {
 
         if (count is 1) {
             await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, token).ConfigureAwait(false);
-            WriteLine($"{Green}1{Default} unique response exported to {Yellow}{directory}");
+            Console.WriteLineInterpolated($"{Green}1{ConsoleColor.Default} unique response exported to {Yellow}{directory}");
             return;
         }
 
@@ -264,6 +264,6 @@ internal static class PulseSummary {
 
         await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn).ConfigureAwait(false)).ConfigureAwait(false);
 
-        WriteLine($"{Green}{count}{Default} unique responses exported to {Yellow}{directory}{Default}");
+        Console.WriteLineInterpolated($"{Green}{count}{ConsoleColor.Default} unique responses exported to {Yellow}{directory}{ConsoleColor.Default}");
     }
 }

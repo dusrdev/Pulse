@@ -29,7 +29,7 @@ internal static class Helper {
     /// <param name="percentage"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public static Color GetPercentageBasedColor(double percentage) {
+    public static ConsoleColor GetPercentageBasedColor(double percentage) {
         ArgumentOutOfRangeException.ThrowIfGreaterThan<uint>((uint)percentage, 100);
 
         return percentage switch {
@@ -44,7 +44,7 @@ internal static class Helper {
     /// </summary>
     /// <param name="statusCode"></param>
     /// <returns></returns>
-    public static Color GetStatusCodeBasedColor(int statusCode) {
+    public static ConsoleColor GetStatusCodeBasedColor(int statusCode) {
         return statusCode switch {
             < 100 => Magenta,
             < 200 => White,
@@ -61,7 +61,7 @@ internal static class Helper {
 	/// <param name="method"></param>
 	/// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Color GetMethodBasedColor(string method)
+    public static ConsoleColor GetMethodBasedColor(string method)
         => method switch {
             "GET" => Green,
             "DELETE" => Red,
@@ -89,19 +89,19 @@ internal static class Helper {
     /// <param name="e"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void PrintException(this StrippedException e) {
-        WriteLine(OutputPipe.Error, $"{Yellow}Exception type: {Default}{e.Type}");
-        WriteLine(OutputPipe.Error, $"{Yellow}Message: {Default}{e.Message}");
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Exception type: {ConsoleColor.Default}{e.Type}");
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Message: {ConsoleColor.Default}{e.Message}");
 
         if (e.Detail is not null) {
-            WriteLine(OutputPipe.Error, $"{Yellow}Detail: {Default}{e.Detail}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Detail: {ConsoleColor.Default}{e.Detail}");
         }
 
         if (e.InnerException is null or { IsDefault: true }) {
             return;
         }
 
-        NewLine(OutputPipe.Error);
-        WriteLine($"{Magenta}Inner exception:");
+        Console.NewLine(OutputPipe.Error);
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Magenta}Inner exception:");
         PrintException(e.InnerException);
     }
 

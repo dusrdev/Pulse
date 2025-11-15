@@ -65,7 +65,7 @@ internal static class Commands {
         var requestFilePath = Path.GetFullPath(requestFile);
 
         if (!InputJsonContext.TryGetRequestDetailsFromFile(requestFilePath, out var requestDetails)) {
-            WriteLine(OutputPipe.Error, $"Failed to retrieve and parse request file from {Yellow}{requestFilePath}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to retrieve and parse request file from {Markup.Underline}{Yellow}{requestFilePath}{Markup.ResetUnderline}");
             return 1;
         }
         ArgumentNullException.ThrowIfNull(requestDetails);
@@ -80,7 +80,7 @@ internal static class Commands {
             return 0;
         }
 
-        WriteLine($"{Helper.GetMethodBasedColor(requestDetails.Request.Method.Method)}{requestDetails.Request.Method.Method}{Default} => {requestDetails.Request.Url}");
+        Console.WriteLineInterpolated($"{Helper.GetMethodBasedColor(requestDetails.Request.Method.Method)}{requestDetails.Request.Method.Method}{ConsoleColor.Default} => {Markup.Underline}{requestDetails.Request.Url}{Markup.ResetUnderline}");
         await Pulse.RunAsync(@params, requestDetails).ConfigureAwait(false);
         return 0;
     }
@@ -99,23 +99,23 @@ internal static class Commands {
         if (response.IsSuccessStatusCode) {
             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             if (!DefaultJsonContext.TryDeserializeVersion(json, out var remoteVersion)) {
-                WriteLine(OutputPipe.Error, $"Failed to retrieve version from remote.");
+                Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to retrieve version from remote.");
                 return 1;
             }
             ArgumentNullException.ThrowIfNull(remoteVersion);
             var currentVersion = Version.Parse(VERSION);
             if (currentVersion < remoteVersion) {
-                WriteLine($"{Yellow}A new version of Pulse is available!");
-                WriteLine($"Your version: {Yellow}{VERSION}");
-                WriteLine($"Latest version: {Green}{remoteVersion}");
-                NewLine();
-                WriteLine($"Download from https://github.com/dusrdev/Pulse/releases/latest");
+                Console.WriteLineInterpolated($"{Yellow}A new version of Pulse is available!");
+                Console.WriteLineInterpolated($"Your version: {Markup.Underline}{Yellow}{VERSION}{Markup.ResetUnderline}");
+                Console.WriteLineInterpolated($"Latest version: {Markup.Underline}{Green}{remoteVersion}{Markup.ResetUnderline}");
+                Console.NewLine();
+                Console.WriteLineInterpolated($"Download from {Markup.Underline}https://github.com/dusrdev/Pulse/releases/latest{Markup.ResetUnderline}");
             } else {
-                WriteLine($"{Green}You are using the latest version of Pulse.");
+                Console.WriteLineInterpolated($"{Green}You are using the latest version of Pulse.");
             }
             return 0;
         } else {
-            WriteLine(OutputPipe.Error, $"Failed to check for updates - server response was not success");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to check for updates - server response was not success");
             return 1;
         }
     }
@@ -125,7 +125,7 @@ internal static class Commands {
     /// </summary>
     /// <returns></returns>
     public static int TermsOfUse() {
-        WriteLine(
+        Console.WriteLineInterpolated(
             $"""
 			By using this tool you agree to take full responsibility for the consequences of its use.
 
@@ -151,7 +151,7 @@ internal static class Commands {
         };
         var schema = InputJsonContext.Default.RequestDetails.GetJsonSchemaAsNode(options).ToString();
         await File.WriteAllTextAsync(path, schema, ct).ConfigureAwait(false);
-        WriteLine($"Schema generated at {Yellow}{path}");
+        Console.WriteLineInterpolated($"Schema generated at {Markup.Underline}{Yellow}{path}{Markup.ResetUnderline}");
         return 0;
     }
 
@@ -166,7 +166,7 @@ internal static class Commands {
         var path = Path.Join(directory, "sample.json");
         var json = JsonSerializer.Serialize(new RequestDetails(), InputJsonContext.Default.RequestDetails);
         await File.WriteAllTextAsync(path, json, ct).ConfigureAwait(false);
-        WriteLine($"Sample request generated at {Yellow}{path}");
+        Console.WriteLineInterpolated($"Sample request generated at {Markup.Underline}{Yellow}{path}{Markup.ResetUnderline}");
         return 0;
     }
 
@@ -176,50 +176,50 @@ internal static class Commands {
     /// <param name="parameters"></param>
     /// <param name="requestDetails"></param>
     internal static void PrintConfiguration(Parameters parameters, RequestDetails requestDetails) {
-        Color headerColor = Cyan;
-        Color property = DarkGray;
-        Color value = White;
+        ConsoleColor headerColor = Cyan;
+        ConsoleColor property = DarkGray;
+        ConsoleColor value = White;
 
         // Options
-        WriteLine($"{headerColor}Options:");
-        WriteLine($"{property}  Request count: {value}{parameters.Requests}");
-        WriteLine($"{property}  Concurrent connections: {value}{parameters.Connections}");
-        WriteLine($"{property}  Delay: {value}{parameters.DelayInMs}ms");
-        WriteLine($"{property}  Timeout: {value}{parameters.TimeoutInMs}");
-        WriteLine($"{property}  Export Raw: {value}{parameters.ExportRaw}");
-        WriteLine($"{property}  Format JSON: {value}{parameters.FormatJson}");
-        WriteLine($"{property}  Export Full Equality: {value}{parameters.UseFullEquality}");
-        WriteLine($"{property}  Export: {value}{parameters.Export}");
-        WriteLine($"{property}  Verbose: {value}{parameters.Verbose}");
-        WriteLine($"{property}  Output Folder: {value}{parameters.OutputFolder}");
+        Console.WriteLineInterpolated($"{headerColor}Options:");
+        Console.WriteLineInterpolated($"{property}  Request count: {value}{parameters.Requests}");
+        Console.WriteLineInterpolated($"{property}  Concurrent connections: {value}{parameters.Connections}");
+        Console.WriteLineInterpolated($"{property}  Delay: {value}{parameters.DelayInMs}ms");
+        Console.WriteLineInterpolated($"{property}  Timeout: {value}{parameters.TimeoutInMs}");
+        Console.WriteLineInterpolated($"{property}  Export Raw: {value}{parameters.ExportRaw}");
+        Console.WriteLineInterpolated($"{property}  Format JSON: {value}{parameters.FormatJson}");
+        Console.WriteLineInterpolated($"{property}  Export Full Equality: {value}{parameters.UseFullEquality}");
+        Console.WriteLineInterpolated($"{property}  Export: {value}{parameters.Export}");
+        Console.WriteLineInterpolated($"{property}  Verbose: {value}{parameters.Verbose}");
+        Console.WriteLineInterpolated($"{property}  Output Folder: {value}{parameters.OutputFolder}");
 
         // Request
-        WriteLine($"{headerColor}Request:");
-        WriteLine($"{property}  URL: {value}{requestDetails.Request.Url}");
-        WriteLine($"{property}  Method: {value}{requestDetails.Request.Method}");
-        WriteLine($"{Yellow}  Headers:");
+        Console.WriteLineInterpolated($"{headerColor}Request:");
+        Console.WriteLineInterpolated($"{property}  URL: {value}{requestDetails.Request.Url}");
+        Console.WriteLineInterpolated($"{property}  Method: {value}{requestDetails.Request.Method}");
+        Console.WriteLineInterpolated($"{Yellow}  Headers:");
         if (requestDetails.Request.Headers.Count > 0) {
             foreach (var header in requestDetails.Request.Headers) {
                 if (header.Value is null) {
                     continue;
                 }
-                WriteLine($"{property}    {header.Key}: {value}{header.Value.Value}");
+                Console.WriteLineInterpolated($"{property}    {header.Key}: {value}{header.Value.Value}");
             }
         }
         if (requestDetails.Request.Content.Body.HasValue) {
-            WriteLine($"{Yellow}  Content:");
-            WriteLine($"{property}    ContentType: {value}{requestDetails.Request.Content.GetContentType()}");
-            WriteLine($"{property}    Body: {value}{requestDetails.Request.Content.Body}");
+            Console.WriteLineInterpolated($"{Yellow}  Content:");
+            Console.WriteLineInterpolated($"{property}    ContentType: {value}{requestDetails.Request.Content.GetContentType()}");
+            Console.WriteLineInterpolated($"{property}    Body: {value}{requestDetails.Request.Content.Body}");
         } else {
-            WriteLine($"{property}  Content: {value}none");
+            Console.WriteLineInterpolated($"{property}  Content: {value}none");
         }
 
         // Proxy
-        WriteLine($"{headerColor}Proxy:");
-        WriteLine($"{property}  Bypass: {value}{requestDetails.Proxy.Bypass}");
-        WriteLine($"{property}  Host: {value}{requestDetails.Proxy.Host}");
-        WriteLine($"{property}  Username: {value}{requestDetails.Proxy.Username}");
-        WriteLine($"{property}  Password: {value}{requestDetails.Proxy.Password}");
-        WriteLine($"{property}  Ignore SSL: {value}{requestDetails.Proxy.IgnoreSSL}");
+        Console.WriteLineInterpolated($"{headerColor}Proxy:");
+        Console.WriteLineInterpolated($"{property}  Bypass: {value}{requestDetails.Proxy.Bypass}");
+        Console.WriteLineInterpolated($"{property}  Host: {value}{requestDetails.Proxy.Host}");
+        Console.WriteLineInterpolated($"{property}  Username: {value}{requestDetails.Proxy.Username}");
+        Console.WriteLineInterpolated($"{property}  Password: {value}{requestDetails.Proxy.Password}");
+        Console.WriteLineInterpolated($"{property}  Ignore SSL: {value}{requestDetails.Proxy.IgnoreSSL}");
     }
 }
