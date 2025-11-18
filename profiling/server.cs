@@ -10,8 +10,6 @@ builder.WebHost.UseUrls(address);
 
 var app = builder.Build();
 
-Console.WriteLine($"Server is running at {address}.");
-
 app.MapGet("/", static () => "Hello!");
 
 app.MapGet("/json", static () => {
