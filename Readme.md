@@ -5,14 +5,14 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 ## Features
 
 - JSON based request configuration
-- Support for using proxies
+- Proxy support
 - Configurable concurrency via max connection limits and optional per-request delays
 - Supports all HTTP methods
 - Supports Headers
 - Support Content-Type and Body for POST, PUT, PATCH, and DELETE
 - Custom HTML generated outputs for easy inspection
 - Format JSON outputs
-- Capture all response headers for debugging
+- Captures all response headers for debugging
 
 And more!
 
@@ -34,11 +34,11 @@ Pulse configuration.json
 
 During the execution, `Pulse` displays current metrics such as progress, success rate, ETA, and counts of responses from each of the 6 categories, i.e, 1xx, 2xx, 3xx, 4xx, 5xx, others. where `others` is essentially exceptions.
 
-![Runtime metrics](https://github.com/user-attachments/assets/64f48192-f60e-4021-9df3-558af21c1bbd)
+![Running](assets/pulse-running.png)
 
 After the execution (different configuration in this example), `Pulse` produces a detailed summary of the results
 
-![Summary](https://github.com/user-attachments/assets/9a05ff6e-8d3d-46af-8509-013b5b1536a0)
+![Summary](assets/pulse-summary.png)
 
 ### Setting up a configuration file
 
@@ -115,23 +115,24 @@ Arguments:
   [0] <string>    Path to .json request details file [use "get-sample" if you don't have one]
 
 Options:
-  --json                     Try to format response content as JSON (Optional)
-  --raw                      Export raw results [without wrapping in custom HTML] (Optional)
-  -f|--full-equality         Use full equality [slower] (Optional)
-  --no-export                Don't export results (Optional)
-  -v|--verbose               Display verbose output (Optional)
-  --no-op                    Print selected configuration but don't run (Optional)
-  -o|--output <string>       Output folder (Default: @"results")
-  -d|--delay <int>           Delay in milliseconds between requests (Default: -1)
-  -c|--connections <int?>    Maximum number of parallel requests (Default: null)
-  -u|--url <string?>         Override the url of the request (Default: null)
-  -n|--number <int>          Number of total requests (Default: 1)
-  -t|--timeout <int>         Timeout in milliseconds (Default: -1)
+  --json                      Try to format response content as JSON (Optional)
+  --raw                       Export raw results [without wrapping in custom HTML] (Optional)
+  -f, --full-equality         Use full equality [slower] (Optional)
+  --no-export                 Don't export results (Optional)
+  -v, --verbose               Display verbose output (Optional)
+  --no-op                     Print selected configuration but don't run (Optional)
+  -o, --output <string>       Output folder (Default: @"results")
+  -d, --delay <int>           Delay in milliseconds between requests (Default: -1)
+  -c, --connections <int?>    Maximum number of parallel requests (Default: null)
+  -u, --url <string?>         Override the url of the request (Default: null)
+  -n, --number <int>          Number of total requests (Default: 1)
+  -t, --timeout <int>         Timeout in milliseconds (Default: -1)
 
 Commands:
   check-for-updates    Checks whether there is a new version out on GitHub releases.
-  get-sample           Generate sample request file
-  get-schema           Generate a json schema file
+  cli-schema           Returns the usage schema for the app in JSON format.
+  get-sample           Generate sample request file.
+  get-schema           Generate a json schema for a request file.
   terms-of-use         Print the terms of use.
 ```
 
