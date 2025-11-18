@@ -33,7 +33,6 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="ConsoleAppFramework.CliSchema" Version="5.7.9" />
-        <PackageReference Include="Sharpify" Version="2.5.0" />
         <PackageReference Include="PrettyConsole" Version="5.0.0" />
     </ItemGroup>
 

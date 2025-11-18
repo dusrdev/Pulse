@@ -5,8 +5,6 @@ using System.Runtime.Intrinsics;
 
 using Pulse.Configuration;
 
-using Sharpify;
-
 namespace Pulse.Core;
 
 /// <summary>
@@ -41,7 +39,7 @@ internal static class PulseSummary {
         foreach (var result in pulseResult.Results) {
             uniqueRequests.Add(result);
             var statusCode = result.StatusCode;
-            statusCounter.GetValueRefOrAddDefault(statusCode, out _)++;
+            CollectionsMarshal.GetValueRefOrAddDefault(statusCounter, statusCode, out _)++;
             totalSize += requestSizeInBytes;
             peakConcurrentConnections = Math.Max(peakConcurrentConnections, result.CurrentConcurrentConnections);
 
@@ -63,7 +61,6 @@ internal static class PulseSummary {
         }
         Summary latencySummary = GetSummary(CollectionsMarshal.AsSpan(latencies));
         Summary sizeSummary = GetSummary(CollectionsMarshal.AsSpan(sizes), false);
-        Func<double, string> getSize = Utils.Strings.FormatBytes;
         double throughput = totalSize / pulseResult.TotalDuration.TotalSeconds;
 
         // Clear "cross referencing results..."
@@ -71,14 +68,14 @@ internal static class PulseSummary {
 
         Console.WriteLineInterpolated($"Request count: {Yellow}{completed}");
         Console.WriteLineInterpolated($"Concurrent connections: {Yellow}{peakConcurrentConnections}");
-        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
+        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:duration}");
         Console.WriteLineInterpolated($"Success Rate: {Helper.GetPercentageBasedColor(pulseResult.SuccessRate)}{pulseResult.SuccessRate}%");
         Console.WriteLineInterpolated($"Latency:       Min: {Green}{latencySummary.Min:0.##}ms{ConsoleColor.Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{ConsoleColor.Default}, Max: {Red}{latencySummary.Max:0.##}ms");
         if (latencySummary.Removed != 0) {
             Console.WriteLineInterpolated($"               (Removed {DarkYellow}{latencySummary.Removed}{ConsoleColor.Default} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
         }
-        Console.WriteLineInterpolated($"Content Size:  Min: {Green}{getSize(sizeSummary.Min)}{ConsoleColor.Default}, Mean: {Yellow}{getSize(sizeSummary.Mean)}{ConsoleColor.Default}, Max: {Red}{getSize(sizeSummary.Max)}");
-        Console.WriteLineInterpolated($"Total throughput: {Yellow}{getSize(throughput)}/s");
+        Console.WriteLineInterpolated($"Content Size:  Min: {Green}{sizeSummary.Min:bytes}{ConsoleColor.Default}, Mean: {Yellow}{sizeSummary.Mean:bytes}{ConsoleColor.Default}, Max: {Red}{sizeSummary.Max:bytes}");
+        Console.WriteLineInterpolated($"Total throughput: {Yellow}{throughput:bytes}/s");
         Console.WriteLineInterpolated($"Status codes:");
         foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
             var key = (int)kvp.Key;
@@ -104,14 +101,14 @@ internal static class PulseSummary {
         var statusCode = result.StatusCode;
 
         Console.WriteLineInterpolated($"Request count: {Yellow}1");
-        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:hr}");
+        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:duration}");
         if ((int)statusCode is >= 200 and < 300) {
             Console.WriteLineInterpolated($"Success: {Green}true");
         } else {
             Console.WriteLineInterpolated($"Success: {Red}false");
         }
         Console.WriteLineInterpolated($"Latency:      {Green}{duration:0.##}ms");
-        Console.WriteLineInterpolated($"Content Size: {Green}{Utils.Strings.FormatBytes(result.ContentLength)}");
+        Console.WriteLineInterpolated($"Content Size: {Green}{(double)result.ContentLength:bytes}");
         if (statusCode is 0) {
             Console.WriteLineInterpolated($"Status code: {Red}0 [Exception]");
         } else {

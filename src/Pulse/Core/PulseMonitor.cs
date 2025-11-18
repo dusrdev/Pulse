@@ -121,8 +121,9 @@ internal sealed class PulseMonitor : IPulseMonitor {
     private static void PrintMetrics(Stats stats) {
         Console.Overwrite(stats, static s => {
             Console.WriteInterpolated(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{ConsoleColor.Default}/{Yellow}{s.RequestCount}{ConsoleColor.Default} ");
-            ProgressBar.WriteProgressBar(OutputPipe.Error, s.Percentage * 100, Green);
-            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.Default}%, Estimated time remaining: {Yellow}{s.ETA:hr}");
+            ProgressBar.WriteProgressBar(OutputPipe.Error, s.Percentage * 100, Green, maxLineWidth: 34);
+            Console.NewLine(OutputPipe.Error);
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.Default}%, Estimated time remaining: {Yellow}{s.ETA:duration}");
             Console.WriteLineInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.Default}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.Default}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.Default}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.Default}, others: {Magenta}{s.StatusCodes[0].Value}");
         }, 3, OutputPipe.Error);
     }
