@@ -138,7 +138,7 @@ internal static class Commands {
     }
 
     /// <summary>
-    /// Generate a json schema file
+    /// Generate a json schema for a request file.
     /// </summary>
     /// <param name="directory">-d, Configures in which directory [will default to current]</param>
     /// <param name="ct"></param>
@@ -156,7 +156,7 @@ internal static class Commands {
     }
 
     /// <summary>
-    /// Generate sample request file
+    /// Generate sample request file.
     /// </summary>
     /// <param name="directory">-d, Configures in which directory [will default to current]</param>
     /// <param name="ct"></param>
@@ -171,7 +171,7 @@ internal static class Commands {
     }
 
     /// <summary>
-    /// Prints the configuration
+    /// Prints the configuration.
     /// </summary>
     /// <param name="parameters"></param>
     /// <param name="requestDetails"></param>
