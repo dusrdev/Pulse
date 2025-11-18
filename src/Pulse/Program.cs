@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-using ConsoleAppFramework;
+﻿using ConsoleAppFramework;
 
 using Pulse.Core;
 
@@ -16,11 +14,8 @@ app.Add("get-schema", Commands.GetSchema);
 app.Add("check-for-updates", Commands.CheckForUpdates);
 app.Add("terms-of-use", Commands.TermsOfUse);
 
-app.Add("cli-schema", () => {
-	CommandHelpDefinition[] schema = app.GetCliSchema();
-	ReadOnlySpan<char> json = JsonSerializer.Serialize(schema, CliSchemaJsonSerializerContext.Default.CommandHelpDefinitionArray);
-	Console.WriteLine(json);
-	return 0;
-});
+var schemaCommand = new CliSchemaCommand(app);
+
+app.Add("cli-schema", schemaCommand.Command);
 
 await app.RunAsync(args).ConfigureAwait(false);
