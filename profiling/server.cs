@@ -10,7 +10,7 @@ builder.WebHost.UseUrls(address);
 
 var app = builder.Build();
 
-app.MapGet("/", static () => "Hello!");
+app.MapGet("/", static () => Results.Ok("Hello!"));
 
 app.MapGet("/json", static () => {
 	const string payload =
@@ -75,7 +75,7 @@ app.MapGet("/json", static () => {
   }
 }
 """;
-	return payload;
+	return Results.Ok(payload);
 });
 
 app.MapGet("/html", static () => {
@@ -291,7 +291,7 @@ app.MapGet("/html", static () => {
 </body>
 </html>
 """;
-	return payload;
+	return Results.Ok(payload);
 });
 
 app.Run();
