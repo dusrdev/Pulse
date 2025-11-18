@@ -53,6 +53,57 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore src/Pulse/Pulse.csproj
 
+      # - name: Publish (generate PGO data)
+      #   run: dotnet publish src/Pulse/Pulse.csproj -c Release -o artifacts /p:IlcGeneratePgoData=true
+      #   env:
+      #     DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+
+      # - name: Save artifact directory path (Unix)
+      #   if: matrix.os != 'windows-latest'
+      #   run: echo "executableDirectory=$(pwd)/artifacts" >> $GITHUB_ENV
+      #   shell: bash
+
+      # - name: Save artifact directory path (Windows)
+      #   if: matrix.os == 'windows-latest'
+      #   shell: pwsh
+      #   run: |
+      #     $artifacts = Join-Path (pwd).Path 'artifacts'
+      #     Add-Content -Path $env:GITHUB_ENV -Value "executableDirectory=$artifacts"
+
+      # - name: Profile with static PGO (Unix)
+      #   if: matrix.os != 'windows-latest'
+      #   working-directory: profiling
+      #   shell: bash
+      #   env:
+      #     DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+      #   run: |
+      #     dotnet run server.cs &
+      #     server_pid=$!
+      #     trap 'kill $server_pid >/dev/null 2>&1 || true' EXIT
+      #     dotnet run runner.cs -- --directory-path "${{ env.executableDirectory }}"
+      #     kill $server_pid >/dev/null 2>&1 || true
+      #     wait $server_pid || true
+
+      # - name: Profile with static PGO (Windows)
+      #   if: matrix.os == 'windows-latest'
+      #   working-directory: profiling
+      #   shell: pwsh
+      #   env:
+      #     DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+      #   run: |
+      #     $server = Start-Process dotnet -ArgumentList 'run','server.cs' -PassThru
+      #     try {
+      #       dotnet run runner.cs -- --directory-path $env:executableDirectory
+      #     } finally {
+      #       Stop-Process -Id $server.Id -ErrorAction SilentlyContinue -Force
+      #       Wait-Process -Id $server.Id -ErrorAction SilentlyContinue
+      #     }
+
+      # - name: Publish
+      #   run: dotnet publish src/Pulse/Pulse.csproj -c Release -o publish /p:IlcUsePgoData=./artifacts/Program.pgo
+      #   env:
+      #     DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+
       - name: Publish
         run: dotnet publish src/Pulse/Pulse.csproj -c Release -o publish
         env:
