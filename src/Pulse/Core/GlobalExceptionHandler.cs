@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using ConsoleAppFramework;
 
 using Pulse.Configuration;
@@ -12,7 +14,9 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
         ConsoleState.Reset(startLine);
         try {
             await Next.InvokeAsync(context, cancellationToken).ConfigureAwait(false);
-        } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
+        } catch (Exception e) when (e is ValidationException or ArgumentParseFailedException) {
+            throw;
+		} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
             ClearFrom(startLine);
             Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
             Environment.ExitCode = 1;
