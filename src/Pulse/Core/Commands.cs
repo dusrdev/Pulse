@@ -90,7 +90,11 @@ internal static class Commands {
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public static async Task<int> CheckForUpdates(CancellationToken ct = default) {
+    public static async Task<int> CheckForUpdates(ConsoleAppContext context, CancellationToken ct = default) {
+        if (context.GlobalOptions is not GlobalOptions options) {
+            throw new InvalidCastException();
+        }
+
         using var client = new HttpClient();
         client.DefaultRequestHeaders.Add("User-Agent", "C# App");
         client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
@@ -104,15 +108,14 @@ internal static class Commands {
             }
             ArgumentNullException.ThrowIfNull(remoteVersion);
             var currentVersion = Version.Parse(VERSION);
-            if (currentVersion < remoteVersion) {
-                Console.WriteLineInterpolated($"{Yellow}A new version of Pulse is available!");
-                Console.WriteLineInterpolated($"Your version: {Markup.Underline}{Yellow}{VERSION}{Markup.ResetUnderline}");
-                Console.WriteLineInterpolated($"Latest version: {Markup.Underline}{Green}{remoteVersion}{Markup.ResetUnderline}");
-                Console.NewLine();
-                Console.WriteLineInterpolated($"Download from {Markup.Underline}https://github.com/dusrdev/Pulse/releases/latest{Markup.ResetUnderline}");
-            } else {
-                Console.WriteLineInterpolated($"{Green}You are using the latest version of Pulse.");
-            }
+
+            var outputModel = new CheckForUpdatesModel {
+                CurrentVersion = currentVersion,
+                RemoteVersion = remoteVersion,
+                UpdateRequired = currentVersion < remoteVersion
+            };
+
+            outputModel.Output(options.Format);
             return 0;
         } else {
             Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to check for updates - server response was not success");

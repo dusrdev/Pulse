@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace Pulse.Models;
 
 internal readonly struct RunConfiguration : IOutputFormatter {
-	public Parameters Parameters { get; init; }
-	public RequestDetails RequestDetails { get; init; }
+	public required Parameters Parameters { get; init; }
+	public required RequestDetails RequestDetails { get; init; }
 
     public void OutputAsJson() {
 		JsonSerializer.ToConsoleOut(in this, ModelsJsonContext.Default.RunConfiguration);
