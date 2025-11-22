@@ -3,6 +3,7 @@ using System.Net;
 using Pulse.Configuration;
 
 using Pulse.Core;
+using Pulse.Models;
 
 namespace Pulse.Tests.Unit;
 

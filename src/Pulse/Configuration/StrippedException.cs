@@ -67,7 +67,6 @@ internal sealed record StrippedException {
     /// </summary>
     /// <param name="type"></param>
     /// <param name="message"></param>
-    /// <param name="stackTrace"></param>
     public StrippedException(string type, string message) {
         Type = type;
         Message = message;

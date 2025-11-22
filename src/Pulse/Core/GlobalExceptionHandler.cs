@@ -25,7 +25,7 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
             Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: {Markup.Underline}https://dusrdev.github.io{Markup.ResetUnderline}");
             Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}and provide the following details:");
             Console.NewLine(OutputPipe.Error);
-            Helper.PrintException(StrippedException.FromException(e));
+            StrippedException.FromException(e).PrintException();
             Environment.ExitCode = 1;
         }
 
@@ -33,7 +33,7 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
             int last = Math.Max(Console.GetCurrentLine(), ConsoleState.LinesWritten);
             int lines = Math.Max(1, last - start + 1);
             Console.GoToLine(start);
-            Console.ClearNextLines(lines, OutputPipe.Error);
+            Console.ClearNextLines(lines);
             Console.GoToLine(start);
             Console.ClearNextLines(lines, OutputPipe.Out);
             Console.GoToLine(start);

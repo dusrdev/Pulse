@@ -4,6 +4,7 @@ using System.Text.Json;
 
 using Pulse.Configuration;
 using Pulse.Core;
+using Pulse.Models;
 
 namespace Pulse.Tests.Unit;
 

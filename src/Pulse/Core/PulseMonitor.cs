@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
 
-using Pulse.Configuration;
 using Pulse.Models;
 
 using static Pulse.Core.IPulseMonitor;
@@ -68,12 +67,12 @@ internal sealed class PulseMonitor : IPulseMonitor {
             Percentage = 0,
             CurrentCount = _responses,
             SuccessRate = 0,
-            ETA = TimeSpan.MaxValue,
+            Eta = TimeSpan.MaxValue,
             RequestCount = _requestCount,
             StatusCodes = _stats
         });
 
-        System.Console.CursorVisible = false;
+        Console.CursorVisible = false;
         ConsoleState.ReportLinesFromCurrent(3);
 
         _printer = Task.Run(async () => {
@@ -102,8 +101,8 @@ internal sealed class PulseMonitor : IPulseMonitor {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask PushMetricsAsync() {
-        var percentage = (double)_responses.Value / _requestCount;
-        var eta = Helper.GetETA(percentage, Stopwatch.GetElapsedTime(_start));
+        var percentage = Helper.Percentage<double>(_responses.Value, _requestCount);
+        var eta = Helper.GetEta(percentage, Stopwatch.GetElapsedTime(_start));
         double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2);
 
         var stats = new Stats {
@@ -111,7 +110,7 @@ internal sealed class PulseMonitor : IPulseMonitor {
             CurrentCount = _responses,
             RequestCount = _requestCount,
             StatusCodes = _stats,
-            ETA = eta,
+            Eta = eta,
             SuccessRate = sr
         };
 
@@ -124,16 +123,16 @@ internal sealed class PulseMonitor : IPulseMonitor {
             Console.WriteInterpolated(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{ConsoleColor.Default}/{Yellow}{s.RequestCount}{ConsoleColor.Default} ");
             ProgressBar.WriteProgressBar(OutputPipe.Error, s.Percentage * 100, Green, maxLineWidth: 34);
             Console.NewLine(OutputPipe.Error);
-            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.Default}%, Estimated time remaining: {Yellow}{s.ETA:duration}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.Default}%, Estimated time remaining: {Yellow}{s.Eta:duration}");
             Console.WriteLineInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.Default}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.Default}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.Default}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.Default}, others: {Magenta}{s.StatusCodes[0].Value}");
-        }, 3, OutputPipe.Error);
+        }, 3);
     }
 
     private readonly struct Stats {
         public required PaddedULong CurrentCount { get; init; }
         public required PaddedULong[] StatusCodes { get; init; }
         public required double Percentage { get; init; }
-        public required TimeSpan ETA { get; init; }
+        public required TimeSpan Eta { get; init; }
         public required double SuccessRate { get; init; }
         public required ulong RequestCount { get; init; }
     }
@@ -143,10 +142,10 @@ internal sealed class PulseMonitor : IPulseMonitor {
         // Clear after metrics
         _channel.Writer.Complete();
         await _printer.ConfigureAwait(false);
-        Console.ClearNextLines(3, OutputPipe.Error);
+        Console.ClearNextLines(3);
         Console.CursorVisible = true;
 
-        return new() {
+        return new PulseResult {
             Results = _results,
             SuccessRate = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2),
             TotalDuration = Stopwatch.GetElapsedTime(_start)

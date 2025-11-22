@@ -3,7 +3,7 @@
 using Pulse.Core;
 using Pulse.Models;
 
-ConsoleApp.Version = Commands.VERSION;
+ConsoleApp.Version = Commands.Version;
 
 var app = ConsoleApp.Create();
 

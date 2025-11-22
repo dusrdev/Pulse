@@ -18,7 +18,7 @@ public class HelperTests {
         var color = Helper.GetPercentageBasedColor(percentage);
 
         // Assert
-        Assert.Equal(expected, color.ConsoleColor);
+        Assert.Equal(expected, color);
     }
 
     [Theory]
@@ -33,6 +33,6 @@ public class HelperTests {
         var color = Helper.GetStatusCodeBasedColor((int)statusCode);
 
         // Assert
-        Assert.Equal(expected, color.ConsoleColor);
+        Assert.Equal(expected, color);
     }
 }

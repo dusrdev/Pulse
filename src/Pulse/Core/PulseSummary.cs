@@ -3,7 +3,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
-using Pulse.Configuration;
 using Pulse.Models;
 
 namespace Pulse.Core;
@@ -38,7 +37,7 @@ internal static class PulseSummary {
         ConsoleState.ReportLinesFromCurrent(1);
         Console.Overwrite(() => {
             Console.WriteInterpolated(OutputPipe.Error, $"Cross referencing results...");
-        }, 1, OutputPipe.Error);
+        });
 
         foreach (var result in pulseResult.Results) {
             uniqueRequests.Add(result);
@@ -67,8 +66,8 @@ internal static class PulseSummary {
         Summary sizeSummary = GetSummary(CollectionsMarshal.AsSpan(sizes), false);
         double throughput = totalSize / pulseResult.TotalDuration.TotalSeconds;
 
-        // Clear "cross referencing results..."
-        Console.ClearNextLines(1, OutputPipe.Error);
+        // Clear "cross-referencing results..."
+        Console.ClearNextLines(1);
 
         var output = new SummaryModel {
             Target = new Target {
@@ -152,45 +151,48 @@ internal static class PulseSummary {
     /// Creates an IQR summary from <paramref name="values"/>
     /// </summary>
     /// <param name="values"></param>
+    /// <param name="removeOutliers"></param>
     /// <returns><see cref="Summary"/></returns>
     internal static Summary GetSummary(Span<double> values, bool removeOutliers = true) {
-        // if conditions ordered to promote default paths
+        switch (values.Length)
+        {
+            case > 2:
+            {
+                values.Sort();
 
-        if (values.Length > 2) {
-            values.Sort();
+                if (!removeOutliers) {
+                    return SummarizeOrderedSpan(values, 0);
+                }
 
-            if (!removeOutliers) {
-                return SummarizeOrderedSpan(values, 0);
+                int i25 = values.Length / 4, i75 = 3 * values.Length / 4;
+                double q1 = values[i25]; // First quartile
+
+                double q3 = values[i75]; // Third quartile
+
+                double iqr = q3 - q1;
+                double lowerBound = q1 - 1.5 * iqr;
+                double upperBound = q3 + 1.5 * iqr;
+
+                int start = FindBoundIndex(values, lowerBound, 0, i25);
+                int end = FindBoundIndex(values, upperBound, i75, values.Length);
+                ReadOnlySpan<double> filtered = values.Slice(start, end - start);
+
+                return SummarizeOrderedSpan(filtered, values.Length - filtered.Length);
             }
-
-            int i25 = values.Length / 4, i75 = 3 * values.Length / 4;
-            double q1 = values[i25]; // First quartile
-
-            double q3 = values[i75]; // Third quartile
-
-            double iqr = q3 - q1;
-            double lowerBound = q1 - 1.5 * iqr;
-            double upperBound = q3 + 1.5 * iqr;
-
-            int start = FindBoundIndex(values, lowerBound, 0, i25);
-            int end = FindBoundIndex(values, upperBound, i75, values.Length);
-            ReadOnlySpan<double> filtered = values.Slice(start, end - start);
-
-            return SummarizeOrderedSpan(filtered, values.Length - filtered.Length);
-        } else if (values.Length is 2) {
-            return new Summary {
-                Min = Math.Min(values[0], values[1]),
-                Max = Math.Max(values[0], values[1]),
-                Mean = (values[0] + values[1]) / 2
-            };
-        } else if (values.Length is 1) {
-            return new Summary {
-                Min = values[0],
-                Max = values[0],
-                Mean = values[0]
-            };
-        } else {
-            return new();
+            case 2:
+                return new Summary {
+                    Min = Math.Min(values[0], values[1]),
+                    Max = Math.Max(values[0], values[1]),
+                    Mean = (values[0] + values[1]) / 2
+                };
+            case 1:
+                return new Summary {
+                    Min = values[0],
+                    Max = values[0],
+                    Mean = values[0]
+                };
+            default:
+                return new Summary();
         }
     }
 
@@ -207,7 +209,7 @@ internal static class PulseSummary {
         return new Summary {
             Min = values[0],
             Max = values[values.Length - 1],
-            Mean = Mean(values),
+            Mean = CalculateMean(values),
             Removed = removed
         };
     }
@@ -219,7 +221,7 @@ internal static class PulseSummary {
         public int Removed;
     }
 
-    internal static double Mean(ReadOnlySpan<double> span) {
+    internal static double CalculateMean(ReadOnlySpan<double> span) {
         double mean = 0;
         double reciprocal = 1.0 / span.Length;
         int i = 0;
@@ -258,8 +260,8 @@ internal static class PulseSummary {
     /// <summary>
     /// Exports unique request results asynchronously and in parallel if possible
     /// </summary>
+    /// <param name="parameters"></param>
     /// <param name="uniqueRequests"></param>
-    /// <param name="token"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static async Task ExportUniqueRequestsAsync(Parameters parameters, HashSet<Response> uniqueRequests) {

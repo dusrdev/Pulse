@@ -1,9 +1,9 @@
 namespace Pulse.Models;
 
 internal interface IOutputFormatter {
-	abstract void OutputAsPlainText();
+    void OutputAsPlainText();
 
-	abstract void OutputAsJson();
+    void OutputAsJson();
 }
 
 internal enum OutputFormat {

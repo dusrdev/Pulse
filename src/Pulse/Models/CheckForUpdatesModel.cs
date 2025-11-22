@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Pulse.Models;
 
 internal readonly struct CheckForUpdatesModel : IOutputFormatter {
@@ -11,7 +13,7 @@ internal readonly struct CheckForUpdatesModel : IOutputFormatter {
     }
 
     public void OutputAsJson() {
-		throw new NotImplementedException();
+		JsonSerializer.ToConsoleOut(in this, ModelsJsonContext.Default.CheckForUpdatesModel);
 	}
 
 	public void OutputAsPlainText() {

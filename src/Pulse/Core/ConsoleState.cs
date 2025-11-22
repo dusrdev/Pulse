@@ -1,12 +1,12 @@
 namespace Pulse.Core;
 
 internal static class ConsoleState {
-	public static int LinesWritten {
-		get => field;
-		set => Interlocked.Exchange(ref field, value);
-	}
+    public static int LinesWritten {
+        get;
+        set => Interlocked.Exchange(ref field, value);
+    }
 
-	public static void Reset(int startLine) {
+    public static void Reset(int startLine) {
 		LinesWritten = startLine;
 	}
 

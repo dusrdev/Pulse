@@ -3,6 +3,7 @@ using System.Net;
 
 using Pulse.Configuration;
 using Pulse.Core;
+using Pulse.Models;
 
 namespace Pulse.Tests.Unit;
 
@@ -14,7 +15,7 @@ public class SummaryTests {
         var expected = arr.Average();
 
         // Act
-        var actual = PulseSummary.Mean(arr);
+        var actual = PulseSummary.CalculateMean(arr);
 
         // Assert
         Assert.Equal(expected, actual, 0.01);

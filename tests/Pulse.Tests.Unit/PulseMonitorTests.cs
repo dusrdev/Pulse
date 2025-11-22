@@ -1,4 +1,5 @@
 using Pulse.Core;
+using Pulse.Models;
 
 namespace Pulse.Tests.Unit;
 

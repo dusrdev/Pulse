@@ -1,4 +1,3 @@
-using Pulse.Configuration;
 using Pulse.Models;
 
 namespace Pulse.Core;

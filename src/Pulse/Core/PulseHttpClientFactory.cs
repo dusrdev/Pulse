@@ -45,7 +45,7 @@ internal static class PulseHttpClientFactory {
                     Password = proxyDetails.Password
                 };
             }
-            handler = new SocketsHttpHandler() {
+            handler = new SocketsHttpHandler {
                 UseProxy = true,
                 Proxy = proxy
             };

@@ -14,11 +14,19 @@ internal static class Helper {
         return double.CreateChecked(current / total);
     }
 
-    public static TimeSpan GetETA(double percentage, TimeSpan elapsed) {
-        if (percentage <= 0) return TimeSpan.MaxValue;
-        if (percentage >= 1) return TimeSpan.Zero;
-        var rem = (1 - percentage) / percentage;
-        return rem * elapsed;
+    public static TimeSpan GetEta(double percentage, TimeSpan elapsed) {
+        switch (percentage)
+        {
+            case <= 0:
+                return TimeSpan.MaxValue;
+            case >= 1:
+                return TimeSpan.Zero;
+            default:
+            {
+                var rem = (1 - percentage) / percentage;
+                return rem * elapsed;
+            }
+        }
     }
 
     // Returns an OutputFormat based on the llm parameter

@@ -6,7 +6,7 @@ public class VersionTests {
     [Fact]
     public void Assembly_Version_Matching() {
         // Arrange
-        var constantVersion = Version.Parse(Commands.VERSION);
+        var constantVersion = Version.Parse(Commands.Version);
         var assemblyVersion = typeof(Program).Assembly.GetName().Version!;
 
         // Assert

@@ -59,7 +59,6 @@ internal interface IPulseMonitor {
             var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
             using var message = requestRecipe.CreateMessage();
             long start = Stopwatch.GetTimestamp();
-            TimeSpan elapsed = TimeSpan.Zero;
             HttpResponseMessage? response = null;
             try {
                 currentConcurrencyLevel = (int)Interlocked.Increment(ref _currentConcurrentConnections.Value);
@@ -71,7 +70,7 @@ internal interface IPulseMonitor {
             } finally {
                 Interlocked.Decrement(ref _currentConcurrentConnections.Value);
             }
-            elapsed = Stopwatch.GetElapsedTime(start);
+            TimeSpan elapsed = Stopwatch.GetElapsedTime(start);
             if (!exception.IsDefault) {
                 return new Response {
                     Id = id,

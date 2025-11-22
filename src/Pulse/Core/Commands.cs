@@ -13,7 +13,7 @@ namespace Pulse.Core;
 /// Commands
 /// </summary>
 internal static class Commands {
-    public const string VERSION = "2.0.0.0";
+    public const string Version = "2.0.0.0";
 
     /// <summary>
     /// Pulse - A hyper fast general purpose HTTP request tester
@@ -88,6 +88,7 @@ internal static class Commands {
     /// <summary>
     /// Checks whether there is a new version out on GitHub releases.
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
     public static async Task<int> CheckForUpdates(ConsoleAppContext context, CancellationToken ct = default) {
@@ -107,7 +108,7 @@ internal static class Commands {
                 return 1;
             }
             ArgumentNullException.ThrowIfNull(remoteVersion);
-            var currentVersion = Version.Parse(VERSION);
+            var currentVersion = System.Version.Parse(Version);
 
             var outputModel = new CheckForUpdatesModel {
                 CurrentVersion = currentVersion,
@@ -117,10 +118,10 @@ internal static class Commands {
 
             outputModel.Output(options.Format);
             return 0;
-        } else {
-            Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to check for updates - server response was not success");
-            return 1;
         }
+
+        Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to check for updates - server response was not success");
+        return 1;
     }
 
     /// <summary>
@@ -157,15 +158,22 @@ internal static class Commands {
     /// <summary>
     /// Generate sample request file.
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="directory">-d, Configures in which directory [will default to current]</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public static async Task<int> GetSample(string? directory = null, CancellationToken ct = default) {
+    public static async Task<int> GetSample(ConsoleAppContext context, string? directory = null, CancellationToken ct = default) {
+        if (context.GlobalOptions is not GlobalOptions options) {
+            throw new InvalidCastException();
+        }
         directory ??= Directory.GetCurrentDirectory();
         var path = Path.Join(directory, "sample.json");
         var json = JsonSerializer.Serialize(new RequestDetails(), InputJsonContext.Default.RequestDetails);
         await File.WriteAllTextAsync(path, json, ct).ConfigureAwait(false);
-        Console.WriteLineInterpolated($"Sample request generated at {Markup.Underline}{Yellow}{path}{Markup.ResetUnderline}");
+        var output = new GetSampleModel {
+            Path = path
+        };
+        output.Output(options.Format);
         return 0;
     }
 

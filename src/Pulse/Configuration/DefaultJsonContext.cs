@@ -1,13 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Pulse.Core;
 using Pulse.Models;
 
 namespace Pulse.Configuration;
 
 [JsonSourceGenerationOptions(AllowTrailingCommas = true,
-                             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull,
+                             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
                              UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
                              PropertyNameCaseInsensitive = true,
                              UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,

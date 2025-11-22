@@ -5,6 +5,8 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Pulse.Models;
 
+[JsonSerializable(typeof(GetSampleModel))]
+[JsonSerializable(typeof(CheckForUpdatesModel))]
 [JsonSerializable(typeof(RunConfiguration))]
 [JsonSerializable(typeof(Parameters))]
 [JsonSerializable(typeof(RequestDetails))]
