@@ -99,7 +99,6 @@ internal sealed class PulseMonitor : IPulseMonitor {
     /// <summary>
     /// Handles printing the current metrics, has to be synchronized to prevent cross writing to the console, which produces corrupted output.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private async ValueTask PushMetricsAsync() {
         var percentage = Helper.Percentage<double>(_responses.Value, _requestCount);
         var eta = Helper.GetEta(percentage, Stopwatch.GetElapsedTime(_start));
@@ -117,7 +116,6 @@ internal sealed class PulseMonitor : IPulseMonitor {
         await _channel.Writer.WriteAsync(stats, _cancellationToken).ConfigureAwait(false);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void PrintMetrics(Stats stats) {
         Console.Overwrite(stats, static s => {
             Console.WriteInterpolated(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{ConsoleColor.Default}/{Yellow}{s.RequestCount}{ConsoleColor.Default} ");
