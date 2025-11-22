@@ -29,10 +29,6 @@ internal static class Helper {
         }
     }
 
-    // Returns an OutputFormat based on the llm parameter
-    public static OutputFormat OutputFormatFromBool(bool llm = false)
-        => llm ? OutputFormat.JSON : OutputFormat.PlainText;
-
     /// <summary>
     /// Returns a text color based on percentage
     /// </summary>

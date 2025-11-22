@@ -10,8 +10,8 @@ var app = ConsoleApp.Create();
 app.UseFilter<GlobalExceptionHandler>();
 
 app.ConfigureGlobalOptions((ref builder) => {
-	var llm = builder.AddGlobalOption("--llm", description: "Output using structured JSON", defaultValue: false);
-	return new GlobalOptions(Helper.OutputFormatFromBool(llm));
+	var format = builder.AddGlobalOption("--output-format", description: "Output as PlainText|JSON", defaultValue: OutputFormat.PlainText);
+	return new GlobalOptions(format);
 });
 
 app.Add("", Commands.Root);
