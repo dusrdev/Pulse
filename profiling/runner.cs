@@ -1,6 +1,6 @@
 #:package PrettyConsole@5.0.0
-#:package ConsoleAppFramework@5.7.9
-#:package CliWrap@3.9.0
+#:package ConsoleAppFramework@5.7.11
+#:package CliWrap@3.10.0
 
 using CliWrap;
 using CliWrap.Buffered;
