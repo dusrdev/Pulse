@@ -10,7 +10,7 @@ internal readonly struct SummaryModel : IOutputFormatter {
 	public required int ConcurrentConnections { get; init; }
 	public required TimeSpan TotalDuration { get; init; }
 	public required double SuccessRate { get; init; }
-	public required MinMeanMax Latency { get; init; }
+	public required MinMeanMax LatencyInMilliseconds { get; init; }
 	public required int LatencyOutliersRemoved { get; init; }
 	public required MinMeanMax ContentSize { get; init; }
 	public required double ThroughputBytesPerSecond { get; init; }
@@ -25,7 +25,7 @@ internal readonly struct SummaryModel : IOutputFormatter {
 		Console.WriteLineInterpolated($"Concurrent connections: {Yellow}{ConcurrentConnections}");
 		Console.WriteLineInterpolated($"Total duration: {Yellow}{TotalDuration:duration}");
 		Console.WriteLineInterpolated($"Success Rate: {Helper.GetPercentageBasedColor(SuccessRate)}{SuccessRate}%");
-		Console.WriteLineInterpolated($"Latency:       Min: {Green}{Latency.Min:0.##}ms{ConsoleColor.Default}, Mean: {Yellow}{Latency.Mean:0.##}ms{ConsoleColor.Default}, Max: {Red}{Latency.Max:0.##}ms");
+		Console.WriteLineInterpolated($"Latency:       Min: {Green}{LatencyInMilliseconds.Min:0.##}ms{ConsoleColor.Default}, Mean: {Yellow}{LatencyInMilliseconds.Mean:0.##}ms{ConsoleColor.Default}, Max: {Red}{LatencyInMilliseconds.Max:0.##}ms");
 		if (LatencyOutliersRemoved != 0) {
 			Console.WriteLineInterpolated($"               (Removed {DarkYellow}{LatencyOutliersRemoved}{ConsoleColor.Default} {(LatencyOutliersRemoved == 1 ? "outlier" : "outliers")})");
 		}

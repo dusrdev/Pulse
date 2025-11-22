@@ -16,10 +16,12 @@ internal static class PulseSummary {
     /// Produces a summary, and saves unique requests if export is enabled.
     /// </summary>
     /// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
-    public static (bool exportRequired, HashSet<Response> uniqueRequests) Summarize(Parameters parameters, PulseResult pulseResult, long requestSizeInBytes) {
+    public static async ValueTask SummarizeAsync(Parameters parameters, PulseResult pulseResult, long requestSizeInBytes) {
         var completed = pulseResult.Results.Count;
+
         if (completed is 1) {
-            return SummarizeSingle(parameters, pulseResult);
+            await SummarizeSingleAsync(parameters, pulseResult).ConfigureAwait(false);
+            return;
         }
 
         HashSet<Response> uniqueRequests = parameters.Export
@@ -67,59 +69,71 @@ internal static class PulseSummary {
         // Clear "cross referencing results..."
         Console.ClearNextLines(1, OutputPipe.Error);
 
-        Console.WriteLineInterpolated($"Request count: {Yellow}{completed}");
-        Console.WriteLineInterpolated($"Concurrent connections: {Yellow}{peakConcurrentConnections}");
-        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:duration}");
-        Console.WriteLineInterpolated($"Success Rate: {Helper.GetPercentageBasedColor(pulseResult.SuccessRate)}{pulseResult.SuccessRate}%");
-        Console.WriteLineInterpolated($"Latency:       Min: {Green}{latencySummary.Min:0.##}ms{ConsoleColor.Default}, Mean: {Yellow}{latencySummary.Mean:0.##}ms{ConsoleColor.Default}, Max: {Red}{latencySummary.Max:0.##}ms");
-        if (latencySummary.Removed != 0) {
-            Console.WriteLineInterpolated($"               (Removed {DarkYellow}{latencySummary.Removed}{ConsoleColor.Default} {(latencySummary.Removed == 1 ? "outlier" : "outliers")})");
-        }
-        Console.WriteLineInterpolated($"Content Size:  Min: {Green}{sizeSummary.Min:bytes}{ConsoleColor.Default}, Mean: {Yellow}{sizeSummary.Mean:bytes}{ConsoleColor.Default}, Max: {Red}{sizeSummary.Max:bytes}");
-        Console.WriteLineInterpolated($"Total throughput: {Yellow}{throughput:bytes}/s");
-        Console.WriteLineInterpolated($"Status codes:");
-        foreach (var kvp in statusCounter.OrderBy(static s => (int)s.Key)) {
-            var key = (int)kvp.Key;
-            if (key is 0) {
-                Console.WriteLineInterpolated($"   {Magenta}{key}{ConsoleColor.Default} --> {kvp.Value}  [StatusCode 0 = Exception]");
-            } else {
-                Console.WriteLineInterpolated($"   {Helper.GetStatusCodeBasedColor(key)}{key}{ConsoleColor.Default} --> {kvp.Value}");
-            }
-        }
-        Console.NewLine();
+        var output = new SummaryModel {
+            RequestCount = parameters.Requests,
+            ConcurrentConnections = peakConcurrentConnections,
+            TotalDuration = pulseResult.TotalDuration,
+            SuccessRate = pulseResult.SuccessRate,
+            LatencyInMilliseconds = new MinMeanMax {
+                Min = latencySummary.Min,
+                Mean = latencySummary.Mean,
+                Max = latencySummary.Max,
+            },
+            LatencyOutliersRemoved = latencySummary.Removed,
+            ContentSize = new MinMeanMax {
+                Min = sizeSummary.Min,
+                Mean = sizeSummary.Mean,
+                Max = sizeSummary.Max
+            },
+            ThroughputBytesPerSecond = throughput,
+            StatusCodeCounts = statusCounter
+        };
 
-        return (parameters.Export, uniqueRequests);
+        if (parameters.Export) {
+            await ExportUniqueRequestsAsync(parameters, uniqueRequests).ConfigureAwait(false);
+		}
     }
 
     /// <summary>
     /// Produces a summary for a single result
     /// </summary>
     /// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (bool exportRequired, HashSet<Response> uniqueRequests) SummarizeSingle(Parameters parameters, PulseResult pulseResult) {
+    internal static async ValueTask SummarizeSingleAsync(Parameters parameters, PulseResult pulseResult) {
         var result = pulseResult.Results.First();
-        double duration = result.Latency.TotalMilliseconds;
         var statusCode = result.StatusCode;
+        var latency = result.Latency.TotalMilliseconds;
+        var size = (double)result.ContentLength;
+        var throughput = size / result.Latency.TotalSeconds;
 
-        Console.WriteLineInterpolated($"Request count: {Yellow}1");
-        Console.WriteLineInterpolated($"Total duration: {Yellow}{pulseResult.TotalDuration:duration}");
-        if ((int)statusCode is >= 200 and < 300) {
-            Console.WriteLineInterpolated($"Success: {Green}true");
-        } else {
-            Console.WriteLineInterpolated($"Success: {Red}false");
+        var output = new SummaryModel {
+            RequestCount = 1,
+            ConcurrentConnections = 1,
+            TotalDuration = pulseResult.TotalDuration,
+            SuccessRate = pulseResult.SuccessRate,
+            LatencyInMilliseconds = new MinMeanMax {
+                Min = latency,
+                Mean = latency,
+                Max = latency,
+            },
+            LatencyOutliersRemoved = 0,
+            ContentSize = new MinMeanMax {
+                Min = size,
+                Mean = size,
+                Max = size
+            },
+            ThroughputBytesPerSecond = throughput,
+            StatusCodeCounts = new Dictionary<HttpStatusCode, int> {
+                {statusCode, 1}
+            }
+        };
+
+        output.Output(parameters.OutputFormat);
+
+        if (parameters.Export) {
+            var uniqueRequests = new HashSet<Response>(1) { result };
+
+            await ExportUniqueRequestsAsync(parameters, uniqueRequests).ConfigureAwait(false);
         }
-        Console.WriteLineInterpolated($"Latency:      {Green}{duration:0.##}ms");
-        Console.WriteLineInterpolated($"Content Size: {Green}{(double)result.ContentLength:bytes}");
-        if (statusCode is 0) {
-            Console.WriteLineInterpolated($"Status code: {Red}0 [Exception]");
-        } else {
-            Console.WriteLineInterpolated($"Status code: {Helper.GetStatusCodeBasedColor((int)statusCode)}{statusCode}");
-        }
-        Console.NewLine();
-
-        var uniqueRequests = new HashSet<Response>(1) { result };
-
-        return (parameters.Export, uniqueRequests);
     }
 
 
@@ -237,7 +251,7 @@ internal static class PulseSummary {
     /// <param name="token"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task ExportUniqueRequestsAsync(Parameters parameters, HashSet<Response> uniqueRequests, CancellationToken token = default) {
+    internal static async Task ExportUniqueRequestsAsync(Parameters parameters, HashSet<Response> uniqueRequests) {
         var count = uniqueRequests.Count;
 
         if (count is 0) {
@@ -250,14 +264,14 @@ internal static class PulseSummary {
         Exporter.ClearFiles(directory);
 
         if (count is 1) {
-            await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, token).ConfigureAwait(false);
+            await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, parameters.CancellationToken).ConfigureAwait(false);
             Console.WriteLineInterpolated($"{Green}1{ConsoleColor.Default} unique response exported to {Yellow}{directory}");
             return;
         }
 
         var options = new ParallelOptions {
             MaxDegreeOfParallelism = Environment.ProcessorCount,
-            CancellationToken = token
+            CancellationToken = parameters.CancellationToken
         };
 
         await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn).ConfigureAwait(false)).ConfigureAwait(false);
