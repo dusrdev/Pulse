@@ -12,7 +12,7 @@ internal enum OutputFormat {
 }
 
 internal static class OutputFormatterExtensions {
-	internal static void Output<T>(this T value, OutputFormat format) where T : IOutputFormatter, allows ref struct {
+	internal static void Output(this IOutputFormatter value, OutputFormat format) {
 		switch (format) {
 			case OutputFormat.PlainText:
 				value.OutputAsPlainText();
