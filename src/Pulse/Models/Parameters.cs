@@ -1,6 +1,4 @@
-using Pulse.Models;
-
-namespace Pulse.Configuration;
+namespace Pulse.Models;
 
 /// <summary>
 /// Execution parameters

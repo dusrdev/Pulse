@@ -172,50 +172,11 @@ internal static class Commands {
     /// <param name="parameters"></param>
     /// <param name="requestDetails"></param>
     internal static void PrintConfiguration(Parameters parameters, RequestDetails requestDetails) {
-        ConsoleColor headerColor = Cyan;
-        ConsoleColor property = DarkGray;
-        ConsoleColor value = White;
+        var configuration = new RunConfiguration {
+            Parameters = parameters,
+            RequestDetails = requestDetails
+        };
 
-        // Options
-        Console.WriteLineInterpolated($"{headerColor}Options:");
-        Console.WriteLineInterpolated($"{property}  Request count: {value}{parameters.Requests}");
-        Console.WriteLineInterpolated($"{property}  Concurrent connections: {value}{parameters.Connections}");
-        Console.WriteLineInterpolated($"{property}  Delay: {value}{parameters.DelayInMs}ms");
-        Console.WriteLineInterpolated($"{property}  Timeout: {value}{parameters.TimeoutInMs}");
-        Console.WriteLineInterpolated($"{property}  Export Raw: {value}{parameters.ExportRaw}");
-        Console.WriteLineInterpolated($"{property}  Format JSON: {value}{parameters.FormatJson}");
-        Console.WriteLineInterpolated($"{property}  Export Full Equality: {value}{parameters.UseFullEquality}");
-        Console.WriteLineInterpolated($"{property}  Export: {value}{parameters.Export}");
-        Console.WriteLineInterpolated($"{property}  Verbose: {value}{parameters.Verbose}");
-        Console.WriteLineInterpolated($"{property}  Output Folder: {value}{parameters.OutputFolder}");
-
-        // Request
-        Console.WriteLineInterpolated($"{headerColor}Request:");
-        Console.WriteLineInterpolated($"{property}  URL: {value}{requestDetails.Request.Url}");
-        Console.WriteLineInterpolated($"{property}  Method: {value}{requestDetails.Request.Method}");
-        Console.WriteLineInterpolated($"{Yellow}  Headers:");
-        if (requestDetails.Request.Headers.Count > 0) {
-            foreach (var header in requestDetails.Request.Headers) {
-                if (header.Value is null) {
-                    continue;
-                }
-                Console.WriteLineInterpolated($"{property}    {header.Key}: {value}{header.Value.Value}");
-            }
-        }
-        if (requestDetails.Request.Content.Body.HasValue) {
-            Console.WriteLineInterpolated($"{Yellow}  Content:");
-            Console.WriteLineInterpolated($"{property}    ContentType: {value}{requestDetails.Request.Content.GetContentType()}");
-            Console.WriteLineInterpolated($"{property}    Body: {value}{requestDetails.Request.Content.Body}");
-        } else {
-            Console.WriteLineInterpolated($"{property}  Content: {value}none");
-        }
-
-        // Proxy
-        Console.WriteLineInterpolated($"{headerColor}Proxy:");
-        Console.WriteLineInterpolated($"{property}  Bypass: {value}{requestDetails.Proxy.Bypass}");
-        Console.WriteLineInterpolated($"{property}  Host: {value}{requestDetails.Proxy.Host}");
-        Console.WriteLineInterpolated($"{property}  Username: {value}{requestDetails.Proxy.Username}");
-        Console.WriteLineInterpolated($"{property}  Password: {value}{requestDetails.Proxy.Password}");
-        Console.WriteLineInterpolated($"{property}  Ignore SSL: {value}{requestDetails.Proxy.IgnoreSSL}");
+        configuration.Output(parameters.OutputFormat);
     }
 }
