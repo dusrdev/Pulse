@@ -1,10 +1,9 @@
 using System.Collections.Immutable;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Pulse.Models;
 
-internal readonly ref partial struct TermsOfServiceModel : IOutputFormatter<TermsOfServiceModel> {
+internal readonly struct TermsOfServiceModel : IOutputFormatter {
 	private static ImmutableArray<string> Lines => ImmutableArray.Create([
 		"By using this tool you agree to take full responsibility for the consequences of its use.",
 		"Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws.",
@@ -12,9 +11,7 @@ internal readonly ref partial struct TermsOfServiceModel : IOutputFormatter<Term
 	]);
 
 	public void OutputAsJson() {
-		using var writer = new Utf8JsonWriter(Console.OpenStandardOutput());
-		JsonSerializer.Serialize(writer, Lines, JsonContext.Default.ImmutableArrayString);
-		writer.Flush();
+		JsonSerializer.ToConsoleOut(Lines, ModelsJsonContext.Default.ImmutableArrayString);
 	}
 
 	public void OutputAsPlainText() {
@@ -22,7 +19,4 @@ internal readonly ref partial struct TermsOfServiceModel : IOutputFormatter<Term
 			Console.WriteLineInterpolated($"{line}");
 		}
 	}
-
-	[JsonSerializable(typeof(ImmutableArray<string>))]
-	private partial class JsonContext : JsonSerializerContext;
 }
