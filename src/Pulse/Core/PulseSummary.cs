@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
 using Pulse.Configuration;
+using Pulse.Models;
 
 namespace Pulse.Core;
 

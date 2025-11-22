@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Pulse.Core;
+namespace Pulse.Models;
 
 /// <summary>
 /// Request details

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Pulse.Core;
+using Pulse.Models;
 
 namespace Pulse.Configuration;
 

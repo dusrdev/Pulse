@@ -1,6 +1,6 @@
 using Pulse.Configuration;
 
-namespace Pulse.Core;
+namespace Pulse.Models;
 
 /// <summary>
 /// Represents a serializable way to display non successful response information when using <see cref="ParametersBase.ExportRaw"/>

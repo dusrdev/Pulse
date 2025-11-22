@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace Pulse.Core;
+namespace Pulse.Models;
 
 /// <summary>
 /// Result of pulse (complete test)

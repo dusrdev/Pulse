@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Pulse.Core;
+namespace Pulse.Models;
 
 /// <summary>
 /// Release information

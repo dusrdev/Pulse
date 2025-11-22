@@ -2,7 +2,7 @@ using System.Net;
 
 using Pulse.Configuration;
 
-namespace Pulse.Core;
+namespace Pulse.Models;
 
 /// <summary>
 /// The model used for response

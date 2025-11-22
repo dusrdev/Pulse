@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 
 using Pulse.Configuration;
+using Pulse.Models;
 
 using static Pulse.Core.IPulseMonitor;
 

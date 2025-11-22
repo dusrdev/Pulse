@@ -1,5 +1,7 @@
 using System.Net;
 
+using Pulse.Models;
+
 namespace Pulse.Core;
 
 /// <summary>

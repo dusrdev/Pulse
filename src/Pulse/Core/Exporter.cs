@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 
 using Pulse.Configuration;
+using Pulse.Models;
 
 namespace Pulse.Core;
 

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Pulse.Core;
+namespace Pulse.Models;
 
 [StructLayout(LayoutKind.Sequential, Size = 64)]
 internal struct PaddedULong {
