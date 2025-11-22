@@ -7,21 +7,21 @@ internal static class ConsoleState {
     }
 
     public static void Reset(int startLine) {
-		LinesWritten = startLine;
-	}
+        LinesWritten = startLine;
+    }
 
-	public static void ReportLinesFromCurrent(int lineCount) {
-		if (lineCount <= 0) {
-			return;
-		}
+    public static void ReportLinesFromCurrent(int lineCount) {
+        if (lineCount <= 0) {
+            return;
+        }
 
-		int current = Console.GetCurrentLine();
-		int lastLine = current + lineCount - 1;
-		UpdateMax(lastLine);
-	}
+        int current = Console.GetCurrentLine();
+        int lastLine = current + lineCount - 1;
+        UpdateMax(lastLine);
+    }
 
-	private static void UpdateMax(int candidate) {
-		if (LinesWritten >= candidate) return;
-		LinesWritten = candidate;
-	}
+    private static void UpdateMax(int candidate) {
+        if (LinesWritten >= candidate) return;
+        LinesWritten = candidate;
+    }
 }

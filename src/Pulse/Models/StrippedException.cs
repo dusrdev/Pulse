@@ -52,13 +52,13 @@ internal sealed record StrippedException : IOutputFormatter {
 
     public void OutputAsPlainText() {
         if (Type == nameof(OperationCanceledException)) {
-			Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
-		} else {
-			Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: {Markup.Underline}https://dusrdev.github.io{Markup.ResetUnderline}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
+        } else {
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: {Markup.Underline}https://dusrdev.github.io{Markup.ResetUnderline}");
             Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}and provide the following details:");
             Console.NewLine(OutputPipe.Error);
             this.PrintException();
-		}
+        }
     }
 
     public void OutputAsJson() {

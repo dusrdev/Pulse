@@ -101,7 +101,7 @@ internal static class PulseSummary {
 
         if (parameters.Export) {
             await ExportUniqueRequestsAsync(parameters, uniqueRequests).ConfigureAwait(false);
-		}
+        }
     }
 
     /// <summary>
@@ -158,31 +158,29 @@ internal static class PulseSummary {
     /// <param name="removeOutliers"></param>
     /// <returns><see cref="Summary"/></returns>
     internal static Summary GetSummary(Span<double> values, bool removeOutliers = true) {
-        switch (values.Length)
-        {
-            case > 2:
-            {
-                values.Sort();
+        switch (values.Length) {
+            case > 2: {
+                    values.Sort();
 
-                if (!removeOutliers) {
-                    return SummarizeOrderedSpan(values, 0);
+                    if (!removeOutliers) {
+                        return SummarizeOrderedSpan(values, 0);
+                    }
+
+                    int i25 = values.Length / 4, i75 = 3 * values.Length / 4;
+                    double q1 = values[i25]; // First quartile
+
+                    double q3 = values[i75]; // Third quartile
+
+                    double iqr = q3 - q1;
+                    double lowerBound = q1 - 1.5 * iqr;
+                    double upperBound = q3 + 1.5 * iqr;
+
+                    int start = FindBoundIndex(values, lowerBound, 0, i25);
+                    int end = FindBoundIndex(values, upperBound, i75, values.Length);
+                    ReadOnlySpan<double> filtered = values.Slice(start, end - start);
+
+                    return SummarizeOrderedSpan(filtered, values.Length - filtered.Length);
                 }
-
-                int i25 = values.Length / 4, i75 = 3 * values.Length / 4;
-                double q1 = values[i25]; // First quartile
-
-                double q3 = values[i75]; // Third quartile
-
-                double iqr = q3 - q1;
-                double lowerBound = q1 - 1.5 * iqr;
-                double upperBound = q3 + 1.5 * iqr;
-
-                int start = FindBoundIndex(values, lowerBound, 0, i25);
-                int end = FindBoundIndex(values, upperBound, i75, values.Length);
-                ReadOnlySpan<double> filtered = values.Slice(start, end - start);
-
-                return SummarizeOrderedSpan(filtered, values.Length - filtered.Length);
-            }
             case 2:
                 return new Summary {
                     Min = Math.Min(values[0], values[1]),

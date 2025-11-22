@@ -15,17 +15,15 @@ internal static class Helper {
     }
 
     public static TimeSpan GetEta(double percentage, TimeSpan elapsed) {
-        switch (percentage)
-        {
+        switch (percentage) {
             case <= 0:
                 return TimeSpan.MaxValue;
             case >= 1:
                 return TimeSpan.Zero;
-            default:
-            {
-                var rem = (1 - percentage) / percentage;
-                return rem * elapsed;
-            }
+            default: {
+                    var rem = (1 - percentage) / percentage;
+                    return rem * elapsed;
+                }
         }
     }
 

@@ -17,12 +17,12 @@ namespace Pulse.Models;
 internal partial class ModelsJsonContext : JsonSerializerContext;
 
 internal static class JsonSerializerExtensions {
-	extension(JsonSerializer) {
-		internal static void ToConsoleOut<T>(in T value, JsonTypeInfo<T> jsonTypeInfo) {
-			using var writer = new Utf8JsonWriter(Console.OpenStandardOutput());
-			JsonSerializer.Serialize(writer, value, jsonTypeInfo);
-			writer.Flush();
-			Console.WriteLine();
-		}
-	}
+    extension(JsonSerializer) {
+        internal static void ToConsoleOut<T>(in T value, JsonTypeInfo<T> jsonTypeInfo) {
+            using var writer = new Utf8JsonWriter(Console.OpenStandardOutput());
+            JsonSerializer.Serialize(writer, value, jsonTypeInfo);
+            writer.Flush();
+            Console.WriteLine();
+        }
+    }
 }

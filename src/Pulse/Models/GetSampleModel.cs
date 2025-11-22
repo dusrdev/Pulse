@@ -3,10 +3,10 @@ using System.Text.Json;
 namespace Pulse.Models;
 
 internal readonly struct GetSampleModel : IOutputFormatter {
-	public required string Path { get; init; }
+    public required string Path { get; init; }
 
     public void OutputAsJson() {
-		JsonSerializer.ToConsoleOut(in this, ModelsJsonContext.Default.GetSampleModel);
+        JsonSerializer.ToConsoleOut(in this, ModelsJsonContext.Default.GetSampleModel);
     }
 
     public void OutputAsPlainText() {
