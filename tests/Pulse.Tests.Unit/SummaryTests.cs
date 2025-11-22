@@ -58,9 +58,20 @@ public class SummaryTests {
     }
 
     [Fact]
-    public void Summarize_DeduplicatesResponses_WhenExportEnabled() {
+    public async Task Summarize_DeduplicatesResponses_WhenExportEnabled() {
         // Arrange
-        var parameters = new Parameters(new ParametersBase { Export = true }, CancellationToken.None);
+        var outputFolderName = $"pulse-summary-tests-{Guid.NewGuid():N}";
+        var parameters = new Parameters(new ParametersBase {
+            Export = true,
+            OutputFolder = outputFolderName
+        }, TestContext.Current.CancellationToken);
+        var exportDirectory = Path.Join(Directory.GetCurrentDirectory(), outputFolderName);
+        var requestDetails = new RequestDetails {
+            Request = new Request {
+                Url = "https://example.com",
+                Method = HttpMethod.Get
+            }
+        };
         var responses = new[] {
             CreateResponse(1, HttpStatusCode.OK, "alpha"),
             CreateResponse(2, HttpStatusCode.OK, "beta"),
@@ -73,12 +84,21 @@ public class SummaryTests {
             SuccessRate = 100
         };
 
-        // Act
-        var (exportRequired, uniqueRequests) = PulseSummary.Summarize(parameters, pulseResult, requestSizeInBytes: 16);
+        try {
+            // Act
+            await PulseSummary.SummarizeAsync(parameters, requestDetails, pulseResult);
 
-        // Assert
-        Assert.True(exportRequired);
-        Assert.Equal(2, uniqueRequests.Count);
+            // Assert
+            var exportedFiles = Directory.Exists(exportDirectory)
+                                ? Directory.GetFiles(exportDirectory)
+                                : Array.Empty<string>();
+
+            Assert.Equal(2, exportedFiles.Length);
+        } finally {
+            if (Directory.Exists(exportDirectory)) {
+                Directory.Delete(exportDirectory, recursive: true);
+            }
+        }
     }
 
     private static Response CreateResponse(int id, HttpStatusCode statusCode, string content) {
