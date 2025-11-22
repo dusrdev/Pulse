@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 using ConsoleAppFramework;
 
-using Pulse.Configuration;
+using Pulse.Models;
 
 namespace Pulse.Core;
 
@@ -10,22 +10,28 @@ namespace Pulse.Core;
 
 internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleAppFilter(next) {
     public override async Task InvokeAsync(ConsoleAppContext context, CancellationToken cancellationToken) {
+        if (context.GlobalOptions is not GlobalOptions options) {
+            throw new InvalidCastException();
+        }
+        bool reportsProgress = !options.Quiet;
+
         int startLine = Console.GetCurrentLine();
         ConsoleState.Reset(startLine);
         try {
             await Next.InvokeAsync(context, cancellationToken).ConfigureAwait(false);
         } catch (Exception e) when (e is ValidationException or ArgumentParseFailedException) {
             throw;
-		} catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
-            ClearFrom(startLine);
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
+        } catch (Exception e) when (e is TaskCanceledException or OperationCanceledException) {
+            if (reportsProgress) {
+                ClearFrom(startLine);
+            }
+            new StrippedException(nameof(OperationCanceledException), "").Output(options.Format);
             Environment.ExitCode = 1;
         } catch (Exception e) {
-            ClearFrom(startLine);
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: {Markup.Underline}https://dusrdev.github.io{Markup.ResetUnderline}");
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}and provide the following details:");
-            Console.NewLine(OutputPipe.Error);
-            StrippedException.FromException(e).PrintException();
+            if (reportsProgress) {
+                ClearFrom(startLine);
+            }
+            StrippedException.FromException(e).Output(options.Format);
             Environment.ExitCode = 1;
         }
 
