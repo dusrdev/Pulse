@@ -34,10 +34,12 @@ internal static class PulseSummary {
         long totalSize = 0;
         int peakConcurrentConnections = 0;
 
-        ConsoleState.ReportLinesFromCurrent(1);
-        Console.Overwrite(() => {
-            Console.WriteInterpolated(OutputPipe.Error, $"Cross referencing results...");
-        });
+        if (!parameters.Quiet) {
+            ConsoleState.ReportLinesFromCurrent(1);
+            Console.Overwrite(() => {
+                Console.WriteInterpolated(OutputPipe.Error, $"Cross referencing results...");
+            });
+        }
 
         foreach (var result in pulseResult.Results) {
             uniqueRequests.Add(result);
@@ -66,8 +68,10 @@ internal static class PulseSummary {
         Summary sizeSummary = GetSummary(CollectionsMarshal.AsSpan(sizes), false);
         double throughput = totalSize / pulseResult.TotalDuration.TotalSeconds;
 
-        // Clear "cross-referencing results..."
-        Console.ClearNextLines(1);
+        if (!parameters.Quiet) {
+            // Clear "cross-referencing results..."
+            Console.ClearNextLines(1);
+        }
 
         var output = new SummaryModel {
             Target = new Target {
@@ -263,7 +267,6 @@ internal static class PulseSummary {
     /// <param name="parameters"></param>
     /// <param name="uniqueRequests"></param>
     /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static async Task ExportUniqueRequestsAsync(Parameters parameters, HashSet<Response> uniqueRequests) {
         var count = uniqueRequests.Count;
 

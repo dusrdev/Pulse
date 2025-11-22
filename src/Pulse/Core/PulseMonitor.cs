@@ -43,12 +43,9 @@ internal sealed class PulseMonitor : IPulseMonitor {
     private readonly HttpClient _httpClient;
     private readonly Request _requestRecipe;
     private readonly Task _printer;
+    private readonly bool _reportProgress;
 
-    private readonly Channel<Stats> _channel = Channel.CreateBounded<Stats>(new BoundedChannelOptions(1) {
-        SingleWriter = false,
-        SingleReader = true,
-        FullMode = BoundedChannelFullMode.DropWrite
-    });
+    private readonly Channel<Stats> _channel;
 
     /// <summary>
     /// Creates a new pulse monitor
@@ -61,25 +58,38 @@ internal sealed class PulseMonitor : IPulseMonitor {
         _httpClient = client;
         _requestRecipe = requestRecipe;
         _requestExecutionContext = new RequestExecutionContext();
+        _reportProgress = !parameters.Quiet;
         _start = Stopwatch.GetTimestamp();
 
-        _ = _channel.Writer.TryWrite(new Stats {
-            Percentage = 0,
-            CurrentCount = _responses,
-            SuccessRate = 0,
-            Eta = TimeSpan.MaxValue,
-            RequestCount = _requestCount,
-            StatusCodes = _stats
-        });
+        if (_reportProgress) {
+            _channel = Channel.CreateBounded<Stats>(new BoundedChannelOptions(1) {
+                SingleWriter = false,
+                SingleReader = true,
+                FullMode = BoundedChannelFullMode.DropWrite
+            });
 
-        Console.CursorVisible = false;
-        ConsoleState.ReportLinesFromCurrent(3);
+            _ = _channel.Writer.TryWrite(new Stats {
+                Percentage = 0,
+                CurrentCount = _responses,
+                SuccessRate = 0,
+                Eta = TimeSpan.MaxValue,
+                RequestCount = _requestCount,
+                StatusCodes = _stats
+            });
 
-        _printer = Task.Run(async () => {
-            await foreach (var stats in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false)) {
-                PrintMetrics(stats);
-            }
-        });
+            Console.CursorVisible = false;
+            ConsoleState.ReportLinesFromCurrent(3);
+
+            _printer = Task.Run(async () => {
+                await foreach (var stats in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false)) {
+                    PrintMetrics(stats);
+                }
+            });
+        } else {
+            _channel = null!;
+
+            _printer = Task.CompletedTask;
+        }
     }
 
     /// <inheritdoc />
@@ -92,7 +102,9 @@ internal sealed class PulseMonitor : IPulseMonitor {
         Interlocked.Increment(ref _stats[index].Value);
         // Print metrics
 
-        await PushMetricsAsync().ConfigureAwait(false);
+        if (_reportProgress) {
+            await PushMetricsAsync().ConfigureAwait(false);
+        }
         _results.Push(result);
     }
 
@@ -137,11 +149,13 @@ internal sealed class PulseMonitor : IPulseMonitor {
 
     /// <inheritdoc />
     public async Task<PulseResult> ClearAndReturnAsync() {
-        // Clear after metrics
-        _channel.Writer.Complete();
-        await _printer.ConfigureAwait(false);
-        Console.ClearNextLines(3);
-        Console.CursorVisible = true;
+        if (_reportProgress) {
+            // Clear after metrics
+            _channel.Writer.Complete();
+            await _printer.ConfigureAwait(false);
+            Console.ClearNextLines(3);
+            Console.CursorVisible = true;
+        }
 
         return new PulseResult {
             Results = _results,

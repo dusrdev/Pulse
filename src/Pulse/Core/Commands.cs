@@ -65,6 +65,7 @@ internal static class Commands {
             NoOp = noOp,
             Verbose = verbose,
             OutputFormat = options.Format,
+            Quiet = options.Quiet,
             OutputFolder = output
         };
 

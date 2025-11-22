@@ -37,6 +37,7 @@ internal sealed class VerbosePulseMonitor : IPulseMonitor {
     private readonly HttpClient _httpClient;
     private readonly Request _requestRecipe;
     private readonly RequestExecutionContext _requestExecutionContext;
+    private readonly bool _reportProgress;
 
     private readonly Lock _lock = new();
 
@@ -50,13 +51,16 @@ internal sealed class VerbosePulseMonitor : IPulseMonitor {
         _httpClient = client;
         _requestRecipe = requestRecipe;
         _requestExecutionContext = new RequestExecutionContext();
+        _reportProgress = !parameters.Quiet;
         _start = Stopwatch.GetTimestamp();
     }
 
     /// <inheritdoc />
     public async Task SendAsync(int requestId) {
-        lock (_lock) {
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}--> {ConsoleColor.Default}Sent request: {Yellow}{requestId}");
+        if (_reportProgress) {
+            lock (_lock) {
+                Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}--> {ConsoleColor.Default}Sent request: {Yellow}{requestId}");
+            }
         }
         var result = await _requestExecutionContext.SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken).ConfigureAwait(false);
         Interlocked.Increment(ref _responses.Value);
@@ -64,16 +68,20 @@ internal sealed class VerbosePulseMonitor : IPulseMonitor {
         if (result.StatusCode is HttpStatusCode.OK) {
             Interlocked.Increment(ref _successes.Value);
         }
-        int status = (int)result.StatusCode;
-        lock (_lock) {
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}<-- {ConsoleColor.Default}Received response: {Yellow}{requestId}{ConsoleColor.Default}, status code: {Helper.GetStatusCodeBasedColor(status)}{status}");
+        if (_reportProgress) {
+            int status = (int)result.StatusCode;
+            lock (_lock) {
+                Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}<-- {ConsoleColor.Default}Received response: {Yellow}{requestId}{ConsoleColor.Default}, status code: {Helper.GetStatusCodeBasedColor(status)}{status}");
+            }
         }
         _results.Push(result);
     }
 
     /// <inheritdoc />
     public Task<PulseResult> ClearAndReturnAsync() {
-        Console.NewLine(OutputPipe.Error);
+        if (_reportProgress) {
+            Console.NewLine(OutputPipe.Error);
+        }
 
         return Task.FromResult(new PulseResult {
             Results = _results,

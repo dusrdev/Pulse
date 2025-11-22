@@ -60,6 +60,11 @@ internal record ParametersBase {
     public OutputFormat OutputFormat { get; init; }
 
     /// <summary>
+	/// Suppress progress output on stderr (only fatal errors will be shown)
+	/// </summary>
+    public bool Quiet { get; init; }
+
+    /// <summary>
     /// Output folder.
     /// </summary>
     public string OutputFolder { get; init; } = "results";

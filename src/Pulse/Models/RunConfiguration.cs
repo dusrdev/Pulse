@@ -27,6 +27,7 @@ internal readonly struct RunConfiguration : IOutputFormatter {
         Console.WriteLineInterpolated($"{property}  Export: {value}{Parameters.Export}");
 		Console.WriteLineInterpolated($"{property}  Verbose: {value}{Parameters.Verbose}");
 		Console.WriteLineInterpolated($"{property}  OutputFormat: {value}{Parameters.OutputFormat}");
+		Console.WriteLineInterpolated($"{property}  Quiet: {value}{Parameters.Quiet}");
         Console.WriteLineInterpolated($"{property}  Output Folder: {value}{Parameters.OutputFolder}");
 
         // Request

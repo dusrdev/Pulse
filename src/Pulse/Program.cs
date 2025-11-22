@@ -11,7 +11,8 @@ app.UseFilter<GlobalExceptionHandler>();
 
 app.ConfigureGlobalOptions((ref builder) => {
 	var format = builder.AddGlobalOption("--output-format", description: "Output as PlainText|JSON", defaultValue: OutputFormat.PlainText);
-	return new GlobalOptions(format);
+	var quiet = builder.AddGlobalOption("--quiet", description: "Suppress progress output on stderr (only fatal errors will be shown).", defaultValue: false);
+	return new GlobalOptions(format, quiet);
 });
 
 app.Add("", Commands.Root);
