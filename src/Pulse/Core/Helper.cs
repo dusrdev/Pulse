@@ -2,6 +2,7 @@ using System.Net;
 using System.Numerics;
 
 using Pulse.Configuration;
+using Pulse.Models;
 
 namespace Pulse.Core;
 
@@ -9,12 +10,10 @@ namespace Pulse.Core;
 /// Helper class
 /// </summary>
 internal static class Helper {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Percentage<T>(T current, T total) where T : INumberBase<T> {
         return double.CreateChecked(current / total);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TimeSpan GetETA(double percentage, TimeSpan elapsed) {
         if (percentage <= 0) return TimeSpan.MaxValue;
         if (percentage >= 1) return TimeSpan.Zero;
@@ -22,6 +21,9 @@ internal static class Helper {
         return rem * elapsed;
     }
 
+    // Returns an OutputFormat based on the llm parameter
+    public static OutputFormat OutputFormatFromBool(bool llm = false)
+        => llm ? OutputFormat.JSON : OutputFormat.PlainText;
 
     /// <summary>
     /// Returns a text color based on percentage
@@ -60,7 +62,6 @@ internal static class Helper {
 	/// </summary>
 	/// <param name="method"></param>
 	/// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ConsoleColor GetMethodBasedColor(string method)
         => method switch {
             "GET" => Green,
@@ -74,7 +75,6 @@ internal static class Helper {
     /// </summary>
     /// <param name="handler"></param>
     /// <param name="proxy"></param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ConfigureSslHandling(this SocketsHttpHandler handler, Proxy proxy) {
         if (proxy.IgnoreSSL) {
 #pragma warning disable CA5359 // Do Not Disable Certificate Validation
@@ -87,7 +87,6 @@ internal static class Helper {
     /// Prints the exception
     /// </summary>
     /// <param name="e"></param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void PrintException(this StrippedException e) {
         Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Exception type: {ConsoleColor.Default}{e.Type}");
         Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Message: {ConsoleColor.Default}{e.Message}");
@@ -110,7 +109,6 @@ internal static class Helper {
     /// </summary>
     /// <param name="details"></param>
     /// <param name="exception"></param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? AddExceptionDetail(Exception exception) {
         switch (exception) {
             case HttpRequestException: {

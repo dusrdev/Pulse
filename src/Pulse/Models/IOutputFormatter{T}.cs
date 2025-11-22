@@ -1,19 +1,6 @@
 namespace Pulse.Models;
 
 internal interface IOutputFormatter<T> where T : allows ref struct {
-	void Output(OutputFormat format) {
-		switch (format) {
-			case OutputFormat.PlainText:
-				OutputAsPlainText();
-				break;
-			case OutputFormat.JSON:
-				OutputAsJson();
-				break;
-			default:
-				throw new ArgumentOutOfRangeException(nameof(format));
-		}
-	}
-
 	abstract void OutputAsPlainText();
 
 	abstract void OutputAsJson();
@@ -22,4 +9,19 @@ internal interface IOutputFormatter<T> where T : allows ref struct {
 internal enum OutputFormat {
 	PlainText,
 	JSON
+}
+
+internal static class OutputFormatterExtensions {
+	internal static void Output<T>(this T value, OutputFormat format) where T : IOutputFormatter<T>, allows ref struct {
+		switch (format) {
+			case OutputFormat.PlainText:
+				value.OutputAsPlainText();
+				break;
+			case OutputFormat.JSON:
+				value.OutputAsJson();
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(format));
+		}
+	}
 }
