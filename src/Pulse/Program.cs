@@ -1,12 +1,18 @@
 ﻿using ConsoleAppFramework;
 
 using Pulse.Core;
+using Pulse.Models;
 
 ConsoleApp.Version = Commands.VERSION;
 
 var app = ConsoleApp.Create();
 
 app.UseFilter<GlobalExceptionHandler>();
+
+app.ConfigureGlobalOptions((ref builder) => {
+	var llm = builder.AddGlobalOption("--llm", description: "Output using structured JSON", defaultValue: false);
+	return new GlobalOptions(Helper.OutputFormatFromBool(llm));
+});
 
 app.Add("", Commands.Root);
 app.Add("get-sample", Commands.GetSample);
