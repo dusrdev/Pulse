@@ -11,8 +11,10 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 - Supports Headers
 - Support Content-Type and Body for POST, PUT, PATCH, and DELETE
 - Custom HTML generated outputs for easy inspection
+- Structured output toggle (PlainText or JSON) for terminals, scripts, and LLMs
 - Format JSON outputs
 - Captures all response headers for debugging
+- Quiet mode to silence progress noise when piping or scripting
 
 And more!
 
@@ -117,6 +119,8 @@ Arguments:
 Options:
   --json                      Try to format response content as JSON (Optional)
   --raw                       Export raw results [without wrapping in custom HTML] (Optional)
+  --output-format <enum>      Output as PlainText|JSON (Default: PlainText)
+  --quiet                     Suppress progress output on stderr (only fatal errors will be shown) (Default: False)
   -f, --full-equality         Use full equality [slower] (Optional)
   --no-export                 Don't export results (Optional)
   -v, --verbose               Display verbose output (Optional)
@@ -138,6 +142,8 @@ Commands:
 
 - `--json` - try to format response content as JSON.
 - `--raw` - export raw results without custom HTML; can be combined with `--json`.
+- `--output-format PlainText|JSON` (global) - choose human-readable console output or structured JSON for automation/LLMs.
+- `--quiet` (global) - suppress progress updates on stderr; only fatal errors remain. Useful when piping to `jq` or when stderr/stdout are merged.
 - `-f|--full-equality` - enforce full response equality checks instead of length-based comparisons.
 - `-v|--verbose` - display per-request logging instead of the dashboard UI.
 - `--no-op` - print the parsed configuration without running any requests.
