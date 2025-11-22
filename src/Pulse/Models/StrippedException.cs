@@ -1,13 +1,15 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using Pulse.Configuration;
 using Pulse.Core;
 
-namespace Pulse.Configuration;
+namespace Pulse.Models;
 
 /// <summary>
 /// An exception only containing the type, message and stack trace
 /// </summary>
-internal sealed record StrippedException {
+internal sealed record StrippedException : IOutputFormatter {
     public static readonly StrippedException Default = new();
 
     /// <summary>
@@ -48,6 +50,21 @@ internal sealed record StrippedException {
         return new StrippedException(exception);
     }
 
+    public void OutputAsPlainText() {
+        if (Type == nameof(OperationCanceledException)) {
+			Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Cancellation requested and handled gracefully.");
+		} else {
+			Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}Unexpected exception! Please contact developer at: {Markup.Underline}https://dusrdev.github.io{Markup.ResetUnderline}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Red}and provide the following details:");
+            Console.NewLine(OutputPipe.Error);
+            this.PrintException();
+		}
+    }
+
+    public void OutputAsJson() {
+        JsonSerializer.ToConsoleOut(this, DefaultJsonContext.Default.StrippedException);
+    }
+
     /// <summary>
     /// Creates a stripped exception from an exception
     /// </summary>
@@ -63,7 +80,7 @@ internal sealed record StrippedException {
     }
 
     /// <summary>
-    /// Creates a stripped exception from a type, message and stack trace
+    /// Creates a stripped exception from a type and message
     /// </summary>
     /// <param name="type"></param>
     /// <param name="message"></param>
