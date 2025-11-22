@@ -6,6 +6,7 @@ using Pulse.Core;
 namespace Pulse.Models;
 
 internal readonly struct SummaryModel : IOutputFormatter {
+	public required Target Target { get; init; }
 	public required int RequestCount { get; init; }
 	public required int ConcurrentConnections { get; init; }
 	public required TimeSpan TotalDuration { get; init; }
@@ -21,6 +22,7 @@ internal readonly struct SummaryModel : IOutputFormatter {
 	}
 
 	public void OutputAsPlainText() {
+		Console.WriteLineInterpolated($"{Helper.GetMethodBasedColor(Target.HttpMethod)}{Target.HttpMethod}{ConsoleColor.Default} => {Markup.Underline}{Target.Url}{Markup.ResetUnderline}");
 		Console.WriteLineInterpolated($"Request count: {Yellow}{RequestCount}");
 		Console.WriteLineInterpolated($"Concurrent connections: {Yellow}{ConcurrentConnections}");
 		Console.WriteLineInterpolated($"Total duration: {Yellow}{TotalDuration:duration}");

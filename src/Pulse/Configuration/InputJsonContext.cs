@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Pulse.Core;
 using Pulse.Models;
 
 namespace Pulse.Configuration;
@@ -20,15 +19,15 @@ namespace Pulse.Configuration;
 [JsonSerializable(typeof(JsonElement))]
 internal partial class InputJsonContext : JsonSerializerContext {
     /// <summary>
-    /// Try to get request details from file
+    /// Try to get request details from file, do not attempt to use if returns false.
     /// </summary>
     /// <param name="path"></param>
     /// <param name="details"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGetRequestDetailsFromFile(string path, out RequestDetails? details) {
+    public static bool TryGetRequestDetailsFromFile(string path, out RequestDetails details) {
         if (!File.Exists(path)) {
-            details = null;
+            details = null!;
             return false;
         }
 
@@ -36,7 +35,7 @@ internal partial class InputJsonContext : JsonSerializerContext {
         var rd = JsonSerializer.Deserialize(json, Default.RequestDetails);
 
         if (rd is null) {
-            details = null;
+            details = null!;
             return false;
         } else {
             details = rd;

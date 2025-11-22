@@ -7,6 +7,7 @@ namespace Pulse.Models;
 
 [JsonSerializable(typeof(SummaryModel))]
 [JsonSerializable(typeof(MinMeanMax))]
+[JsonSerializable(typeof(Target))]
 [JsonSerializable(typeof(ImmutableArray<string>))]
 internal partial class ModelsJsonContext : JsonSerializerContext;
 

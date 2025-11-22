@@ -65,11 +65,11 @@ internal static class Commands {
 
         var requestFilePath = Path.GetFullPath(requestFile);
 
-        if (!InputJsonContext.TryGetRequestDetailsFromFile(requestFilePath, out var requestDetails)) {
+        if (!InputJsonContext.TryGetRequestDetailsFromFile(requestFilePath, out RequestDetails requestDetails)) {
             Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to retrieve and parse request file from {Markup.Underline}{Yellow}{requestFilePath}{Markup.ResetUnderline}");
             return 1;
         }
-        ArgumentNullException.ThrowIfNull(requestDetails);
+
         if (url is not null) {
             requestDetails.Request.Url = url;
         }
@@ -81,7 +81,6 @@ internal static class Commands {
             return 0;
         }
 
-        Console.WriteLineInterpolated($"{Helper.GetMethodBasedColor(requestDetails.Request.Method.Method)}{requestDetails.Request.Method.Method}{ConsoleColor.Default} => {Markup.Underline}{requestDetails.Request.Url}{Markup.ResetUnderline}");
         await Pulse.RunAsync(@params, requestDetails).ConfigureAwait(false);
         return 0;
     }

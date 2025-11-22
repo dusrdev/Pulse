@@ -16,11 +16,12 @@ internal static class PulseSummary {
     /// Produces a summary, and saves unique requests if export is enabled.
     /// </summary>
     /// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
-    public static async ValueTask SummarizeAsync(Parameters parameters, PulseResult pulseResult, long requestSizeInBytes) {
+    public static async ValueTask SummarizeAsync(Parameters parameters, RequestDetails requestDetails, PulseResult pulseResult) {
         var completed = pulseResult.Results.Count;
+        var requestSizeInBytes = requestDetails.Request.GetRequestLength();
 
         if (completed is 1) {
-            await SummarizeSingleAsync(parameters, pulseResult).ConfigureAwait(false);
+            await SummarizeSingleAsync(parameters, requestDetails, pulseResult).ConfigureAwait(false);
             return;
         }
 
@@ -70,6 +71,10 @@ internal static class PulseSummary {
         Console.ClearNextLines(1, OutputPipe.Error);
 
         var output = new SummaryModel {
+            Target = new Target {
+                HttpMethod = requestDetails.Request.Method.Method,
+                Url = requestDetails.Request.Url
+            },
             RequestCount = parameters.Requests,
             ConcurrentConnections = peakConcurrentConnections,
             TotalDuration = pulseResult.TotalDuration,
@@ -89,6 +94,8 @@ internal static class PulseSummary {
             StatusCodeCounts = statusCounter
         };
 
+        output.Output(parameters.OutputFormat);
+
         if (parameters.Export) {
             await ExportUniqueRequestsAsync(parameters, uniqueRequests).ConfigureAwait(false);
 		}
@@ -98,7 +105,7 @@ internal static class PulseSummary {
     /// Produces a summary for a single result
     /// </summary>
     /// <returns>Value indicating whether export is required, and the requests to export (null if not required)</returns>
-    internal static async ValueTask SummarizeSingleAsync(Parameters parameters, PulseResult pulseResult) {
+    internal static async ValueTask SummarizeSingleAsync(Parameters parameters, RequestDetails requestDetails, PulseResult pulseResult) {
         var result = pulseResult.Results.First();
         var statusCode = result.StatusCode;
         var latency = result.Latency.TotalMilliseconds;
@@ -106,6 +113,10 @@ internal static class PulseSummary {
         var throughput = size / result.Latency.TotalSeconds;
 
         var output = new SummaryModel {
+            Target = new Target {
+                HttpMethod = requestDetails.Request.Method.Method,
+                Url = requestDetails.Request.Url
+            },
             RequestCount = 1,
             ConcurrentConnections = 1,
             TotalDuration = pulseResult.TotalDuration,

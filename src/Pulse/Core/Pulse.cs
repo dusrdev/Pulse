@@ -48,6 +48,6 @@ internal static class Pulse {
 
         var result = await monitor.ClearAndReturnAsync().ConfigureAwait(false);
 
-        await PulseSummary.SummarizeAsync(parameters, result, requestDetails.Request.GetRequestLength()).ConfigureAwait(false);
+        await PulseSummary.SummarizeAsync(parameters, requestDetails, result).ConfigureAwait(false);
     }
 }
