@@ -12,7 +12,10 @@
   - To use `Limited` mode, simply set `-c| --connections` to the desired value by use the optional parameter.
   - `-d| --delay` can now be combined with any of the options above, even though at full `Parallel` it will only delay the results summary.
 - Many outputs are now more consistent and artifact free, including when the output is interrupted (like when press CTRL+C).
-- Added `cli-schema` command prints the usage schema for the app in JSON format - Useful for LLM's and AGENTS.
+- First-class LLM and AGENTS support:
+  - Added `cli-schema` command prints the usage schema for the app in JSON format.
+  - Added `--output-format` parameter that can be used to change the output from the default plain-text to structured JSON.
+  - Added `--quiet` parameter that can be used to suppress writing progress to stderr (which can glitch if agents merge the streams).
 - Compilations options were refined to produce a even more purpose fit executable.
   - Smaller output binary size.
   - Shorter startup times.
