@@ -5,6 +5,7 @@ using System.Text.Json.Schema;
 using ConsoleAppFramework;
 
 using Pulse.Configuration;
+using Pulse.Models;
 
 namespace Pulse.Core;
 
@@ -124,16 +125,12 @@ internal static class Commands {
     /// Print the terms of use.
     /// </summary>
     /// <returns></returns>
-    public static int TermsOfUse() {
-        Console.WriteLineInterpolated(
-            $"""
-			By using this tool you agree to take full responsibility for the consequences of its use.
-
-			Usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's
-			responsibility to obey all applicable local, state and federal laws.
-			Developers assume no liability and are not responsible for any misuse or damage caused by this program.
-			"""
-        );
+    public static int TermsOfUse(ConsoleAppContext context) {
+        if (context.GlobalOptions is not GlobalOptions options) {
+            throw new InvalidCastException();
+        }
+        var model = new TermsOfServiceModel();
+        model.Output(options.Format);
         return 0;
     }
 
