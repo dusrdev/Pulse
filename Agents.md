@@ -10,15 +10,22 @@
 ### Command & Orchestration Agent
 - **Files:** `src/Pulse/Program.cs`, `src/Pulse/Core/Commands.cs`
 - Registers the command surface (`Pulse`, `get-sample`, `get-schema`, `update`, `terms-of-use`) and wires a global exception filter.
-- Adds a global `--llm` flag that toggles structured JSON output for every command by populating `GlobalOptions` with an `OutputFormat` value.
+- Adds global options:
+  - `--output-format` (PlainText|JSON) to select human-readable vs structured output for all commands.
+  - `--quiet` to silence progress reporting on stderr while still allowing fatal errors.
 - `Commands.Root` parses CLI inputs into `ParametersBase`, loads request definitions from disk via `InputJsonContext`, and triggers the execution pipeline.
 - Hosts helper commands that generate request samples and JSON Schema artifacts, print terms of use, and query GitHub releases for updates.
 
 ### Output Formatting Agent
 - **Files:** `src/Pulse/Models/IOutputFormatter.cs`, `src/Pulse/Models/GlobalOptions.cs`, `src/Pulse/Core/Helper.cs`, `src/Pulse/Models/*Model.cs`
 - `IOutputFormatter` defines paired `OutputAsPlainText` / `OutputAsJson` methods with an `Output(OutputFormat)` extension to centralize human-vs-LLM rendering.
-- `OutputFormat` (PlainText/JSON) is derived from the global `--llm` switch via `Helper.OutputFormatFromBool` and stored in `GlobalOptions` for all commands.
+- `OutputFormat` (PlainText/JSON) is provided by the global `--output-format` option and stored in `GlobalOptions` for all commands.
 - User-facing models (`RunConfiguration`, `SummaryModel`, `TermsOfServiceModel`, `CheckForUpdatesModel`, `GetSampleModel`) implement the interface so the same execution flow can emit colored console text or serialized JSON.
+
+### Quiet/Progress Agent
+- **Files:** `src/Pulse/Models/GlobalOptions.cs`, `src/Pulse/Models/Parameters.cs`, `src/Pulse/Core/PulseMonitor.cs`, `src/Pulse/Core/VerbosePulseMonitor.cs`, `src/Pulse/Core/PulseSummary.cs`, `src/Pulse/Core/GlobalExceptionHandler.cs`
+- The global `--quiet` option flows into `Parameters.Quiet` to suppress progress dashboards and per-request logs on stderr while keeping fatal/error reporting intact.
+- Progress printers in both monitors and cross-referencing logs in `PulseSummary` honor this flag; the exception handler clears progress regions only when they were rendered.
 
 ### Configuration Agent
 - **Files:** `src/Pulse/Configuration/InputJsonContext.cs`, `src/Pulse/Configuration/DefaultJsonContext.cs`, `src/Pulse/Configuration/Parameters.cs`, `src/Pulse/Core/RequestDetails.cs`
@@ -74,11 +81,11 @@
 - `VersionTests.cs` keep `Commands.VERSION` synchronized with assembly metadata.
 
 ## Data Flow Snapshot
-1. User invokes the CLI; the global `--llm` flag sets `GlobalOptions.OutputFormat`, and `Commands.Root` loads `RequestDetails` (and optional overrides) into `Parameters`.
+1. User invokes the CLI; global options set `GlobalOptions.OutputFormat` and `Quiet`, then `Commands.Root` loads `RequestDetails` (and optional overrides) into `Parameters`.
 2. `Pulse.RunAsync` creates proxy-aware HTTP plumbing, chooses a monitor (verbose or dashboard), and schedules the requested workload with semaphore-throttled concurrency.
 3. `RequestExecutionContext` issues HTTP requests, captures responses or exceptions, and records latency and concurrency metrics inside `Response`.
-4. Monitors update live console feedback and accumulate results before handing off a `PulseResult`.
-5. `PulseSummary` materializes `SummaryModel` and other `IOutputFormatter` models, printing either plaintext or JSON, then deduplicates responses and instructs `Exporter` to persist unique payloads (raw or HTML) into the configured output folder.
+4. Monitors update live console feedback (unless `Quiet`) and accumulate results before handing off a `PulseResult`.
+5. `PulseSummary` materializes `SummaryModel` and other `IOutputFormatter` models, printing either plaintext or JSON, then deduplicates responses and instructs `Exporter` to persist unique payloads (raw or HTML) into the configured output folder; summary progress lines are suppressed when `Quiet`.
 6. `GlobalExceptionHandler` guarantees graceful shutdown, while optional commands (`get-sample`, `get-schema`, `update`, `terms-of-use`) reuse serialization agents for auxiliary workflows.
 
 ## External Dependencies
