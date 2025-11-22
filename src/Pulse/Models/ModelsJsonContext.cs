@@ -22,6 +22,7 @@ internal static class JsonSerializerExtensions {
 			using var writer = new Utf8JsonWriter(Console.OpenStandardOutput());
 			JsonSerializer.Serialize(writer, value, jsonTypeInfo);
 			writer.Flush();
+			Console.WriteLine();
 		}
 	}
 }
