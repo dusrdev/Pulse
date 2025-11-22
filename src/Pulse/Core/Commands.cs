@@ -18,6 +18,7 @@ internal static class Commands {
     /// <summary>
     /// Pulse - A hyper fast general purpose HTTP request tester
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="requestFile">Path to .json request details file [use "get-sample" if you don't have one]</param>
     /// <param name="json">Try to format response content as JSON</param>
     /// <param name="raw">Export raw results [without wrapping in custom HTML]</param>
@@ -33,7 +34,7 @@ internal static class Commands {
     /// <param name="timeout">-t, Timeout in milliseconds</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public static async Task<int> Root([Argument] string requestFile,
+    public static async Task<int> Root(ConsoleAppContext context, [Argument] string requestFile,
                                         bool json,
                                         bool raw,
                                         bool fullEquality,
@@ -47,6 +48,9 @@ internal static class Commands {
                                         [Range(1, int.MaxValue)] int number = 1,
                                         int timeout = -1,
                                         CancellationToken ct = default) {
+        if (context.GlobalOptions is not GlobalOptions options) {
+            throw new InvalidCastException();
+        }
         connections ??= number;
 
         var parametersBase = new ParametersBase {
@@ -60,6 +64,7 @@ internal static class Commands {
             Export = !noExport,
             NoOp = noOp,
             Verbose = verbose,
+            OutputFormat = options.Format,
             OutputFolder = output
         };
 

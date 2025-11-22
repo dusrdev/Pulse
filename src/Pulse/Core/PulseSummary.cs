@@ -84,7 +84,7 @@ internal static class PulseSummary {
                 Max = latencySummary.Max,
             },
             LatencyOutliersRemoved = latencySummary.Removed,
-            ContentSize = new MinMeanMax {
+            ContentSizeInBytes = new MinMeanMax {
                 Min = sizeSummary.Min,
                 Mean = sizeSummary.Mean,
                 Max = sizeSummary.Max
@@ -126,7 +126,7 @@ internal static class PulseSummary {
                 Max = latency,
             },
             LatencyOutliersRemoved = 0,
-            ContentSize = new MinMeanMax {
+            ContentSizeInBytes = new MinMeanMax {
                 Min = size,
                 Mean = size,
                 Max = size

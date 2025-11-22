@@ -13,7 +13,7 @@ internal readonly struct SummaryModel : IOutputFormatter {
 	public required double SuccessRate { get; init; }
 	public required MinMeanMax LatencyInMilliseconds { get; init; }
 	public required int LatencyOutliersRemoved { get; init; }
-	public required MinMeanMax ContentSize { get; init; }
+	public required MinMeanMax ContentSizeInBytes { get; init; }
 	public required double ThroughputBytesPerSecond { get; init; }
 	public required Dictionary<HttpStatusCode, int> StatusCodeCounts { get; init; }
 
@@ -31,7 +31,7 @@ internal readonly struct SummaryModel : IOutputFormatter {
 		if (LatencyOutliersRemoved != 0) {
 			Console.WriteLineInterpolated($"               (Removed {DarkYellow}{LatencyOutliersRemoved}{ConsoleColor.Default} {(LatencyOutliersRemoved == 1 ? "outlier" : "outliers")})");
 		}
-		Console.WriteLineInterpolated($"Content Size:  Min: {Green}{ContentSize.Min:bytes}{ConsoleColor.Default}, Mean: {Yellow}{ContentSize.Mean:bytes}{ConsoleColor.Default}, Max: {Red}{ContentSize.Max:bytes}");
+		Console.WriteLineInterpolated($"Content Size:  Min: {Green}{ContentSizeInBytes.Min:bytes}{ConsoleColor.Default}, Mean: {Yellow}{ContentSizeInBytes.Mean:bytes}{ConsoleColor.Default}, Max: {Red}{ContentSizeInBytes.Max:bytes}");
 		Console.WriteLineInterpolated($"Total throughput: {Yellow}{ThroughputBytesPerSecond:bytes}/s");
 		Console.WriteLineInterpolated($"Status codes:");
 		foreach (var kvp in StatusCodeCounts.OrderBy(static s => (int)s.Key)) {
