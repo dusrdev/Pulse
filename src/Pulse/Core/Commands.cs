@@ -183,6 +183,20 @@ internal static class Commands {
         return 0;
     }
 
+    public static int GetInfo(ConsoleAppContext context) {
+        if (context.GlobalOptions is not GlobalOptions options) {
+            throw new InvalidCastException();
+        }
+        var info = new InfoModel {
+            Author = "David Shnayder",
+            Version = Version,
+            License = "MIT",
+            Repository = "https://github.com/dusrdev/Pulse"
+        };
+        info.Output(options.Format);
+        return 0;
+	}
+
     /// <summary>
     /// Prints the configuration.
     /// </summary>

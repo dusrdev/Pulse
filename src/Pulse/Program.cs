@@ -20,6 +20,7 @@ app.Add("get-sample", Commands.GetSample);
 app.Add("get-schema", Commands.GetSchema);
 app.Add("check-for-updates", Commands.CheckForUpdates);
 app.Add("terms-of-use", Commands.TermsOfUse);
+app.Add("info", Commands.GetInfo);
 
 var schemaCommand = new CliSchemaCommand(app);
 
