@@ -1,12 +1,11 @@
 using Pulse.Core;
 using Pulse.Models;
 
-namespace Pulse.Tests.Unit;
+namespace Pulse.Tests;
 
 public class PulseMonitorTests {
-    [Fact]
+    [Test]
     public async Task SendAsync_ReturnsTimeoutException_OnTimeout() {
-        // Arrange
         var requestDetails = new RequestDetails {
             Proxy = new Proxy(),
             Request = new Request {
@@ -17,9 +16,8 @@ public class PulseMonitorTests {
 
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, 50);
 
-        // Act + Assert
         var context = new IPulseMonitor.RequestExecutionContext();
         var result = await context.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
-        Assert.Equal(nameof(TimeoutException), result.Exception.Type);
+        await Assert.That(result.Exception.Type).IsEqualTo(nameof(TimeoutException));
     }
 }

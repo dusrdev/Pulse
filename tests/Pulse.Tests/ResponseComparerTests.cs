@@ -1,14 +1,11 @@
 using System.Net;
-
-using Pulse.Configuration;
 using Pulse.Models;
 
-namespace Pulse.Tests.Unit;
+namespace Pulse.Tests;
 
 public class ResponseComparerTests {
-    [Fact]
-    public void Equals_NotUsingFullEquality_ComparesByContentLength() {
-        // Arrange
+    [Test]
+    public async Task Equals_NotUsingFullEquality_ComparesByContentLength() {
         var parameters = new Parameters(new ParametersBase { UseFullEquality = false }, CancellationToken.None);
         var comparer = new ResponseComparer(parameters);
         var original = CreateResponse(1, HttpStatusCode.OK, "foo");
@@ -18,14 +15,12 @@ public class ResponseComparerTests {
             ContentLength = 3
         };
 
-        // Act + Assert
-        Assert.True(comparer.Equals(original, candidate));
-        Assert.Equal(comparer.GetHashCode(original), comparer.GetHashCode(candidate));
+        await Assert.That(comparer.Equals(original, candidate)).IsTrue();
+        await Assert.That(comparer.GetHashCode(original)).IsEqualTo(comparer.GetHashCode(candidate));
     }
 
-    [Fact]
-    public void Equals_NotUsingFullEquality_IdentifiesDifferentLengths() {
-        // Arrange
+    [Test]
+    public async Task Equals_NotUsingFullEquality_IdentifiesDifferentLengths() {
         var parameters = new Parameters(new ParametersBase { UseFullEquality = false }, CancellationToken.None);
         var comparer = new ResponseComparer(parameters);
         var original = CreateResponse(1, HttpStatusCode.OK, "foo");
@@ -35,8 +30,7 @@ public class ResponseComparerTests {
             ContentLength = 6
         };
 
-        // Act + Assert
-        Assert.False(comparer.Equals(original, different));
+        await Assert.That(comparer.Equals(original, different)).IsFalse();
     }
 
     private static Response CreateResponse(int id, HttpStatusCode statusCode, string content) {
