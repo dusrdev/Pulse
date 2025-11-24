@@ -34,7 +34,7 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="ConsoleAppFramework.CliSchema" Version="5.7.11" />
-        <PackageReference Include="PrettyConsole" Version="5.0.0" />
+        <PackageReference Include="PrettyConsole" Version="5.1.0" />
     </ItemGroup>
 
     <ItemGroup>
