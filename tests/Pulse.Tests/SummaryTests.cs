@@ -44,7 +44,8 @@ public class SummaryTests {
         var outputFolderName = $"pulse-summary-tests-{Guid.NewGuid():N}";
         var parameters = new Parameters(new ParametersBase {
             Export = true,
-            OutputFolder = outputFolderName
+            OutputFolder = outputFolderName,
+            Quiet = true
         }, CancellationToken.None);
         var exportDirectory = Path.Join(Directory.GetCurrentDirectory(), outputFolderName);
         var requestDetails = new RequestDetails {
