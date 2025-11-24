@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
 
 env:
-  test-project: tests/Pulse.Tests/Pulse.Tests.csproj
-  test-artifacts: tests/Pulse.Tests/artifacts
+  TEST_PROJECT: tests/Pulse.Tests/Pulse.Tests.csproj
+  TEST_ARTIFACTS: tests/Pulse.Tests/artifacts
 
 jobs:
   unit-tests:
@@ -28,11 +28,11 @@ jobs:
 
       - name: Publish native AOT test runner
         run: |
-          dotnet publish ${{ test-project }} -c Release -o "${{ test-artifacts }}"
+          dotnet publish ${{ env.TEST_PROJECT }} -c Release -o "${{ env.TEST_ARTIFACTS }}"
 
       - name: Run published tests
         shell: bash
         run: |
-          exe="${{ test-artifacts }}/"
+          exe="${{ env.TEST_ARTIFACTS }}/"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then exe="$exe.exe"; fi
           "$exe"
