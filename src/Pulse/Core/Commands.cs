@@ -122,7 +122,7 @@ internal static class Commands {
                 UpdateRequired = currentVersion < remoteVersion
             };
 
-            outputModel.Output(options.Format);
+            outputModel.Print(options.Format);
             return 0;
         }
 
@@ -139,7 +139,7 @@ internal static class Commands {
             throw new InvalidCastException();
         }
         var model = new TermsOfServiceModel();
-        model.Output(options.Format);
+        model.Print(options.Format);
         return 0;
     }
 
@@ -179,10 +179,16 @@ internal static class Commands {
         var output = new GetSampleModel {
             Path = path
         };
-        output.Output(options.Format);
+        output.Print(options.Format);
         return 0;
     }
 
+    /// <summary>
+	/// Displays information about this app.
+	/// </summary>
+	/// <param name="context"></param>
+	/// <returns></returns>
+	/// <exception cref="InvalidCastException"></exception>
     public static int GetInfo(ConsoleAppContext context) {
         if (context.GlobalOptions is not GlobalOptions options) {
             throw new InvalidCastException();
@@ -193,9 +199,9 @@ internal static class Commands {
             License = "MIT",
             Repository = "https://github.com/dusrdev/Pulse"
         };
-        info.Output(options.Format);
+        info.Print(options.Format);
         return 0;
-	}
+    }
 
     /// <summary>
     /// Prints the configuration.
@@ -208,6 +214,6 @@ internal static class Commands {
             RequestDetails = requestDetails
         };
 
-        configuration.Output(parameters.OutputFormat);
+        configuration.Print(parameters.OutputFormat);
     }
 }

@@ -97,7 +97,7 @@ internal static class PulseSummary {
             StatusCodeCounts = statusCounter
         };
 
-        output.Output(parameters.OutputFormat);
+        output.Print(parameters.OutputFormat);
 
         if (parameters.Export) {
             await ExportUniqueRequestsAsync(parameters, uniqueRequests).ConfigureAwait(false);
@@ -141,7 +141,7 @@ internal static class PulseSummary {
             }
         };
 
-        output.Output(parameters.OutputFormat);
+        output.Print(parameters.OutputFormat);
 
         if (parameters.Export) {
             var uniqueRequests = new HashSet<Response>(1) { result };

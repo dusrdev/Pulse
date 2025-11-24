@@ -25,13 +25,13 @@ internal sealed class GlobalExceptionHandler(ConsoleAppFilter next) : ConsoleApp
             if (reportsProgress) {
                 ClearFrom(startLine);
             }
-            new StrippedException(nameof(OperationCanceledException), "").Output(options.Format);
+            new StrippedException(nameof(OperationCanceledException), "").Print(options.Format);
             Environment.ExitCode = 1;
         } catch (Exception e) {
             if (reportsProgress) {
                 ClearFrom(startLine);
             }
-            StrippedException.FromException(e).Output(options.Format);
+            StrippedException.FromException(e).Print(options.Format);
             Environment.ExitCode = 1;
         }
 

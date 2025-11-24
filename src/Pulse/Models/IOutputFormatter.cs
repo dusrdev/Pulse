@@ -12,7 +12,7 @@ internal enum OutputFormat {
 }
 
 internal static class OutputFormatterExtensions {
-    internal static void Output(this IOutputFormatter value, OutputFormat format) {
+    internal static void Print(this IOutputFormatter value, OutputFormat format) {
         switch (format) {
             case OutputFormat.PlainText:
                 value.OutputAsPlainText();
