@@ -6,7 +6,8 @@ on:
 
 env:
   TEST_PROJECT: tests/Pulse.Tests/Pulse.Tests.csproj
-  TEST_ARTIFACTS: tests/Pulse.Tests/artifacts
+  TEST_ARTIFACTS: tests/Pulse.Tests/artifacts/
+  TEST_RUNNER: tests/Pulse.Tests/artifacts/Pulse.Tests
 
 jobs:
   unit-tests:
@@ -33,6 +34,6 @@ jobs:
       - name: Run published tests
         shell: bash
         run: |
-          exe="${{ env.TEST_ARTIFACTS }}/"
+          exe="${{ env.TEST_RUNNER }}"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then exe="$exe.exe"; fi
           "$exe"
