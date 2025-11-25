@@ -10,7 +10,7 @@ var app = ConsoleApp.Create();
 app.UseFilter<GlobalExceptionHandler>();
 
 app.ConfigureGlobalOptions((ref builder) => {
-    var format = builder.AddGlobalOption("--output-format", description: "Output as PlainText|JSON", defaultValue: OutputFormat.PlainText);
+    var format = builder.AddGlobalOption("--output-format", description: "Select output format", defaultValue: OutputFormat.PlainText);
     var quiet = builder.AddGlobalOption("--quiet", description: "Suppress progress output on stderr (only fatal errors will be shown).", defaultValue: false);
     return new GlobalOptions(format, quiet);
 });

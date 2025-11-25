@@ -19,10 +19,10 @@ internal static class Commands {
     /// Pulse - A hyper fast general purpose HTTP request tester
     /// </summary>
     /// <param name="context"></param>
-    /// <param name="requestFile">Path to .json request details file [use "get-sample" if you don't have one]</param>
+    /// <param name="requestFile">Path to .json request details file (use "get-sample" if you don't have one)</param>
     /// <param name="json">Try to format response content as JSON</param>
-    /// <param name="raw">Export raw results [without wrapping in custom HTML]</param>
-    /// <param name="fullEquality">-f, Use full equality [slower]</param>
+    /// <param name="raw">Export raw results (without wrapping in custom HTML)</param>
+    /// <param name="fullEquality">-f, Use full equality (slower)</param>
     /// <param name="noExport">Don't export results</param>
     /// <param name="verbose">-v, Display verbose output</param>
     /// <param name="noOp">Print selected configuration but don't run</param>
@@ -146,7 +146,7 @@ internal static class Commands {
     /// <summary>
     /// Generate a json schema for a request file.
     /// </summary>
-    /// <param name="directory">-d, Configures in which directory [will default to current]</param>
+    /// <param name="directory">-d, Configures in which directory (will default to current)</param>
     /// <param name="ct"></param>
     /// <returns></returns>
     public static async Task<int> GetSchema(string? directory = null, CancellationToken ct = default) {
@@ -165,7 +165,7 @@ internal static class Commands {
     /// Generate sample request file.
     /// </summary>
     /// <param name="context"></param>
-    /// <param name="directory">-d, Configures in which directory [will default to current]</param>
+    /// <param name="directory">-d, Configures in which directory (will default to current)</param>
     /// <param name="ct"></param>
     /// <returns></returns>
     public static async Task<int> GetSample(ConsoleAppContext context, string? directory = null, CancellationToken ct = default) {
