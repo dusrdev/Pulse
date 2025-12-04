@@ -1,7 +1,6 @@
 using System.Net;
 using System.Numerics;
 
-using Pulse.Configuration;
 using Pulse.Models;
 
 namespace Pulse.Core;
