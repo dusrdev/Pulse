@@ -16,7 +16,7 @@ internal static class Pulse {
 
         var cancellationToken = parameters.CancellationToken;
 
-        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
+        var monitor = new PulseMonitor(httpClient, requestDetails.Request, parameters);
 
         // If connections is not modified it will be set to the number of requests
         // so that all requests are sent in parallel by default.

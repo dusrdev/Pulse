@@ -24,7 +24,6 @@ internal static class Commands {
     /// <param name="raw">Export raw results (without wrapping in custom HTML)</param>
     /// <param name="fullEquality">-f, Use full equality (slower)</param>
     /// <param name="noExport">Don't export results</param>
-    /// <param name="verbose">-v, Display verbose output</param>
     /// <param name="noOp">Print selected configuration but don't run</param>
     /// <param name="output">-o, Output folder</param>
     /// <param name="delay">-d, Delay in milliseconds between requests</param>
@@ -39,7 +38,6 @@ internal static class Commands {
                                         bool raw,
                                         bool fullEquality,
                                         bool noExport,
-                                        bool verbose,
                                         bool noOp,
                                         string output = "results",
                                         int delay = -1,
@@ -63,7 +61,6 @@ internal static class Commands {
             UseFullEquality = fullEquality,
             Export = !noExport,
             NoOp = noOp,
-            Verbose = verbose,
             OutputFormat = options.Format,
             Quiet = options.Quiet,
             OutputFolder = output

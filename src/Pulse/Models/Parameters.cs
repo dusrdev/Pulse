@@ -50,11 +50,6 @@ internal record ParametersBase {
     public bool NoOp { get; init; }
 
     /// <summary>
-    /// Display verbose output (adds more metrics).
-    /// </summary>
-    public bool Verbose { get; init; }
-
-    /// <summary>
 	/// The output format to use.
 	/// </summary>
     public OutputFormat OutputFormat { get; init; }

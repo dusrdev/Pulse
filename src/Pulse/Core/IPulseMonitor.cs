@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 
-using Pulse.Configuration;
 using Pulse.Models;
 
 namespace Pulse.Core;
@@ -11,19 +10,6 @@ namespace Pulse.Core;
 /// IPulseMonitor defines the traits for the wrappers that handles display of metrics and cross-thread data collection
 /// </summary>
 internal interface IPulseMonitor {
-    /// <summary>
-    /// Creates a new pulse monitor according the verbosity setting
-    /// </summary>
-    /// <param name="client"></param>
-    /// <param name="requestRecipe"></param>
-    /// <param name="parameters"></param>
-    public static IPulseMonitor Create(HttpClient client, Request requestRecipe, Parameters parameters) {
-        if (parameters.Verbose || parameters.Requests == 1) {
-            return new VerbosePulseMonitor(client, requestRecipe, parameters);
-        }
-        return new PulseMonitor(client, requestRecipe, parameters);
-    }
-
     /// <summary>
     /// Observe needs to be used instead of the execution delegate
     /// </summary>
