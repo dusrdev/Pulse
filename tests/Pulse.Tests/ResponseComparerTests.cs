@@ -1,4 +1,5 @@
 using System.Net;
+
 using Pulse.Models;
 
 namespace Pulse.Tests;

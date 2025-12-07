@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+
 using Pulse.Core;
 using Pulse.Models;
 
@@ -28,13 +29,13 @@ public class SummaryTests {
     }
 
     public static IEnumerable<Func<(double[] values, bool removeOutliers, double expectedMin, double expectedMax, double expectedAvg, int expectedRemoved)>> GetSummaryTestData() {
-        yield return () => (new[] {42d}, false, 42d, 42d, 42d, 0);
-        yield return () => (new[] {10d, 20d}, false, 10d, 20d, 15d, 0);
-        yield return () => (new[] {1d, 2d, 3d, 4d, 5d}, false, 1d, 5d, 3d, 0);
-        yield return () => (new[] {1d, 2d, 3d, 4d, 100d}, true, 1d, 4d, 2.5d, 1);
-        yield return () => (new[] {5d, 5d, 5d, 5d}, false, 5d, 5d, 5d, 0);
-        yield return () => (new[] {5d, 5d, 5d, 5d}, true, 5d, 5d, 5d, 2);
-        yield return () => (new[] {-10d, 0d, 1d, 2d, 3d, 100d}, true, 0d, 3d, 1.5d, 2);
+        yield return () => (new[] { 42d }, false, 42d, 42d, 42d, 0);
+        yield return () => (new[] { 10d, 20d }, false, 10d, 20d, 15d, 0);
+        yield return () => (new[] { 1d, 2d, 3d, 4d, 5d }, false, 1d, 5d, 3d, 0);
+        yield return () => (new[] { 1d, 2d, 3d, 4d, 100d }, true, 1d, 4d, 2.5d, 1);
+        yield return () => (new[] { 5d, 5d, 5d, 5d }, false, 5d, 5d, 5d, 0);
+        yield return () => (new[] { 5d, 5d, 5d, 5d }, true, 5d, 5d, 5d, 2);
+        yield return () => (new[] { -10d, 0d, 1d, 2d, 3d, 100d }, true, 0d, 3d, 1.5d, 2);
         yield return () => (Enumerable.Range(1, 1000).Select(x => (double)x).ToArray(), true, 1d, 1000d, 500.5d, 0);
         yield return () => (Enumerable.Range(1, 1000).Select(x => (double)x).Union([-1000d, 2000d]).ToArray(), true, 1d, 1000d, 500.5d, 2);
     }
