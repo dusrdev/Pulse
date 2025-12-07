@@ -67,6 +67,10 @@ internal static class Commands {
         };
 
         var requestFilePath = Path.GetFullPath(requestFile);
+        if (!File.Exists(requestFilePath)) {
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Request file does not exist at {Markup.Underline}{Yellow}{requestFilePath}{Markup.ResetUnderline}");
+            return 1;
+        }
 
         if (!InputJsonContext.TryGetRequestDetailsFromFile(requestFilePath, out RequestDetails requestDetails)) {
             Console.WriteLineInterpolated(OutputPipe.Error, $"Failed to retrieve and parse request file from {Markup.Underline}{Yellow}{requestFilePath}{Markup.ResetUnderline}");

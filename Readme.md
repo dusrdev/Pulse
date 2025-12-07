@@ -15,6 +15,7 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 - Format JSON outputs
 - Captures all response headers for debugging
 - Quiet mode to silence progress noise when piping or scripting
+- Reports peak concurrent connections and throughput in the summary output
 
 And more!
 
@@ -38,7 +39,7 @@ During the execution, `Pulse` displays current metrics such as progress, success
 
 ![Running](assets/pulse-running.png)
 
-After the execution (different configuration in this example), `Pulse` produces a detailed summary of the results
+After the execution (different configuration in this example), `Pulse` produces a detailed summary of the results, including the peak concurrent connections reached and overall throughput.
 
 ![Summary](assets/pulse-summary.png)
 
@@ -114,29 +115,29 @@ Usage: [command] [arguments...] [options...] [-h|--help] [--version]
 Pulse - A hyper fast general purpose HTTP request tester
 
 Arguments:
-  [0] <string>    Path to .json request details file [use "get-sample" if you don't have one]
+  [0] <string>    Path to .json request details file (use "get-sample" if you don't have one)
 
 Options:
-  --json                      Try to format response content as JSON (Optional)
-  --raw                       Export raw results [without wrapping in custom HTML] (Optional)
-  --output-format <enum>      Output as PlainText|JSON (Default: PlainText)
-  --quiet                     Suppress progress output on stderr (only fatal errors will be shown) (Default: False)
-  -f, --full-equality         Use full equality [slower] (Optional)
-  --no-export                 Don't export results (Optional)
-  -v, --verbose               Display verbose output (Optional)
-  --no-op                     Print selected configuration but don't run (Optional)
-  -o, --output <string>       Output folder (Default: @"results")
-  -d, --delay <int>           Delay in milliseconds between requests (Default: -1)
-  -c, --connections <int?>    Maximum number of parallel requests (Default: null)
-  -u, --url <string?>         Override the url of the request (Default: null)
-  -n, --number <int>          Number of total requests (Default: 1)
-  -t, --timeout <int>         Timeout in milliseconds (Default: -1)
+  --json                            Try to format response content as JSON
+  --raw                             Export raw results (without wrapping in custom HTML)
+  -f, --full-equality               Use full equality (slower)
+  --no-export                       Don't export results
+  --no-op                           Print selected configuration but don't run
+  -o, --output <string>             Output folder [Default: @"results"]
+  -d, --delay <int>                 Delay in milliseconds between requests [Default: -1]
+  -c, --connections <int?>          Maximum number of parallel requests [Default: null]
+  -u, --url <string?>               Override the url of the request [Default: null]
+  -n, --number <int>                Number of total requests [Default: 1]
+  -t, --timeout <int>               Timeout in milliseconds [Default: -1]
+  --output-format <OutputFormat>    Select output format [Default: PlainText]
+  --quiet                           Suppress progress output on stderr (only fatal errors will be shown).
 
 Commands:
   check-for-updates    Checks whether there is a new version out on GitHub releases.
   cli-schema           Returns the usage schema for the app in JSON format.
   get-sample           Generate sample request file.
   get-schema           Generate a json schema for a request file.
+  info                 Displays information about this app.
   terms-of-use         Print the terms of use.
 ```
 
@@ -145,9 +146,8 @@ Commands:
 - `--output-format PlainText|JSON` (global) - choose human-readable console output or structured JSON for automation/LLMs.
 - `--quiet` (global) - suppress progress updates on stderr; only fatal errors remain. Useful when piping to `jq` or when stderr/stdout are merged.
 - `-f|--full-equality` - enforce full response equality checks instead of length-based comparisons.
-- `-v|--verbose` - display per-request logging instead of the dashboard UI.
 - `--no-op` - print the parsed configuration without running any requests.
-- `-c|--connections` - cap parallel requests; set to `1` for sequential execution or leave unset to match the total request count.
+- `-c|--connections` - cap parallel requests; set to `1` for sequential execution. When omitted, it defaults to the request count (`--number`).
 - `-d|--delay` - add a delay (ms) after each request completes; useful when `--connections` is `1`.
 - `-u|--url` - override the request URL while keeping the rest of the configuration unchanged.
 - `-o|--output` - choose a custom output directory (defaults to `results`).

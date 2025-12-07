@@ -26,11 +26,6 @@ internal partial class InputJsonContext : JsonSerializerContext {
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetRequestDetailsFromFile(string path, out RequestDetails details) {
-        if (!File.Exists(path)) {
-            details = null!;
-            return false;
-        }
-
         var json = File.ReadAllText(path);
         var rd = JsonSerializer.Deserialize(json, Default.RequestDetails);
 
