@@ -1,133 +1,246 @@
-using Pulse.Configuration;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Channels;
+
+using Pulse.Models;
 
 namespace Pulse.Core;
 
 /// <summary>
-/// Pulse runner
+/// PulseMonitor wraps the execution delegate and handles display of metrics and cross-thread data collection
 /// </summary>
-public static class Pulse {
+internal sealed partial class Pulse {
     /// <summary>
-    /// Runs the pulse according the specification requested in <paramref name="parameters"/>
+    /// Holds the results of all the requests
     /// </summary>
-    /// <param name="parameters"></param>
-    /// <param name="requestDetails"></param>
-    public static Task RunAsync(Parameters parameters, RequestDetails requestDetails) {
-        if (parameters.Requests is 1 || parameters.ExecutionMode is ExecutionMode.Sequential) {
-            return RunSequential(parameters, requestDetails);
-        }
-
-        return parameters.MaxConnectionsModified
-            ? RunBounded(parameters, requestDetails)
-            : RunUnbounded(parameters, requestDetails);
-    }
+    private readonly ConcurrentStack<Response> _results;
 
     /// <summary>
-    /// Runs the pulse sequentially
+    /// Timestamp of the beginning of monitoring
     /// </summary>
-    /// <param name="parameters"></param>
-    /// <param name="requestDetails"></param>
-    internal static async Task RunSequential(Parameters parameters, RequestDetails requestDetails) {
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
-
-        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
-
-        for (int i = 1; i <= parameters.Requests; i++) {
-            await Task.Delay(parameters.DelayInMs);
-            await monitor.SendAsync(i);
-        }
-
-        var result = monitor.Consolidate();
-
-        var summary = new PulseSummary {
-            Result = result,
-            Parameters = parameters,
-            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
-        };
-
-        var (exportRequired, uniqueRequests) = summary.Summarize();
-
-        if (exportRequired) {
-            await summary.ExportUniqueRequestsAsync(uniqueRequests, parameters.CancellationToken);
-        }
-    }
+    private readonly long _start;
 
     /// <summary>
-    /// Runs the pulse in parallel batches
+    /// Current number of responses received
     /// </summary>
-    /// <param name="parameters"></param>
-    /// <param name="requestDetails"></param>
-    internal static async Task RunBounded(Parameters parameters, RequestDetails requestDetails) {
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
+    private PaddedULong _responses;
 
-        var cancellationToken = parameters.CancellationToken;
+    // response status code counter
+    // 0: exception
+    // 1: 1xx
+    // 2: 2xx
+    // 3: 3xx
+    // 4: 4xx
+    // 5: 5xx
+    private readonly PaddedULong[] _stats = new PaddedULong[6];
+    private readonly ulong _requestCount;
+    private readonly bool _saveContent;
+    private readonly CancellationToken _cancellationToken;
+    private readonly HttpClient _httpClient;
+    private readonly Request _requestRecipe;
+    private readonly Task _printer;
+    private readonly bool _reportProgress;
+    private readonly Channel<Stats> _channel;
+    private volatile int _spinnerIndex;
 
-        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
+    /// <summary>
+    /// Creates a new pulse monitor
+    /// </summary>
+    internal Pulse(HttpClient client, Request requestRecipe, Parameters parameters) {
+        _results = new ConcurrentStack<Response>();
+        _requestCount = (ulong)parameters.Requests;
+        _saveContent = parameters.Export;
+        _cancellationToken = parameters.CancellationToken;
+        _httpClient = client;
+        _requestRecipe = requestRecipe;
+        _reportProgress = !parameters.Quiet;
+        _start = Stopwatch.GetTimestamp();
 
-        using var semaphore = new SemaphoreSlim(parameters.MaxConnections);
-
-        var tasks = new Task[parameters.Requests];
-
-        for (int i = 0; i < parameters.Requests; i++) {
-            await semaphore.WaitAsync(cancellationToken);
-
-#pragma warning disable IDE0053 // Use expression body for lambda expression
-            // lambda expression will change return type
-            tasks[i] = monitor.SendAsync(i + 1).ContinueWith(_ => {
-                semaphore.Release();
+        if (_reportProgress) {
+            _channel = Channel.CreateBounded<Stats>(new BoundedChannelOptions(1) {
+                SingleWriter = false,
+                SingleReader = true,
+                FullMode = BoundedChannelFullMode.DropWrite
             });
-#pragma warning restore IDE0053 // Use expression body for lambda expression
 
-        }
+            _ = _channel.Writer.TryWrite(new Stats {
+                Percentage = 0,
+                CurrentCount = _responses,
+                SuccessRate = 0,
+                Eta = TimeSpan.MaxValue,
+                RequestCount = _requestCount,
+                StatusCodes = _stats,
+                SpinnerIndex = _spinnerIndex
+            });
 
-        await Task.WhenAll(tasks.AsSpan()).WaitAsync(cancellationToken).ConfigureAwait(false);
+            Console.CursorVisible = false;
+            ConsoleState.ReportLinesFromCurrent(3);
 
-        var result = monitor.Consolidate();
+            _printer = Task.Run(async () => {
+                await foreach (var stats in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false)) {
+                    PrintMetrics(stats);
+                }
+            });
+        } else {
+            _channel = null!;
 
-        var summary = new PulseSummary {
-            Result = result,
-            Parameters = parameters,
-            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
-        };
-
-        var (exportRequired, uniqueRequests) = summary.Summarize();
-
-        if (exportRequired) {
-            await summary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
+            _printer = Task.CompletedTask;
         }
     }
 
-    /// <summary>
-    /// Runs the pulse in parallel without any batching
-    /// </summary>
-    /// <param name="parameters"></param>
-    /// <param name="requestDetails"></param>
-    internal static async Task RunUnbounded(Parameters parameters, RequestDetails requestDetails) {
-        using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, parameters.TimeoutInMs);
+    /// <inheritdoc />
+    public async Task SendAsync(int requestId) {
+        var result = await SendRequest(requestId, _requestRecipe, _httpClient, _saveContent, _cancellationToken).ConfigureAwait(false);
+        Interlocked.Increment(ref _responses.Value);
+        // Increment stats
 
-        var cancellationToken = parameters.CancellationToken;
+        int index = (int)result.StatusCode / 100;
+        ref var bucket = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_stats), index);
+        Interlocked.Increment(ref bucket.Value);
+        // Print metrics
 
-        var monitor = IPulseMonitor.Create(httpClient, requestDetails.Request, parameters);
-
-        var tasks = new Task[parameters.Requests];
-
-        for (int i = 0; i < parameters.Requests; i++) {
-            tasks[i] = monitor.SendAsync(i + 1);
+        if (_reportProgress) {
+            await PushMetricsAsync().ConfigureAwait(false);
         }
+        _results.Push(result);
+    }
 
-        await Task.WhenAll(tasks.AsSpan()).WaitAsync(cancellationToken).ConfigureAwait(false);
+    /// <summary>
+    /// Handles printing the current metrics, has to be synchronized to prevent cross writing to the console, which produces corrupted output.
+    /// </summary>
+    private async ValueTask PushMetricsAsync() {
+        var percentage = Helper.Percentage<double>(_responses.Value, _requestCount);
+        var eta = Helper.GetEta(percentage, Stopwatch.GetElapsedTime(_start));
+        double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2, MidpointRounding.AwayFromZero);
+        Interlocked.Exchange(ref _spinnerIndex, (_spinnerIndex + 1) % IndeterminateProgressBar.Patterns.Braille.Count);
 
-        var result = monitor.Consolidate();
-
-        var summary = new PulseSummary {
-            Result = result,
-            Parameters = parameters,
-            RequestSizeInBytes = requestDetails.Request.GetRequestLength()
+        var stats = new Stats {
+            Percentage = 100 * percentage,
+            CurrentCount = _responses,
+            RequestCount = _requestCount,
+            StatusCodes = _stats,
+            Eta = eta,
+            SuccessRate = sr,
+            SpinnerIndex = _spinnerIndex
         };
 
-        var (exportRequired, uniqueRequests) = summary.Summarize();
+        await _channel.Writer.WriteAsync(stats, _cancellationToken).ConfigureAwait(false);
+    }
 
-        if (exportRequired) {
-            await summary.ExportUniqueRequestsAsync(uniqueRequests, cancellationToken);
+    private static void PrintMetrics(Stats stats) {
+        Console.Overwrite(stats, static s => {
+            var spinner = IndeterminateProgressBar.Patterns.Braille;
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Magenta}{spinner[s.SpinnerIndex]}{ConsoleColor.DefaultForeground} Completed: {Cyan}{s.Percentage,6:#.##}%{ConsoleColor.DefaultForeground}, Requests: {Yellow}{s.CurrentCount.Value}{ConsoleColor.DefaultForeground}/{Yellow}{s.RequestCount}{ConsoleColor.DefaultForeground}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.DefaultForeground}%, Estimated time remaining: {Yellow}{s.Eta:duration}");
+            Console.WriteInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.DefaultForeground}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.DefaultForeground}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.DefaultForeground}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.DefaultForeground}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.DefaultForeground}, others: {Magenta}{s.StatusCodes[0].Value}");
+        }, 3);
+    }
+
+    private PaddedULong _currentConcurrentConnections;
+
+    /// <summary>
+    /// Sends a request.
+    /// </summary>
+    /// <param name="id">The request identifier.</param>
+    /// <param name="requestRecipe">The recipe used to build the request message.</param>
+    /// <param name="httpClient">Configured <see cref="HttpClient"/> instance.</param>
+    /// <param name="saveContent">Whether response content should be persisted.</param>
+    /// <param name="cancellationToken">Cancellation token for the i/o operation.</param>
+    /// <returns>A <see cref="Response"/> describing the outcome.</returns>
+    public async Task<Response> SendRequest(int id, Request requestRecipe, HttpClient httpClient, bool saveContent, CancellationToken cancellationToken) {
+        HttpStatusCode statusCode = 0;
+        string content = string.Empty;
+        long contentLength = 0;
+        int currentConcurrencyLevel = 0;
+        StrippedException exception = StrippedException.Default;
+        var headers = Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
+        using var message = requestRecipe.CreateMessage();
+        long start = Stopwatch.GetTimestamp();
+        HttpResponseMessage? response = null;
+        try {
+            currentConcurrencyLevel = (int)Interlocked.Increment(ref _currentConcurrentConnections.Value);
+            response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+        } catch (TimeoutException ex) {
+            exception = StrippedException.FromException(ex);
+        } catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested && ex.InnerException is TimeoutException timeoutEx) {
+            exception = StrippedException.FromException(timeoutEx);
+        } finally {
+            Interlocked.Decrement(ref _currentConcurrentConnections.Value);
         }
+        TimeSpan elapsed = Stopwatch.GetElapsedTime(start);
+        if (!exception.IsDefault) {
+            return new Response {
+                Id = id,
+                StatusCode = statusCode,
+                Headers = headers,
+                Content = content,
+                ContentLength = contentLength,
+                Latency = elapsed,
+                Exception = exception,
+                CurrentConcurrentConnections = currentConcurrencyLevel
+            };
+        }
+
+        try {
+            var r = response!;
+            statusCode = r.StatusCode;
+            headers = r.Headers;
+            var length = r.Content.Headers.ContentLength;
+            if (length.HasValue) {
+                contentLength = length.Value;
+            }
+            if (saveContent) {
+                content = await r.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (contentLength == 0) {
+                    var charSet = r.Content.Headers.ContentType?.CharSet;
+                    var encoding = charSet is null
+                        ? Encoding.UTF8
+                        : Encoding.GetEncoding(charSet.Trim('"'));
+                    contentLength = encoding.GetByteCount(content.AsSpan());
+                }
+            }
+        } finally {
+            response?.Dispose();
+        }
+        return new Response {
+            Id = id,
+            StatusCode = statusCode,
+            Headers = headers,
+            Content = content,
+            ContentLength = contentLength,
+            Latency = elapsed,
+            Exception = exception,
+            CurrentConcurrentConnections = currentConcurrencyLevel
+        };
+    }
+
+    private readonly struct Stats {
+        public required PaddedULong CurrentCount { get; init; }
+        public required PaddedULong[] StatusCodes { get; init; }
+        public required double Percentage { get; init; }
+        public required TimeSpan Eta { get; init; }
+        public required double SuccessRate { get; init; }
+        public required ulong RequestCount { get; init; }
+        public required int SpinnerIndex { get; init; }
+    }
+
+    /// <inheritdoc />
+    public async Task<PulseResult> ClearAndReturnAsync() {
+        if (_reportProgress) {
+            // Clear after metrics
+            _channel.Writer.Complete();
+            await _printer.ConfigureAwait(false);
+            Console.ClearNextLines(3);
+            Console.CursorVisible = true;
+        }
+
+        return new PulseResult {
+            Results = _results,
+            SuccessRate = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2),
+            TotalDuration = Stopwatch.GetElapsedTime(_start)
+        };
     }
 }

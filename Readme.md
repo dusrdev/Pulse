@@ -5,14 +5,17 @@ Pulse is a general purpose, cross-platform, performance-oriented, command-line u
 ## Features
 
 - JSON based request configuration
-- Support for using proxies
-- True multi-threading with configurable modes (max concurrency, batches, sequential)
+- Proxy support
+- Configurable concurrency via max connection limits and optional per-request delays
 - Supports all HTTP methods
 - Supports Headers
 - Support Content-Type and Body for POST, PUT, PATCH, and DELETE
 - Custom HTML generated outputs for easy inspection
+- Structured output toggle (PlainText or JSON) for terminals, scripts, and LLMs
 - Format JSON outputs
-- Capture all response headers for debugging
+- Captures all response headers for debugging
+- Quiet mode to silence progress noise when piping or scripting
+- Reports peak concurrent connections and throughput in the summary output
 
 And more!
 
@@ -34,17 +37,17 @@ Pulse configuration.json
 
 During the execution, `Pulse` displays current metrics such as progress, success rate, ETA, and counts of responses from each of the 6 categories, i.e, 1xx, 2xx, 3xx, 4xx, 5xx, others. where `others` is essentially exceptions.
 
-![Runtime metrics](https://github.com/user-attachments/assets/64f48192-f60e-4021-9df3-558af21c1bbd)
+![Running](assets/pulse-running.png)
 
-After the execution (different configuration in this example), `Pulse` produces a detailed summary of the results
+After the execution (different configuration in this example), `Pulse` produces a detailed summary of the results, including the peak concurrent connections reached and overall throughput.
 
-![Summary](https://github.com/user-attachments/assets/9a05ff6e-8d3d-46af-8509-013b5b1536a0)
+![Summary](assets/pulse-summary.png)
 
 ### Setting up a configuration file
 
 The configuration file is a JSON file that contains proxy information and the request details.
 
-It is recommended to use the build in `get-sample` command to generate a sample configuration file.
+It is recommended to use the built-in `get-sample` command to generate a sample configuration file.
 
 ```bash
 Pulse get-sample
@@ -107,44 +110,48 @@ Content contains the configuration for the request content. Which is only used f
 Pulse has a wide range of options that can be configured in the command line, and can be viewed with `help` or `--help` which shows this:
 
 ```plaintext
-Pulse [RequestFile] [Options]
+Usage: [command] [arguments...] [options...] [-h|--help] [--version]
 
-RequestFile:
-  path to .json request details file
-  - If you don't have one use the "get-sample" command
+Pulse - A hyper fast general purpose HTTP request tester
+
+Arguments:
+  [0] <string>    Path to .json request details file (use "get-sample" if you don't have one)
+
 Options:
-  -n, --number     : number of total requests (default: 1)
-  -t, --timeout    : timeout in milliseconds (default: -1 - infinity)
-  -m, --mode       : execution mode (default: parallel)
-      * sequential = execute requests sequentially
-        --delay    : delay between requests in milliseconds (default: 0)
-      * parallel  = execute requests using maximum resources
-        -c         : max concurrent connections (default: infinity)
-  --json           : try to format response content as JSON
-  --raw            : export raw results (without wrapping in custom html)
-  -f               : use full equality (slower - default: false)
-  --no-export      : don't export results (default: false)
-  -v, --verbose    : display verbose output (default: false)
-  -o, --output     : output folder (default: results)
-Special:
-  get-sample       : command - generates sample file
-  get-schema       : command - generates a json schema file
-  check-for-updates: command - checks for updates
-  terms-of-use     : print the terms of use
-  --noop           : print selected configuration but don't run
-  -u, --url        : override the url of the request
-  -h, --help       : print this help text
-Notes:
-  * when "-n" is 1, verbose output is enabled
+  --json                            Try to format response content as JSON
+  --raw                             Export raw results (without wrapping in custom HTML)
+  -f, --full-equality               Use full equality (slower)
+  --no-export                       Don't export results
+  --no-op                           Print selected configuration but don't run
+  -o, --output <string>             Output folder [Default: @"results"]
+  -d, --delay <int>                 Delay in milliseconds between requests [Default: -1]
+  -c, --connections <int?>          Maximum number of parallel requests [Default: null]
+  -u, --url <string?>               Override the url of the request [Default: null]
+  -n, --number <int>                Number of total requests [Default: 1]
+  -t, --timeout <int>               Timeout in milliseconds [Default: -1]
+  --output-format <OutputFormat>    Select output format [Default: PlainText]
+  --quiet                           Suppress progress output on stderr (only fatal errors will be shown).
+
+Commands:
+  check-for-updates    Checks whether there is a new version out on GitHub releases.
+  cli-schema           Returns the usage schema for the app in JSON format.
+  get-sample           Generate sample request file.
+  get-schema           Generate a json schema for a request file.
+  info                 Displays information about this app.
+  terms-of-use         Print the terms of use.
 ```
 
-- `--json` - try to format response content as JSON
-- `--raw` - export raw results (without wrapping in custom html)
-- `-v` or `--verbose` - display verbose output, this changes the output format, instead of displaying a dashboard, it prints requests/responses as they are being processed.
-- `f` - use fully equality: by default because response content can be entire webpages, it can be a time consuming and resource heavy operation to make sure all responses are unique, so by default a simpler check is used which only compares the content length - for most cases this is sufficient since you usually expect the same content for the requests, but you can opt in for full equality.
-- `u` or `url` - can be used to override the url of the request, this can be useful if you want to keep all other settings the same, and quickly change the url of the request.
-- `noop` - is a very useful command which will print the selected configuration but not perform the pulse, this can be used to inspect the request settings after they are parsed by the program, to ensure everything is exactly as you intended.
-- `o` or `output` - can be used to specify the output folder, by default it is "results", but you can specify a different folder if you want to.
+- `--json` - try to format response content as JSON.
+- `--raw` - export raw results without custom HTML; can be combined with `--json`.
+- `--output-format PlainText|JSON` (global) - choose human-readable console output or structured JSON for automation/LLMs.
+- `--quiet` (global) - suppress progress updates on stderr; only fatal errors remain. Useful when piping to `jq` or when stderr/stdout are merged.
+- `-f|--full-equality` - enforce full response equality checks instead of length-based comparisons.
+- `--no-op` - print the parsed configuration without running any requests.
+- `-c|--connections` - cap parallel requests; set to `1` for sequential execution. When omitted, it defaults to the request count (`--number`).
+- `-d|--delay` - add a delay (ms) after each request completes; useful when `--connections` is `1`.
+- `-u|--url` - override the request URL while keeping the rest of the configuration unchanged.
+- `-o|--output` - choose a custom output directory (defaults to `results`).
+- `-n|--number` and `-t|--timeout` - control how many requests run and the per-request timeout (ms).
 
 ## Disclaimer
 

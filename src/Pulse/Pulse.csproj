@@ -1,36 +1,46 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TrimMode>full</TrimMode>
-    <OptimizationPreference>Speed</OptimizationPreference>
-    <ServerGarbageCollection>true</ServerGarbageCollection>
-    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-    <GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
-    <PublishAot>true</PublishAot>
-    <IsAotCompatible>true</IsAotCompatible>
-    <AotCompatible>true</AotCompatible>
-    <InvariantGlobalization>true</InvariantGlobalization>
-    <StackTraceSupport>false</StackTraceSupport>
-    <Version>1.2.0.0</Version>
-    <StripSymbols>true</StripSymbols>
-    <RepositoryUrl>https://github.com/dusrdev/Pulse</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TrimMode>full</TrimMode>
+        <LangVersion>preview</LangVersion>
+        <OptimizationPreference>Speed</OptimizationPreference>
+        <ServerGarbageCollection>false</ServerGarbageCollection>
+        <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+        <AnalysisMode>All</AnalysisMode>
+        <PublishAot>true</PublishAot>
+        <IsAotCompatible>true</IsAotCompatible>
+        <AotCompatible>true</AotCompatible>
+        <DebuggerSupport>false</DebuggerSupport>
+        <DeterministicBuild>true</DeterministicBuild>
+        <EventSourceSupport>false</EventSourceSupport>
+        <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <StackTraceSupport>false</StackTraceSupport>
+        <Version>2.0.0.0</Version>
+        <StripSymbols>true</StripSymbols>
+        <RepositoryUrl>https://github.com/dusrdev/Pulse</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <NoWarn>CA1515</NoWarn>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Sharpify" Version="2.5.0" />
-    <PackageReference Include="Sharpify.CommandLineInterface" Version="1.5.0" />
-    <PackageReference Include="PrettyConsole" Version="3.1.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="ConsoleAppFramework" Version="5.7.13">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="ConsoleAppFramework.CliSchema" Version="5.7.13" />
+        <PackageReference Include="PrettyConsole" Version="5.3.0" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>Pulse.Tests.Unit</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Pulse.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
 
 </Project>

@@ -3,117 +3,117 @@ using System.Text;
 using System.Text.Json;
 
 using Pulse.Configuration;
-
-using Sharpify;
+using Pulse.Models;
 
 namespace Pulse.Core;
 
-public static class Exporter {
-  public static Task ExportResponseAsync(Response result, string path, Parameters parameters, CancellationToken token = default) {
-    if (token.IsCancellationRequested) {
-      return Task.CompletedTask;
+internal static class Exporter {
+    private const string JsonExtension = "json";
+    private const string HtmlExtension = "html";
+
+    public static Task ExportResponseAsync(Response result, string path, Parameters parameters, CancellationToken token = default) {
+        if (token.IsCancellationRequested) {
+            return Task.CompletedTask;
+        }
+
+        if (parameters.ExportRaw) {
+            return ExportRawAsync(result, path, parameters.FormatJson, token);
+        } else {
+            return ExportHtmlAsync(result, path, parameters.FormatJson, token);
+        }
     }
 
-    if (parameters.ExportRaw) {
-      return ExportRawAsync(result, path, parameters.FormatJson, token);
-    } else {
-      return ExportHtmlAsync(result, path, parameters.FormatJson, token);
-    }
-  }
+    internal static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+        bool hasContent = result.Content.Length != 0;
 
-  internal static async Task ExportRawAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
-    bool hasContent = result.Content.Length != 0;
+        HttpStatusCode statusCode = result.StatusCode;
+        string extension;
+        string content;
 
-    HttpStatusCode statusCode = result.StatusCode;
-    string extension;
-    string content;
+        if (!result.Exception.IsDefault) {
+            content = DefaultJsonContext.SerializeException(result.Exception);
+            extension = JsonExtension;
+        } else {
+            if (result.StatusCode is not HttpStatusCode.OK && !hasContent) {
+                var failure = new RawFailure {
+                    StatusCode = (int)result.StatusCode,
+                    Headers = result.Headers.ToDictionary(),
+                    Content = result.Content
+                };
+                content = DefaultJsonContext.Serialize(failure);
+                extension = JsonExtension;
+            } else if (formatJson) {
+#pragma warning disable CA1031 // Do not catch general exception types
+                try {
+                    using var doc = JsonDocument.Parse(result.Content);
+                    var root = doc.RootElement;
+                    var json = JsonSerializer.Serialize(root, InputJsonContext.Default.JsonElement);
+                    content = json;
+                } catch {
+                    content = result.Content;
+                }
+#pragma warning restore CA1031 // Do not catch general exception types
+                extension = JsonExtension;
+            } else {
+                content = result.Content;
+                extension = HtmlExtension;
+            }
+        }
 
-    if (!result.Exception.IsDefault) {
-      content = DefaultJsonContext.SerializeException(result.Exception);
-      extension = "json";
-    } else {
-      if (result.StatusCode is not HttpStatusCode.OK && !hasContent) {
-        var failure = new RawFailure {
-          StatusCode = (int)result.StatusCode,
-          Headers = result.Headers.ToDictionary(),
-          Content = result.Content
-        };
-        content = DefaultJsonContext.Serialize(failure);
-        extension = "json";
-      } else if (formatJson) {
-        content = FormatJson(result.Content).Message;
-        extension = "json";
-      } else {
-        content = result.Content;
-        extension = "html";
-      }
-    }
+        string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.{extension}");
 
-    string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.{extension}");
-
-    await File.WriteAllTextAsync(filename, content, token);
-
-    static Result FormatJson(string content) {
-      try {
-        using var doc = JsonDocument.Parse(content);
-        var root = doc.RootElement;
-        var json = JsonSerializer.Serialize(root, InputJsonContext.Default.JsonElement);
-        return Result.Ok(json);
-      } catch (JsonException) {
-        return Result.Fail("Failed to format content as JSON");
-      }
-    }
-  }
-
-  internal static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
-    HttpStatusCode statusCode = result.StatusCode;
-    string frameTitle;
-    string content = string.IsNullOrWhiteSpace(result.Content) ? string.Empty : result.Content;
-    string status;
-
-    if (result.Exception.IsDefault) {
-      status = $"{statusCode} ({(int)statusCode})";
-      frameTitle = "Content:";
-      if (formatJson) {
-        try {
-          using var doc = JsonDocument.Parse(content);
-          var root = doc.RootElement;
-          var json = JsonSerializer.Serialize(root, InputJsonContext.Default.JsonElement);
-          content = $"<pre>{json}</pre>";
-        } catch (JsonException) { } // Ignore - Keep content as is
-      }
-      content = content.Replace('\'', '\"');
-    } else {
-      status = "Exception (0)";
-      frameTitle = "Exception:";
-      content = $"<pre>{DefaultJsonContext.SerializeException(result.Exception)}</pre>";
+        await File.WriteAllTextAsync(filename, content, token).ConfigureAwait(false);
     }
 
-    string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
-    string contentFrame = content == string.Empty ?
-"""
+    internal static async Task ExportHtmlAsync(Response result, string path, bool formatJson = false, CancellationToken token = default) {
+        HttpStatusCode statusCode = result.StatusCode;
+        string frameTitle;
+        string content = string.IsNullOrWhiteSpace(result.Content) ? string.Empty : result.Content;
+        string status;
+
+        if (result.Exception.IsDefault) {
+            status = $"{statusCode} ({(int)statusCode})";
+            frameTitle = "Content:";
+            if (formatJson) {
+                try {
+                    using var doc = JsonDocument.Parse(content);
+                    var root = doc.RootElement;
+                    var json = JsonSerializer.Serialize(root, InputJsonContext.Default.JsonElement);
+                    content = $"<pre>{json}</pre>";
+                } catch (JsonException) { } // Ignore - Keep content as is
+            }
+            content = content.Replace('\'', '\"');
+        } else {
+            status = "Exception (0)";
+            frameTitle = "Exception:";
+            content = $"<pre>{DefaultJsonContext.SerializeException(result.Exception)}</pre>";
+        }
+
+        string filename = Path.Join(path, $"response-{result.Id}-status-code-{(int)statusCode}.html");
+        string contentFrame = content.Length == 0 ?
+    """
 <div>
 <h2>Content: Empty...</h2>
 </div>
 """
-:
-$$"""
+    :
+    $$"""
 <div class="iframe-container">
 <h2>{{frameTitle}}</h2>
 <iframe title="Content" width="100%" height="100%" srcdoc='{{content}}'></iframe>
 </div>
 """;
-    string headers = string.Empty;
-    if (result.Headers.Any()) {
-      headers =
-      $"""
+        string headers = string.Empty;
+        if (result.Headers.Any()) {
+            headers =
+            $"""
       <div class="table-section">
       {ToHtmlTable(result.Headers)}
       </div>
       """;
-    }
-    const string css =
-"""
+        }
+        const string css =
+    """
 /* Reset and Base Styles */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -277,8 +277,8 @@ iframe {
   }
 }
 """;
-    string body =
-$$"""
+        string body =
+    $$"""
 <!DOCTYPE html>
 <html lang="en">
 <title>Response: {{result.Id}}</title>
@@ -299,62 +299,61 @@ $$"""
 </div>
 </body>
 """;
-    await File.WriteAllTextAsync(filename, body, token);
-  }
-
-  /// <summary>
-  /// Converts HttpResponseHeaders to an HTML table representation.
-  /// </summary>
-  /// <param name="headers">The HttpResponseHeaders to convert.</param>
-  /// <returns>A string containing the HTML table.</returns>
-  /// <exception cref="ArgumentNullException">Thrown when headers is null.</exception>
-  internal static string ToHtmlTable(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers) {
-    StringBuilder sb = new();
-
-    // Start the table and add some basic styling
-    sb.AppendLine("<table>");
-    sb.AppendLine("<colgroup>");
-    sb.AppendLine("<col><col>");
-    sb.AppendLine("</colgroup>");
-    sb.AppendLine("<thead>");
-    sb.AppendLine("<tr>");
-    sb.AppendLine("<th class=\"header\">Header</th>");
-    sb.AppendLine("<th class=\"value\">Value</th>");
-    sb.AppendLine("</tr>");
-    sb.AppendLine("</thead>");
-    sb.AppendLine("<tbody>");
-
-    foreach (var header in headers) {
-      string headerName = WebUtility.HtmlEncode(header.Key);
-      string headerValues = WebUtility.HtmlEncode(string.Join(", ", header.Value));
-
-      sb.AppendLine("<tr>");
-      sb.AppendLine($"<td class=\"header\">{headerName}</td>");
-      sb.AppendLine($"<td class=\"value\">{headerValues}</td>");
-      sb.AppendLine("</tr>");
+        await File.WriteAllTextAsync(filename, body, token).ConfigureAwait(false);
     }
 
-    sb.AppendLine("</tbody>");
-    sb.AppendLine("</table>");
+    /// <summary>
+    /// Converts HttpResponseHeaders to an HTML table representation.
+    /// </summary>
+    /// <param name="headers">The HttpResponseHeaders to convert.</param>
+    /// <returns>A string containing the HTML table.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when headers is null.</exception>
+    internal static string ToHtmlTable(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers) {
+        StringBuilder sb = new(1024);
 
-    return sb.ToString();
-  }
+        // Start the table and add some basic styling
+        sb.AppendLine("<table>");
+        sb.AppendLine("<colgroup>");
+        sb.AppendLine("<col><col>");
+        sb.AppendLine("</colgroup>");
+        sb.AppendLine("<thead>");
+        sb.AppendLine("<tr>");
+        sb.AppendLine("<th class=\"header\">Header</th>");
+        sb.AppendLine("<th class=\"value\">Value</th>");
+        sb.AppendLine("</tr>");
+        sb.AppendLine("</thead>");
+        sb.AppendLine("<tbody>");
 
-  /// <summary>
-  /// Removes all files in the directory
-  /// </summary>
-  /// <param name="directoryPath"></param>
-  internal static void ClearFiles(string directoryPath) {
-    var files = Directory.GetFiles(directoryPath);
-    if (files.Length == 0) {
-      return;
+        foreach (var header in headers) {
+            string headerName = WebUtility.HtmlEncode(header.Key);
+            string headerValues = WebUtility.HtmlEncode(string.Join(", ", header.Value));
+
+            sb.AppendLine("<tr>");
+            sb.AppendLine($"<td class=\"header\">{headerName}</td>");
+            sb.AppendLine($"<td class=\"value\">{headerValues}</td>");
+            sb.AppendLine("</tr>");
+        }
+
+        sb.AppendLine("</tbody>");
+        sb.AppendLine("</table>");
+
+        return sb.ToString();
     }
-    foreach (var file in files) {
-      try {
-        File.Delete(file);
-      } catch {
-        // ignored
-      }
+
+    /// <summary>
+    /// Removes all files in the directory
+    /// </summary>
+    /// <param name="directoryPath"></param>
+    internal static void ClearFiles(string directoryPath) {
+        string[] files = Directory.GetFiles(directoryPath);
+        foreach (var file in files) {
+#pragma warning disable CA1031 // Do not catch general exception types
+            try {
+                File.Delete(file);
+            } catch {
+                // ignored
+            }
+#pragma warning restore CA1031 // Do not catch general exception types
+        }
     }
-  }
 }

@@ -1,29 +1,44 @@
-using static PrettyConsole.Console;
-using PrettyConsole;
-
-using Pulse.Configuration;
 using System.Net;
+using System.Numerics;
 
+using Pulse.Models;
 
 namespace Pulse.Core;
 
 /// <summary>
 /// Helper class
 /// </summary>
-public static class Helper {
+internal static class Helper {
+    public static double Percentage<T>(T current, T total) where T : INumberBase<T> {
+        return double.CreateChecked(current / total);
+    }
+
+    public static TimeSpan GetEta(double percentage, TimeSpan elapsed) {
+        switch (percentage) {
+            case <= 0:
+                return TimeSpan.MaxValue;
+            case >= 1:
+                return TimeSpan.Zero;
+            default: {
+                    var rem = (1 - percentage) / percentage;
+                    return rem * elapsed;
+                }
+        }
+    }
+
     /// <summary>
     /// Returns a text color based on percentage
     /// </summary>
     /// <param name="percentage"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public static Color GetPercentageBasedColor(double percentage) {
+    public static ConsoleColor GetPercentageBasedColor(double percentage) {
         ArgumentOutOfRangeException.ThrowIfGreaterThan<uint>((uint)percentage, 100);
 
         return percentage switch {
-            >= 75 => Color.Green,
-            >= 50 => Color.Yellow,
-            _ => Color.Red
+            >= 75 => Green,
+            >= 50 => Yellow,
+            _ => Red
         };
     }
 
@@ -32,31 +47,29 @@ public static class Helper {
     /// </summary>
     /// <param name="statusCode"></param>
     /// <returns></returns>
-    public static Color GetStatusCodeBasedColor(int statusCode) {
+    public static ConsoleColor GetStatusCodeBasedColor(int statusCode) {
         return statusCode switch {
-            < 100 => Color.Magenta,
-            < 200 => Color.White,
-            < 300 => Color.Green,
-            < 400 => Color.Yellow,
-            < 600 => Color.Red,
-            _ => Color.Magenta
+            < 100 => Magenta,
+            < 200 => White,
+            < 300 => Green,
+            < 400 => Yellow,
+            < 600 => Red,
+            _ => Magenta
         };
     }
 
     /// <summary>
-    /// Returns a colored header for the request
-    /// </summary>
-    /// <param name="request"></param>
-    public static ColoredOutput[] CreateHeader(Request request) {
-        Color color = request.Method.Method switch {
-            "GET" => Color.Green,
-            "DELETE" => Color.Red,
-            "POST" => Color.Magenta,
-            _ => Color.Yellow
+	/// Returns a color based on HttpMethod
+	/// </summary>
+	/// <param name="method"></param>
+	/// <returns></returns>
+    public static ConsoleColor GetMethodBasedColor(string method)
+        => method switch {
+            "GET" => Green,
+            "DELETE" => Red,
+            "POST" => Magenta,
+            _ => Yellow
         };
-
-        return [request.Method.Method * color, " => ", request.Url];
-    }
 
     /// <summary>
     /// Configures SSL handling
@@ -65,7 +78,9 @@ public static class Helper {
     /// <param name="proxy"></param>
     public static void ConfigureSslHandling(this SocketsHttpHandler handler, Proxy proxy) {
         if (proxy.IgnoreSSL) {
-            handler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+#pragma warning disable CA5359 // Do Not Disable Certificate Validation
+            handler.SslOptions.RemoteCertificateValidationCallback = static (_, _, _, _) => true;
+#pragma warning restore CA5359 // Do Not Disable Certificate Validation
         }
     }
 
@@ -73,23 +88,21 @@ public static class Helper {
     /// Prints the exception
     /// </summary>
     /// <param name="e"></param>
-    public static void PrintException(this StrippedException e, int indent = 0) {
-        Span<char> padding = stackalloc char[indent];
-        padding.Fill(' ');
-        Error.Write(padding);
-        WriteLine(["Exception Type" * Color.Yellow, ": ", e.Type], OutputPipe.Error);
-        Error.Write(padding);
-        WriteLine(["Message" * Color.Yellow, ": ", e.Message], OutputPipe.Error);
+    public static void PrintException(this StrippedException e) {
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Exception type: {ConsoleColor.DefaultForeground}{e.Type}");
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Message: {ConsoleColor.DefaultForeground}{e.Message}");
+
         if (e.Detail is not null) {
-            Error.Write(padding);
-            WriteLine(["Detail" * Color.Yellow, ": ", e.Detail], OutputPipe.Error);
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Detail: {ConsoleColor.DefaultForeground}{e.Detail}");
         }
+
         if (e.InnerException is null or { IsDefault: true }) {
             return;
         }
-        Error.Write(padding);
-        Error.WriteLine("Inner Exception:");
-        PrintException(e.InnerException, indent + 2);
+
+        Console.NewLine(OutputPipe.Error);
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Magenta}Inner exception:");
+        PrintException(e.InnerException);
     }
 
     /// <summary>
