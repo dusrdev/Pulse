@@ -89,11 +89,11 @@ internal static class Helper {
     /// </summary>
     /// <param name="e"></param>
     public static void PrintException(this StrippedException e) {
-        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Exception type: {ConsoleColor.Default}{e.Type}");
-        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Message: {ConsoleColor.Default}{e.Message}");
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Exception type: {ConsoleColor.DefaultForeground}{e.Type}");
+        Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Message: {ConsoleColor.DefaultForeground}{e.Message}");
 
         if (e.Detail is not null) {
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Detail: {ConsoleColor.Default}{e.Detail}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Yellow}Detail: {ConsoleColor.DefaultForeground}{e.Detail}");
         }
 
         if (e.InnerException is null or { IsDefault: true }) {

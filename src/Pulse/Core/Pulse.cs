@@ -43,8 +43,8 @@ internal sealed partial class Pulse {
     private readonly Request _requestRecipe;
     private readonly Task _printer;
     private readonly bool _reportProgress;
-
     private readonly Channel<Stats> _channel;
+    private volatile int _spinnerIndex;
 
     /// <summary>
     /// Creates a new pulse monitor
@@ -72,7 +72,8 @@ internal sealed partial class Pulse {
                 SuccessRate = 0,
                 Eta = TimeSpan.MaxValue,
                 RequestCount = _requestCount,
-                StatusCodes = _stats
+                StatusCodes = _stats,
+                SpinnerIndex = _spinnerIndex
             });
 
             Console.CursorVisible = false;
@@ -113,15 +114,17 @@ internal sealed partial class Pulse {
     private async ValueTask PushMetricsAsync() {
         var percentage = Helper.Percentage<double>(_responses.Value, _requestCount);
         var eta = Helper.GetEta(percentage, Stopwatch.GetElapsedTime(_start));
-        double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2);
+        double sr = Math.Round((double)_stats[2].Value / _responses.Value * 100, 2, MidpointRounding.AwayFromZero);
+        Interlocked.Exchange(ref _spinnerIndex, (_spinnerIndex + 1) % IndeterminateProgressBar.Patterns.Braille.Count);
 
         var stats = new Stats {
-            Percentage = percentage,
+            Percentage = 100 * percentage,
             CurrentCount = _responses,
             RequestCount = _requestCount,
             StatusCodes = _stats,
             Eta = eta,
-            SuccessRate = sr
+            SuccessRate = sr,
+            SpinnerIndex = _spinnerIndex
         };
 
         await _channel.Writer.WriteAsync(stats, _cancellationToken).ConfigureAwait(false);
@@ -129,11 +132,10 @@ internal sealed partial class Pulse {
 
     private static void PrintMetrics(Stats stats) {
         Console.Overwrite(stats, static s => {
-            Console.WriteInterpolated(OutputPipe.Error, $"Completed: {Yellow}{s.CurrentCount.Value}{ConsoleColor.Default}/{Yellow}{s.RequestCount}{ConsoleColor.Default} ");
-            ProgressBar.WriteProgressBar(OutputPipe.Error, s.Percentage * 100, Green, maxLineWidth: 34);
-            Console.NewLine(OutputPipe.Error);
-            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.Default}%, Estimated time remaining: {Yellow}{s.Eta:duration}");
-            Console.WriteLineInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.Default}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.Default}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.Default}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.Default}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.Default}, others: {Magenta}{s.StatusCodes[0].Value}");
+            var spinner = IndeterminateProgressBar.Patterns.Braille;
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Magenta}{spinner[s.SpinnerIndex]}{ConsoleColor.DefaultForeground} Completed: {Magenta}{s.Percentage,6:#.##}%{ConsoleColor.DefaultForeground}, Requests: {Yellow}{s.CurrentCount.Value}{ConsoleColor.DefaultForeground}/{Yellow}{s.RequestCount}{ConsoleColor.DefaultForeground}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.DefaultForeground}%, Estimated time remaining: {Yellow}{s.Eta:duration}");
+            Console.WriteInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.DefaultForeground}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.DefaultForeground}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.DefaultForeground}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.DefaultForeground}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.DefaultForeground}, others: {Magenta}{s.StatusCodes[0].Value}");
         }, 3);
     }
 
@@ -222,6 +224,7 @@ internal sealed partial class Pulse {
         public required TimeSpan Eta { get; init; }
         public required double SuccessRate { get; init; }
         public required ulong RequestCount { get; init; }
+        public required int SpinnerIndex { get; init; }
     }
 
     /// <inheritdoc />

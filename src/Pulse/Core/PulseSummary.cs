@@ -279,7 +279,7 @@ internal static class PulseSummary {
 
         if (count is 1) {
             await Exporter.ExportResponseAsync(uniqueRequests.First(), directory, parameters, parameters.CancellationToken).ConfigureAwait(false);
-            Console.WriteLineInterpolated($"{Green}1{ConsoleColor.Default} unique response exported to {Yellow}{directory}");
+            Console.WriteLineInterpolated($"{Green}1{ConsoleColor.DefaultForeground} unique response exported to {Yellow}{directory}");
             return;
         }
 
@@ -290,6 +290,6 @@ internal static class PulseSummary {
 
         await Parallel.ForEachAsync(uniqueRequests, options, async (request, tkn) => await Exporter.ExportResponseAsync(request, directory, parameters, tkn).ConfigureAwait(false)).ConfigureAwait(false);
 
-        Console.WriteLineInterpolated($"{Green}{count}{ConsoleColor.Default} unique responses exported to {Yellow}{directory}{ConsoleColor.Default}");
+        Console.WriteLineInterpolated($"{Green}{count}{ConsoleColor.DefaultForeground} unique responses exported to {Yellow}{directory}{ConsoleColor.DefaultForeground}");
     }
 }
