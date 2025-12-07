@@ -15,9 +15,14 @@ public class PulseMonitorTests {
         };
 
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, 50);
+        var parameters = new Parameters(new ParametersBase {
+            Requests = 1,
+            Export = false,
+            Quiet = true
+        }, CancellationToken.None);
+        var monitor = new PulseMonitor(httpClient, requestDetails.Request, parameters);
 
-        var context = new RequestExecutionContext();
-        var result = await context.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
+        var result = await monitor.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
         await Assert.That(result.Exception.Type).IsEqualTo(nameof(TimeoutException));
     }
 }
