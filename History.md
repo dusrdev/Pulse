@@ -16,6 +16,7 @@
   - Added `cli-schema` command prints the usage schema for the app in JSON format.
   - Added `--output-format` parameter that can be used to change the output from the default plain-text to structured JSON.
   - Added `--quiet` parameter that can be used to suppress writing progress to stderr (which can glitch if agents merge the streams).
+- `--verbose` option was removed, the default mode with `--quiet` achieves a similar functionality.
 - Compilations options were refined to produce a even more purpose fit executable.
   - Smaller output binary size.
   - Shorter startup times.
