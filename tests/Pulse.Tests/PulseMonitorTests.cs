@@ -20,7 +20,7 @@ public class PulseMonitorTests {
             Export = false,
             Quiet = true
         }, CancellationToken.None);
-        var monitor = new PulseMonitor(httpClient, requestDetails.Request, parameters);
+        var monitor = new Core.Pulse(httpClient, requestDetails.Request, parameters);
 
         var result = await monitor.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
         await Assert.That(result.Exception.Type).IsEqualTo(nameof(TimeoutException));
