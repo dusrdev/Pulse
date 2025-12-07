@@ -133,7 +133,7 @@ internal sealed partial class Pulse {
     private static void PrintMetrics(Stats stats) {
         Console.Overwrite(stats, static s => {
             var spinner = IndeterminateProgressBar.Patterns.Braille;
-            Console.WriteLineInterpolated(OutputPipe.Error, $"{Magenta}{spinner[s.SpinnerIndex]}{ConsoleColor.DefaultForeground} Completed: {Magenta}{s.Percentage,6:#.##}%{ConsoleColor.DefaultForeground}, Requests: {Yellow}{s.CurrentCount.Value}{ConsoleColor.DefaultForeground}/{Yellow}{s.RequestCount}{ConsoleColor.DefaultForeground}");
+            Console.WriteLineInterpolated(OutputPipe.Error, $"{Magenta}{spinner[s.SpinnerIndex]}{ConsoleColor.DefaultForeground} Completed: {Cyan}{s.Percentage,6:#.##}%{ConsoleColor.DefaultForeground}, Requests: {Yellow}{s.CurrentCount.Value}{ConsoleColor.DefaultForeground}/{Yellow}{s.RequestCount}{ConsoleColor.DefaultForeground}");
             Console.WriteLineInterpolated(OutputPipe.Error, $"Success Rate: {Helper.GetPercentageBasedColor(s.SuccessRate)}{s.SuccessRate}{ConsoleColor.DefaultForeground}%, Estimated time remaining: {Yellow}{s.Eta:duration}");
             Console.WriteInterpolated(OutputPipe.Error, $"1xx: {White}{s.StatusCodes[1].Value}{ConsoleColor.DefaultForeground}, 2xx: {Green}{s.StatusCodes[2].Value}{ConsoleColor.DefaultForeground}, 3xx: {Yellow}{s.StatusCodes[3].Value}{ConsoleColor.DefaultForeground}, 4xx: {Red}{s.StatusCodes[4].Value}{ConsoleColor.DefaultForeground}, 5xx: {Red}{s.StatusCodes[5].Value}{ConsoleColor.DefaultForeground}, others: {Magenta}{s.StatusCodes[0].Value}");
         }, 3);
