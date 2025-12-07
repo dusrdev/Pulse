@@ -1,5 +1,5 @@
-#:package PrettyConsole@5.1.0
-#:package ConsoleAppFramework@5.7.11
+#:package PrettyConsole@5.3.0
+#:package ConsoleAppFramework@5.7.13
 #:package CliWrap@3.10.0
 
 using CliWrap;
