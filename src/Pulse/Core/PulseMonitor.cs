@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 
 using Pulse.Models;
-
-using static Pulse.Core.IPulseMonitor;
 
 namespace Pulse.Core;
 
@@ -12,7 +12,7 @@ namespace Pulse.Core;
 /// <summary>
 /// PulseMonitor wraps the execution delegate and handles display of metrics and cross-thread data collection
 /// </summary>
-internal sealed class PulseMonitor : IPulseMonitor {
+internal sealed class PulseMonitor {
     /// <summary>
     /// Holds the results of all the requests
     /// </summary>
@@ -99,7 +99,8 @@ internal sealed class PulseMonitor : IPulseMonitor {
         // Increment stats
 
         int index = (int)result.StatusCode / 100;
-        Interlocked.Increment(ref _stats[index].Value);
+        ref var bucket = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_stats), index);
+        Interlocked.Increment(ref bucket.Value);
         // Print metrics
 
         if (_reportProgress) {

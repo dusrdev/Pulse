@@ -16,7 +16,7 @@ public class PulseMonitorTests {
 
         using var httpClient = PulseHttpClientFactory.Create(requestDetails.Proxy, 50);
 
-        var context = new IPulseMonitor.RequestExecutionContext();
+        var context = new RequestExecutionContext();
         var result = await context.SendRequest(1, requestDetails.Request, httpClient, false, CancellationToken.None);
         await Assert.That(result.Exception.Type).IsEqualTo(nameof(TimeoutException));
     }

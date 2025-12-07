@@ -13,6 +13,5 @@ public class ParametersTests {
         await Assert.That(@params.UseFullEquality).IsFalse();
         await Assert.That(@params.Export).IsTrue();
         await Assert.That(@params.NoOp).IsFalse();
-        await Assert.That(@params.Verbose).IsFalse();
     }
 }
