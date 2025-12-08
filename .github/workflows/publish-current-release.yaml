@@ -19,12 +19,6 @@ jobs:
           - os: windows-latest
             arch: arm64
             platform: Windows
-          - os: ubuntu-20.04
-            arch: x86
-            platform: Linux
-          - os: ubuntu-20.04
-            arch: x64
-            platform: Linux
           - os: ubuntu-latest
             arch: x86
             platform: Linux
